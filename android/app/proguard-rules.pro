@@ -14,3 +14,6 @@
 # Preserve Secure Storage & Crypto classes
 -keep class javax.crypto.** { *; }
 -keep class java.security.** { *; }
+
+# Preserve Application & Custom Native Plugins
+-keep class id.ksatriagraphx.app.** { *; }

@@ -1,4 +1,5 @@
 import { isNativeApp } from "@/lib/platform";
+import { SecureStorage } from "@aparajita/capacitor-secure-storage";
 
 const ACCESS_TOKEN_KEY = "kgx_access_token";
 const REFRESH_TOKEN_KEY = "kgx_refresh_token";
@@ -9,104 +10,70 @@ export interface SecureStorageTokens {
 }
 
 export const secureStorage = {
+  /**
+   * Menyimpan pasangan Access Token & Refresh Token ke Android Keystore terenkripsi.
+   * Pada browser Web (isNativeApp() === false), fungsi ini adalah no-op karena Web menggunakan HttpOnly Cookie.
+   */
   async saveTokens(tokens: SecureStorageTokens): Promise<void> {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !isNativeApp()) {
+      return;
+    }
 
-    if (isNativeApp()) {
-      try {
-        const globalAny = window as unknown as {
-          CapacitorSecureStorage?: {
-            set: (options: { key: string; value: string }) => Promise<void>;
-          };
-        };
-
-        if (globalAny.CapacitorSecureStorage) {
-          await globalAny.CapacitorSecureStorage.set({
-            key: ACCESS_TOKEN_KEY,
-            value: tokens.accessToken,
-          });
-          await globalAny.CapacitorSecureStorage.set({
-            key: REFRESH_TOKEN_KEY,
-            value: tokens.refreshToken,
-          });
-          return;
-        }
-      } catch {
-        // Fallback jika plugin native belum dihubungkan
-      }
-      sessionStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
-      sessionStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+    try {
+      await SecureStorage.set(ACCESS_TOKEN_KEY, tokens.accessToken);
+      await SecureStorage.set(REFRESH_TOKEN_KEY, tokens.refreshToken);
+    } catch (err) {
+      console.error("[SecureStorage] Gagal menyimpan token ke Keystore:", err);
     }
   },
 
+  /**
+   * Mengambil Access Token dari Android Keystore terenkripsi.
+   * Pada Web selalu mengembalikan null (autentikasi ditangani via Cookie HttpOnly).
+   */
   async getAccessToken(): Promise<string | null> {
-    if (typeof window === "undefined") return null;
-
-    if (isNativeApp()) {
-      try {
-        const globalAny = window as unknown as {
-          CapacitorSecureStorage?: {
-            get: (options: { key: string }) => Promise<{ value: string }>;
-          };
-        };
-
-        if (globalAny.CapacitorSecureStorage) {
-          const res = await globalAny.CapacitorSecureStorage.get({ key: ACCESS_TOKEN_KEY });
-          return res.value || null;
-        }
-      } catch {
-        // Fallback
-      }
-      return sessionStorage.getItem(ACCESS_TOKEN_KEY);
+    if (typeof window === "undefined" || !isNativeApp()) {
+      return null;
     }
 
-    return null;
+    try {
+      const val = await SecureStorage.get(ACCESS_TOKEN_KEY);
+      return typeof val === "string" ? val : null;
+    } catch {
+      return null;
+    }
   },
 
+  /**
+   * Mengambil Refresh Token dari Android Keystore terenkripsi.
+   * Pada Web selalu mengembalikan null.
+   */
   async getRefreshToken(): Promise<string | null> {
-    if (typeof window === "undefined") return null;
-
-    if (isNativeApp()) {
-      try {
-        const globalAny = window as unknown as {
-          CapacitorSecureStorage?: {
-            get: (options: { key: string }) => Promise<{ value: string }>;
-          };
-        };
-
-        if (globalAny.CapacitorSecureStorage) {
-          const res = await globalAny.CapacitorSecureStorage.get({ key: REFRESH_TOKEN_KEY });
-          return res.value || null;
-        }
-      } catch {
-        // Fallback
-      }
-      return sessionStorage.getItem(REFRESH_TOKEN_KEY);
+    if (typeof window === "undefined" || !isNativeApp()) {
+      return null;
     }
 
-    return null;
+    try {
+      const val = await SecureStorage.get(REFRESH_TOKEN_KEY);
+      return typeof val === "string" ? val : null;
+    } catch {
+      return null;
+    }
   },
 
+  /**
+   * Menghapus seluruh token dari Android Keystore saat logout atau sesi dicabut.
+   */
   async clearTokens(): Promise<void> {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !isNativeApp()) {
+      return;
+    }
 
-    if (isNativeApp()) {
-      try {
-        const globalAny = window as unknown as {
-          CapacitorSecureStorage?: {
-            remove: (options: { key: string }) => Promise<void>;
-          };
-        };
-
-        if (globalAny.CapacitorSecureStorage) {
-          await globalAny.CapacitorSecureStorage.remove({ key: ACCESS_TOKEN_KEY });
-          await globalAny.CapacitorSecureStorage.remove({ key: REFRESH_TOKEN_KEY });
-        }
-      } catch {
-        // Fallback
-      }
-      sessionStorage.removeItem(ACCESS_TOKEN_KEY);
-      sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+    try {
+      await SecureStorage.remove(ACCESS_TOKEN_KEY);
+      await SecureStorage.remove(REFRESH_TOKEN_KEY);
+    } catch (err) {
+      console.error("[SecureStorage] Gagal menghapus token:", err);
     }
   },
 };

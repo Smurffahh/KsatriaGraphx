@@ -1,97 +1,119 @@
-# Panduan Build Android APK — Ksatria Graphx (PRD v1.1.0)
+# Panduan Build & Distribusi Android APK — Ksatria Graphx
+**Otomatisasi Cloud Build via GitHub Actions (PRD v1.2.0)**
 
-Dokumen ini memuat panduan langkah demi langkah untuk membangun (build) aplikasi **Ksatria Graphx Android APK** secara aman dari basis kode Capacitor.
-
----
-
-## 1. Persyaratan Lingkungan Pengembangan
-
-1. **Node.js**: Versi `>= 20.x` (Direkomendasikan Node.js v22 LTS).
-2. **Package Manager**: `pnpm` (versi `>= 9.x` atau `12.x`).
-3. **Android Studio**: Android Studio Ladybug / Koala atau versi terbaru dengan:
-   - Android SDK Build-Tools (API 34 / 35)
-   - Android SDK Platform (API 34 / 35)
-   - JDK 17 atau JDK 21 (diatur pada `JAVA_HOME`)
-4. **Koneksi Backend**: Pastikan nilai `NEXT_PUBLIC_API_BASE_URL` pada `.env.production` mengarah ke URL HTTPS publik backend Anda (contoh: `https://app.ksatriagraphx.com`).
+Dokumen ini memuat panduan lengkap untuk membangun (*build*) aplikasi **Ksatria Graphx Android APK** secara otomatis di **GitHub Actions** tanpa perlu menginstal Android Studio secara lokal, serta panduan opsional untuk build lokal jika diperlukan.
 
 ---
 
-## 2. Alur Dual-Build Web & Mobile
+## 1. Ringkasan Alur Distribusi Cloud
 
-Aplikasi ini menggunakan arsitektur **Single Codebase**:
-- **Web App (Vercel)**: Menjalankan Next.js Fullstack (Server Components + Route Handlers di `src/app/api`).
-- **Android APK (Capacitor)**: Menjalankan Static HTML Export dari folder `out/`.
+Dengan GitHub Actions CI, Anda dapat menghasilkan file `.apk` siap pasang di HP dalam hitungan menit:
+1. **Debug APK (Untuk Uji Coba Cepat):** Dibangun cukup dengan mengklik tombol **Run workflow** di tab Actions GitHub. Hasilnya langsung dapat diunduh dari bagian **Artifacts**.
+2. **Signed Release APK (Untuk Penggunaan Operasional Kasir):** Ditandatangani menggunakan Keystore resmi yang disimpan aman di **GitHub Secrets**. Otomatis dipublikasikan ke halaman **GitHub Releases** setiap kali Anda membuat Git Tag (contoh: `v1.0.0`).
 
-### Langkah 1: Ekspor Aset Statis Web
-Jalankan perintah berikut di root repositori:
+---
+
+## 2. Cara 1-Klik Build & Unduh Debug APK di GitHub
+
+Gunakan langkah ini untuk mencoba aplikasi di HP tanpa konfigurasi sertifikat/keystore:
+
+1. Buka repositori **`https://github.com/Smurffahh/KsatriaGraphx`** di browser.
+2. Klik tab **Actions** di menu atas.
+3. Pada panel sebelah kiri, pilih workflow **"Build Android APK (Cloud CI)"**.
+4. Klik tombol **"Run workflow"** di sisi kanan atas:
+   - **Jenis Build APK:** Pilih `debug`.
+   - **Target URL Backend API:** Pastikan terisi `https://ksatriagraphx.vercel.app`.
+   - Klik tombol hijau **Run workflow**.
+5. Tunggu pipeline selesai (~3 hingga 5 menit). Saat lingkaran berubah hijau (centang), klik nama workflow yang selesai tersebut.
+6. Scroll ke bagian bawah pada seksi **Artifacts**, lalu unduh file **`KsatriaGraphx-debug-apk`**.
+7. Ekstrak file zip yang diunduh untuk mendapatkan file **`KsatriaGraphx-debug.apk`**, kirim ke HP Android Anda, dan instal langsung!
+
+---
+
+## 3. Menyiapkan Keystore & GitHub Secrets untuk Signed Release APK
+
+Untuk penggunaan operasional jangka panjang di toko, aplikasi harus ditandatangani dengan Keystore resmi agar update aplikasi di HP kasir tidak perlu uninstall terlebih dahulu.
+
+### Langkah 1: Buat File Keystore (Cukup 1 Kali Saja)
+Jalankan perintah berikut di terminal (Linux/macOS/Git Bash atau PowerShell Windows yang memiliki Java):
+
 ```bash
-pnpm run build:mobile
+keytool -genkeypair -v -keystore release.keystore -alias ksatriagraphx -keyalg RSA -keysize 2048 -validity 10000
 ```
-Script `scripts/build-mobile.mjs` akan:
-1. Memeriksa `NEXT_PUBLIC_API_BASE_URL`.
-2. Mengamankan sementara folder `src/app/api` agar tidak memicu error dynamic server routes saat proses static export.
-3. Menjalankan `next build` dengan `output: "export"`.
-4. Mengembalikan folder `src/app/api` secara otomatis setelah build selesai.
+> *Catatan:* Anda akan diminta memasukkan password keystore dan data toko sederhana (nama, organisasi, kota). **Ingat/catat password dan alias tersebut!**
 
-### Langkah 2: Sinkronisasi Aset ke Proyek Android
-Setelah folder `out/` terbentuk, sinkronkan ke proyek Android native:
-```bash
-pnpm run cap:sync
-```
+### Langkah 2: Konversi File Keystore ke Format Base64
+Jalankan perintah berikut untuk mengubah file `release.keystore` menjadi teks Base64:
+
+- **Di Windows PowerShell:**
+  ```powershell
+  [Convert]::ToBase64String([IO.File]::ReadAllBytes("release.keystore")) | Set-Clipboard
+  ```
+  *(Teks Base64 otomatis tersalin ke clipboard Anda).*
+
+- **Di Linux / macOS / Git Bash:**
+  ```bash
+  base64 -w 0 release.keystore | pbcopy # macOS
+  # atau
+  base64 -w 0 release.keystore # Linux (salin output yang tercetak)
+  ```
+
+> [!WARNING]
+> Simpan file `release.keystore` asli Anda di tempat aman di luar folder proyek (misalnya di Google Drive pribadi). **DILARANG** meng-commit file `.keystore` ke dalam repositori Git!
+
+### Langkah 3: Daftarkan 4 Secret di GitHub Repository
+1. Di GitHub repositori Anda, buka menu **Settings** -> **Secrets and variables** -> **Actions**.
+2. Klik tombol **New repository secret** untuk menambahkan 4 variabel berikut:
+
+| Nama Secret | Nilai yang Dimasukkan |
+| :--- | :--- |
+| `ANDROID_KEYSTORE_BASE64` | Tempelkan teks Base64 dari file `release.keystore` (hasil Langkah 2). |
+| `ANDROID_KEYSTORE_PASSWORD` | Password yang Anda masukkan saat membuat keystore. |
+| `ANDROID_KEY_ALIAS` | `ksatriagraphx` (atau alias yang Anda gunakan di Langkah 1). |
+| `ANDROID_KEY_PASSWORD` | Password untuk key alias tersebut. |
 
 ---
 
-## 3. Build APK Debug (Untuk Pengujian di HP / Emulator)
+## 4. Cara Merilis Signed Release APK Otomatis ke GitHub Releases
 
-### Opsi A: Menggunakan Android Studio (Direkomendasikan)
-1. Buka folder `android/` di Android Studio:
+Setelah keempat GitHub Secrets terpasang:
+
+1. Buat Git Tag versi baru di laptop Anda:
+   ```bash
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+2. GitHub Actions akan otomatis mendeteksi tag `v1.0.0`, mengeksekusi *pipeline* build release dengan optimasi R8/ProGuard aktif, menandatangani APK, dan memublikasikan **`KsatriaGraphx-v1.0.0-release.apk`** langsung di tab **Releases** repositori Anda.
+3. Kasir atau teknisi toko cukup membuka link GitHub Releases dari browser HP dan mengunduh APK tersebut.
+
+---
+
+## 5. Fitur Cetak Thermal Bluetooth di APK (`US-012`)
+
+Pada versi APK Android ini, aplikasi telah terintegrasi dengan **Native Bluetooth Classic SPP Thermal Printer Plugin (`ThermalPrinterPlugin.java`)**:
+- Mendukung printer thermal portabel Bluetooth ukuran kertas **58mm (32 kolom)** dan **80mm (48 kolom)**.
+- Standar UUID SPP: `00001101-0000-1000-8000-00805F9B34FB`.
+- Mekanisme **Chunked Write (128 bytes)** untuk stabilitas transmisi pada printer thermal Bluetooth ekonomis.
+- Pairing dan pemilihan printer default dapat dilakukan oleh Kasir maupun Owner langsung dari menu **Pengaturan** di aplikasi Android.
+
+---
+
+## 6. (Opsional) Build APK Lokal Menggunakan Gradle / Android Studio
+
+Jika di kemudian hari Anda menginstal Android Studio / Android SDK lokal di laptop:
+
+1. Ekspor aset statis dan sinkronkan Capacitor:
+   ```bash
+   pnpm run build:mobile
+   pnpm run cap:sync
+   ```
+2. Buka proyek Android di Android Studio:
    ```bash
    pnpm run cap:open:android
    ```
-2. Tunggu sinkronisasi Gradle selesai.
-3. Hubungkan perangkat HP Android via kabel USB (aktifkan *USB Debugging* di Pengaturan Developer HP).
-4. Klik tombol **Run 'app'** (ikon panah hijau) untuk langsung menginstal ke HP.
-
-### Opsi B: Menggunakan Gradle CLI
-Jalankan perintah terminal berikut:
-```bash
-cd android
-./gradlew assembleDebug
-# Di Windows Command Prompt / PowerShell:
-# .\gradlew.bat assembleDebug
-```
-File APK debug akan dihasilkan di:
-`android/app/build/outputs/apk/debug/app-debug.apk`
-
----
-
-## 4. Build APK Release Signed (Siap Distribusi / Produksi)
-
-### Langkah 1: Buat Keystore Produksi Secara Aman
-> [!CAUTION]
-> Simpan file keystore di luar direktori repositori Git (misalnya di folder dokumen pengguna Anda). DILARANG KERAS menyimpan file `.keystore` atau kata sandi keystore di dalam repositori publik!
-
-Jalankan perintah berikut menggunakan terminal untuk membuat release keystore:
-```bash
-keytool -genkey -v -keystore ../ksatria-graphx-release.keystore -alias ksatriagraphx -keyalg RSA -keysize 2048 -validity 10000
-```
-Isi kata sandi dan informasi sertifikat dengan cermat.
-
-### Langkah 2: Build Release APK di Android Studio
-1. Buka Android Studio (`pnpm run cap:open:android`).
-2. Pilih menu **Build** > **Generate Signed Bundle / APK...**.
-3. Pilih opsi **APK** > klik **Next**.
-4. Masukkan lokasi file keystore yang dibuat sebelumnya, isi kata sandi, dan pilih alias `ksatriagraphx`.
-5. Pilih Build Variant: **release**.
-6. Klik **Create** / **Finish**.
-7. File APK release yang telah dioptimasi dengan R8/ProGuard dan ditandatangani digital siap didistribusikan ke perangkat kasir toko.
-
----
-
-## 5. Fitur Native & Standar Keamanan Android yang Diterapkan
-
-1. **Android Keystore Encrypted Storage**: Access Token dan Refresh Token disimpan terenkripsi menggunakan modul Keystore hardware native melalui `@aparajita/capacitor-secure-storage`.
-2. **Anti-Backup**: Deklarasi `android:allowBackup="false"` mencegah pencurian sesi atau ekstraksi database aplikasi via ADB backup.
-3. **Strict HTTPS & Anti-Cleartext**: Atribut `android:usesCleartextTraffic="false"` menjamin seluruh pertukaran data API terlindungi enkripsi TLS/HTTPS dan kebal terhadap packet sniffing di jaringan Wi-Fi toko.
-4. **Perizinan Bluetooth Thermal**: Deklarasi izin `BLUETOOTH_SCAN` (`usesPermissionFlags="neverForLocation"`) dan `BLUETOOTH_CONNECT` untuk Android 12+ (API 31+) serta fallback backward compatibility untuk Android 10 dan 11.
-5. **R8/ProGuard Obfuscation**: Minifikasi dan *dead-code elimination* aktif pada build release untuk menyulitkan reverse-engineering bytecode.
+   atau jalankan build debug via Gradle CLI:
+   ```bash
+   cd android
+   ./gradlew assembleDebug
+   ```
+   File APK lokal akan berada di: `android/app/build/outputs/apk/debug/app-debug.apk`.

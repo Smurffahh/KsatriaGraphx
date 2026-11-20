@@ -15,7 +15,28 @@ export interface DefaultPrinterConfig {
 
 const PRINTER_CONFIG_KEY = "kgx_default_thermal_printer";
 
-// Interface untuk bridge plugin Bluetooth Serial native
+// Interface untuk bridge custom native Capacitor ThermalPrinter
+interface CustomThermalPrinterPlugin {
+  listPairedPrinters: () => Promise<{ devices: ThermalPrinterDevice[] }>;
+  printBytes: (options: { address: string; base64Data: string }) => Promise<{ success: boolean; message: string }>;
+}
+
+function getThermalPrinterPlugin(): CustomThermalPrinterPlugin | null {
+  if (typeof window === "undefined" || !isNativeApp()) return null;
+  const cap = (window as unknown as { Capacitor?: { Plugins?: Record<string, unknown> } }).Capacitor;
+  return (cap?.Plugins?.ThermalPrinter as CustomThermalPrinterPlugin) || null;
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+// Interface untuk bridge plugin Bluetooth Serial fallback
 interface NativeBluetoothSerial {
   requestPermissions?: () => Promise<{ granted: boolean }>;
   isEnabled?: () => Promise<{ enabled: boolean }>;
@@ -65,6 +86,20 @@ export async function requestBluetoothPermissions(): Promise<boolean> {
 export async function listPairedPrinters(): Promise<ThermalPrinterDevice[]> {
   if (!isNativeApp()) return [];
 
+  // 1. Coba custom Capacitor plugin ThermalPrinter
+  const customPlugin = getThermalPrinterPlugin();
+  if (customPlugin) {
+    try {
+      const res = await customPlugin.listPairedPrinters();
+      if (res && Array.isArray(res.devices)) {
+        return res.devices;
+      }
+    } catch (err) {
+      console.warn("[ThermalPrinter] Custom plugin list error, falling back:", err);
+    }
+  }
+
+  // 2. Fallback ke BluetoothSerial
   const bt = getNativeBluetooth();
   if (!bt || !bt.list) {
     return [];
@@ -167,6 +202,28 @@ export async function printReceiptThermal(
     };
   }
 
+  const paperWidth = targetPaperWidth || defaultPrinter.paperWidth || "58mm";
+  const bytes = generateEscPosReceipt(order, store, paperWidth);
+
+  // 1. Prioritaskan custom Capacitor plugin native ThermalPrinter (SPP BluetoothSocket)
+  const customPlugin = getThermalPrinterPlugin();
+  if (customPlugin) {
+    try {
+      const base64Data = bytesToBase64(bytes);
+      const res = await customPlugin.printBytes({
+        address: defaultPrinter.address,
+        base64Data,
+      });
+      return {
+        success: true,
+        message: res.message || "Nota pesanan berhasil dicetak ke printer thermal.",
+      };
+    } catch (err: unknown) {
+      console.warn("[ThermalPrinter] Custom plugin print error, mencoba fallback:", err);
+    }
+  }
+
+  // 2. Fallback ke BluetoothSerial native bridge jika custom plugin tidak tersedia
   const bt = getNativeBluetooth();
   if (!bt) {
     return {
@@ -175,21 +232,16 @@ export async function printReceiptThermal(
     };
   }
 
-  const paperWidth = targetPaperWidth || defaultPrinter.paperWidth || "58mm";
-
   try {
     // 1. Hubungkan ke printer
     if (bt.connect) {
       await bt.connect({ address: defaultPrinter.address });
     }
 
-    // 2. Generate byte ESC/POS
-    const bytes = generateEscPosReceipt(order, store, paperWidth);
-
-    // 3. Kirim data bertahap
+    // 2. Kirim data bertahap
     await sendEscPosChunks(bt, defaultPrinter.address, bytes);
 
-    // 4. Putus koneksi bersih
+    // 3. Putus koneksi bersih
     if (bt.disconnect) {
       await bt.disconnect({ address: defaultPrinter.address });
     }

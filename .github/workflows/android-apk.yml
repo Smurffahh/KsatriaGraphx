@@ -1,0 +1,211 @@
+name: Build Android APK (Cloud CI)
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: "Jenis Build APK"
+        required: true
+        type: choice
+        options:
+          - debug
+          - release
+        default: debug
+      api_base_url:
+        description: "Target URL Backend API (Wajib HTTPS)"
+        required: true
+        type: string
+        default: "https://ksatriagraphx.vercel.app"
+
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-android-apk:
+    name: Build & Package Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 2. Setup pnpm Package Manager
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: 3. Setup Node.js 22 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: 4. Setup Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+          cache: "gradle"
+
+      - name: 5. Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 6. Run Quality Gates (Typecheck, Lint & Unit Tests)
+        run: |
+          pnpm typecheck
+          pnpm lint
+          pnpm test
+
+      - name: 7. Determine Target API URL & Build Mode
+        id: config
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            BUILD_TYPE="release"
+            API_URL="https://ksatriagraphx.vercel.app"
+            VERSION_LABEL="${{ github.ref_name }}"
+          else
+            BUILD_TYPE="${{ github.event.inputs.build_type }}"
+            API_URL="${{ github.event.inputs.api_base_url }}"
+            VERSION_LABEL="${{ github.sha }}"
+            VERSION_LABEL="${VERSION_LABEL:0:7}"
+          fi
+
+          # Validasi API_URL wajib diawali https://
+          if [[ ! "$API_URL" =~ ^https:// ]]; then
+            echo "::error::API URL wajib menggunakan protokol HTTPS yang aman! (Nilai saat ini: $API_URL)"
+            exit 1
+          fi
+
+          echo "build_type=${BUILD_TYPE}" >> $GITHUB_OUTPUT
+          echo "api_url=${API_URL}" >> $GITHUB_OUTPUT
+          echo "version_label=${VERSION_LABEL}" >> $GITHUB_OUTPUT
+          echo "Mode Build: ${BUILD_TYPE}"
+          echo "Target API: ${API_URL}"
+          echo "Label Versi: ${VERSION_LABEL}"
+
+      - name: 8. Export Mobile Static Assets (out/)
+        env:
+          NEXT_PUBLIC_API_BASE_URL: ${{ steps.config.outputs.api_url }}
+          NEXT_PUBLIC_APP_URL: ${{ steps.config.outputs.api_url }}
+        run: pnpm run build:mobile
+
+      - name: 9. Secret Leak Gate on Exported Assets (out/)
+        run: |
+          echo "Memeriksa folder out/ dari potensi kebocoran secret..."
+          LEAK_PATTERNS='(postgresql://|postgres://|vercel_blob_rw_|neondb_owner|npg_|JWT_ACCESS_SECRET|JWT_REFRESH_SECRET|DATABASE_URL|BLOB_READ_WRITE_TOKEN|DEFAULT_OWNER_PASSWORD)'
+          
+          if grep -r -E "$LEAK_PATTERNS" out/; then
+            echo "::error::SECRET LEAK TERDETEKSI di folder out/! Build dibatalkan demi keamanan."
+            exit 1
+          else
+            echo "PASS: Folder out/ bersih dari kebocoran secret (0 secret leak)."
+          fi
+
+      - name: 10. Sync Capacitor Android
+        run: npx cap sync android
+
+      - name: 11. Ensure Gradle Wrapper is Executable
+        run: chmod +x android/gradlew
+
+      # -------------------------------------------------------------
+      # JALUR 1: BUILD DEBUG APK
+      # -------------------------------------------------------------
+      - name: 12A. Assemble Debug APK
+        if: steps.config.outputs.build_type == 'debug'
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: 12B. Prepare Debug Artifacts
+        if: steps.config.outputs.build_type == 'debug'
+        run: |
+          mkdir -p dist-apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist-apk/KsatriaGraphx-debug.apk
+          cd dist-apk
+          sha256sum KsatriaGraphx-debug.apk > SHA256SUMS.txt
+          echo "Checksum SHA-256:"
+          cat SHA256SUMS.txt
+
+      - name: 12C. Upload Debug APK Artifact
+        if: steps.config.outputs.build_type == 'debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: KsatriaGraphx-debug-apk
+          path: dist-apk/
+          retention-days: 14
+
+      # -------------------------------------------------------------
+      # JALUR 2: BUILD SIGNED RELEASE APK
+      # -------------------------------------------------------------
+      - name: 13A. Validate & Decode Keystore for Release
+        if: steps.config.outputs.build_type == 'release'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "::error::GitHub Secrets untuk Release Keystore belum lengkap!"
+            echo "Pastikan 4 Secrets berikut telah terdaftar di GitHub Repo Settings -> Secrets -> Actions:"
+            echo "  1. ANDROID_KEYSTORE_BASE64"
+            echo "  2. ANDROID_KEYSTORE_PASSWORD"
+            echo "  3. ANDROID_KEY_ALIAS"
+            echo "  4. ANDROID_KEY_PASSWORD"
+            echo "Panduan setup dapat dilihat pada file: docs/android-apk-build.md"
+            exit 1
+          fi
+
+          echo "$KEYSTORE_BASE64" | base64 -d > "${{ runner.temp }}/release.keystore"
+          echo "Keystore berhasil didekode ke runner temp."
+
+      - name: 13B. Assemble Signed Release APK
+        if: steps.config.outputs.build_type == 'release'
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release.keystore
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: 13C. Cleanup Release Keystore from Runner
+        if: always() && steps.config.outputs.build_type == 'release'
+        run: |
+          rm -f "${{ runner.temp }}/release.keystore"
+          echo "Keystore sementara telah dihapus dari runner."
+
+      - name: 13D. Prepare Release Artifacts
+        if: steps.config.outputs.build_type == 'release'
+        run: |
+          mkdir -p dist-apk
+          RELEASE_FILENAME="KsatriaGraphx-${{ steps.config.outputs.version_label }}-release.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "dist-apk/${RELEASE_FILENAME}"
+          cd dist-apk
+          sha256sum "${RELEASE_FILENAME}" > SHA256SUMS.txt
+          echo "Checksum SHA-256 Release APK:"
+          cat SHA256SUMS.txt
+
+      - name: 13E. Upload Release APK Artifact
+        if: steps.config.outputs.build_type == 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: KsatriaGraphx-${{ steps.config.outputs.version_label }}-release-apk
+          path: dist-apk/
+          retention-days: 30
+
+      - name: 13F. Publish to GitHub Releases (Tag Push Only)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Ksatria Graphx Release ${{ github.ref_name }}"
+          files: |
+            dist-apk/KsatriaGraphx-*-release.apk
+            dist-apk/SHA256SUMS.txt
+          generate_release_notes: true
+          draft: false
+          prerelease: false

@@ -1,13 +1,15 @@
 import { renameSync, existsSync } from "fs";
 import { execSync } from "child_process";
+import path from "path";
 import dotenv from "dotenv";
 
 dotenv.config({ path: ".env.production" });
 dotenv.config({ path: ".env.local" });
 dotenv.config({ path: ".env" });
 
-const apiDir = "src/app/api";
-const tempDir = "temp_api_backup_mobile_build";
+const rootDir = process.cwd();
+const apiDir = path.join(rootDir, "src", "app", "api");
+const tempDir = path.join(rootDir, "temp_api_backup_mobile_build");
 
 const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 if (!apiUrl || apiUrl.includes("localhost") || apiUrl.includes("127.0.0.1")) {
@@ -31,6 +33,10 @@ try {
   execSync("npx cross-env BUILD_TARGET=mobile next build", {
     stdio: "inherit",
     shell: true,
+    env: {
+      ...process.env,
+      BUILD_TARGET: "mobile",
+    },
   });
   console.log("\x1b[32m[BUILD MOBILE] Berhasil mengekspor aset statis ke folder out/\x1b[0m");
 } finally {

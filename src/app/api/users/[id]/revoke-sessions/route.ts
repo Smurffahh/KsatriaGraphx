@@ -8,6 +8,8 @@ import { recordAuditLog } from "@/lib/security/audit";
 import { getClientIp } from "@/lib/security/client-ip";
 import { getCorsHeaders, handleCorsPreflight } from "@/lib/api/cors";
 
+export const dynamic = "force-dynamic";
+
 interface RouteParams {
   params: Promise<{ id: string }>;
 }

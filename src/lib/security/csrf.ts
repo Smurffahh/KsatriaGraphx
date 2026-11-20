@@ -10,12 +10,19 @@ export function validateCsrfOrigin(request: Request): boolean {
     return false;
   }
 
+  // Capacitor origins are mobile clients, never valid CSRF origins for web sessions
+  if (candidateOrigin === "capacitor://localhost") {
+    return false;
+  }
+
   if (candidateOrigin === expectedOrigin) {
     return true;
   }
 
   const allowedList = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+    ? process.env.ALLOWED_ORIGINS.split(",")
+        .map((o) => o.trim())
+        .filter((o) => !o.startsWith("capacitor://"))
     : [];
 
   if (allowedList.includes(candidateOrigin)) {

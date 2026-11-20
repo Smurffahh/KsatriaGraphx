@@ -6,6 +6,8 @@ import { getClientIp } from "@/lib/security/client-ip";
 import { getCorsHeaders, handleCorsPreflight } from "@/lib/api/cors";
 import { requireAuth } from "@/lib/auth/guard";
 
+export const dynamic = "force-dynamic";
+
 export async function OPTIONS(request: Request) {
   return handleCorsPreflight(request);
 }

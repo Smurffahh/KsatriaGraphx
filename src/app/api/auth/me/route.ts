@@ -5,6 +5,8 @@ import { eq } from "drizzle-orm";
 import { requireAuth } from "@/lib/auth/guard";
 import { getCorsHeaders, handleCorsPreflight } from "@/lib/api/cors";
 
+export const dynamic = "force-dynamic";
+
 export async function OPTIONS(request: Request) {
   return handleCorsPreflight(request);
 }

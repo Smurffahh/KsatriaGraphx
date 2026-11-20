@@ -20,6 +20,18 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
   },
+  {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https://*.public.blob.vercel-storage.com",
+      "font-src 'self' data:",
+      "connect-src 'self' https://*.public.blob.vercel-storage.com",
+      "frame-ancestors 'none'",
+    ].join("; "),
+  },
   ...(isProduction
     ? [
         {
@@ -31,12 +43,19 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
+  images: {
+    unoptimized: isMobileBuild,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.public.blob.vercel-storage.com",
+      },
+    ],
+  },
   ...(isMobileBuild
     ? {
         output: "export",
-        images: {
-          unoptimized: true,
-        },
       }
     : {
         async headers() {

@@ -15,7 +15,7 @@ export const createUserSchema = z
       .max(100, "Password maksimal 100 karakter")
       .regex(/^(?=.*[A-Za-z])(?=.*\d).+$/, "Password wajib mengandung kombinasi huruf dan angka"),
     role: z.enum(["OWNER", "KASIR"], {
-      errorMap: () => ({ message: "Role harus berupa OWNER atau KASIR" }),
+      error: "Role harus berupa OWNER atau KASIR",
     }),
   })
   .strict();
@@ -32,7 +32,7 @@ export const updateUserSchema = z
     email: z.string().email("Format email tidak valid").optional().or(z.literal("")).nullable(),
     role: z
       .enum(["OWNER", "KASIR"], {
-        errorMap: () => ({ message: "Role harus berupa OWNER atau KASIR" }),
+        error: "Role harus berupa OWNER atau KASIR",
       })
       .optional(),
     isActive: z.boolean().optional(),

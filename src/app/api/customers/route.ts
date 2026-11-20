@@ -7,8 +7,13 @@ import { validateCsrfOrigin } from "@/lib/security/csrf";
 import { recordAuditLog } from "@/lib/security/audit";
 import { createCustomerSchema } from "@/lib/validators/customer";
 import { jsonResponse, errorResponse, handleApiError } from "@/lib/api/response";
+import { handleCorsPreflight } from "@/lib/api/cors";
 
 export const dynamic = "force-dynamic";
+
+export async function OPTIONS(request: Request) {
+  return handleCorsPreflight(request);
+}
 
 export async function GET(request: NextRequest) {
   try {

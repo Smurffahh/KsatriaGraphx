@@ -4,5 +4,13 @@ export function isNativeApp(): boolean {
   }
 
   const capacitor = (window as unknown as { Capacitor?: { isNativePlatform: () => boolean } }).Capacitor;
-  return Boolean(capacitor && typeof capacitor.isNativePlatform === "function" && capacitor.isNativePlatform());
+  const isCapacitorNative = Boolean(
+    capacitor && typeof capacitor.isNativePlatform === "function" && capacitor.isNativePlatform()
+  );
+
+  const isLocalOrigin =
+    window.location.origin === "https://localhost" ||
+    window.location.origin === "capacitor://localhost";
+
+  return isCapacitorNative || isLocalOrigin;
 }

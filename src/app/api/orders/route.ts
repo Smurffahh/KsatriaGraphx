@@ -27,8 +27,13 @@ import {
   type FinishingItemCalculation,
 } from "@/lib/calculator/pricing";
 import { jsonResponse, errorResponse, handleApiError } from "@/lib/api/response";
+import { handleCorsPreflight } from "@/lib/api/cors";
 
 export const dynamic = "force-dynamic";
+
+export async function OPTIONS(request: Request) {
+  return handleCorsPreflight(request);
+}
 
 export async function GET(request: NextRequest) {
   try {

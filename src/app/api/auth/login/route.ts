@@ -12,6 +12,8 @@ import { recordAuditLog } from "@/lib/security/audit";
 import { getCorsHeaders, handleCorsPreflight } from "@/lib/api/cors";
 import type { ClientPlatform } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 const loginSchema = z
   .object({
     usernameOrEmail: z.string().min(1, "Username atau email wajib diisi"),

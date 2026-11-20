@@ -26,16 +26,17 @@
     "bcryptjs": "^3.0.2",
     "clsx": "^2.1.1",
     "dotenv": "^16.4.7",
-    "drizzle-orm": "^0.40.0",
+    "drizzle-orm": "^0.45.4",
     "jose": "^6.0.8",
     "lucide-react": "^1.16.0",
     "next": "^15.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "recharts": "^2.15.1",
+    "server-only": "^0.0.1",
     "sharp": "^0.35.5",
     "tailwind-merge": "^3.0.2",
-    "zod": "^3.24.2"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",
@@ -46,7 +47,7 @@
     "@types/react-dom": "^19.0.4",
     "@types/sharp": "^0.32.0",
     "cross-env": "^7.0.3",
-    "drizzle-kit": "^0.30.5",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^9.21.0",
     "eslint-config-next": "^15.2.0",
     "postcss": "^8.5.3",

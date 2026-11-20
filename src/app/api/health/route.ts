@@ -3,6 +3,8 @@ import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { getCorsHeaders, handleCorsPreflight } from "@/lib/api/cors";
 
+export const dynamic = "force-dynamic";
+
 export async function OPTIONS(request: Request) {
   return handleCorsPreflight(request);
 }

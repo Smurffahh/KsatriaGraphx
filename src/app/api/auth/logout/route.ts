@@ -10,6 +10,8 @@ import { getClientIp } from "@/lib/security/client-ip";
 import { getCorsHeaders, handleCorsPreflight } from "@/lib/api/cors";
 import { getSession } from "@/lib/auth/guard";
 
+export const dynamic = "force-dynamic";
+
 const logoutSchema = z
   .object({
     refreshToken: z.string().optional(),

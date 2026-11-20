@@ -22,6 +22,22 @@ function subscribeTokenRefresh(cb: (token: string | null) => void) {
   refreshSubscribers.push(cb);
 }
 
+/**
+ * Resolusi Base URL: Web menggunakan path relatif, APK mengarahkan ke NEXT_PUBLIC_API_BASE_URL.
+ */
+export function resolveApiUrl(endpoint: string, isNative: boolean): string {
+  if (endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
+    return endpoint;
+  }
+  if (isNative) {
+    const baseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || "").replace(/\/$/, "");
+    if (baseUrl) {
+      return `${baseUrl}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+    }
+  }
+  return endpoint;
+}
+
 async function baseApiClient<T = any>(
   endpoint: string,
   options: RequestInit = {}
@@ -48,9 +64,10 @@ async function baseApiClient<T = any>(
     credentials: isNative ? "same-origin" : "include",
   };
 
-  const url = endpoint.startsWith("http") ? endpoint : endpoint;
+  const url = resolveApiUrl(endpoint, isNative);
   let response = await fetch(url, fetchOptions);
 
+  // Auto-refresh token pada status 401 (kecuali panggilan login/refresh/logout itu sendiri)
   if (response.status === 401 && !endpoint.includes("/api/auth/")) {
     if (!isRefreshing) {
       isRefreshing = true;
@@ -69,7 +86,8 @@ async function baseApiClient<T = any>(
           }
         }
 
-        const refreshRes = await fetch("/api/auth/refresh", {
+        const refreshUrl = resolveApiUrl("/api/auth/refresh", isNative);
+        const refreshRes = await fetch(refreshUrl, {
           method: "POST",
           headers: refreshHeaders,
           body: refreshBody,
@@ -94,7 +112,11 @@ async function baseApiClient<T = any>(
           if (isNative && newToken) {
             headers.set("Authorization", `Bearer ${newToken}`);
           }
-          response = await fetch(url, { ...options, headers, credentials: isNative ? "same-origin" : "include" });
+          response = await fetch(url, {
+            ...options,
+            headers,
+            credentials: isNative ? "same-origin" : "include",
+          });
         } else {
           onRefreshed(null);
           isRefreshing = false;
@@ -108,15 +130,24 @@ async function baseApiClient<T = any>(
         isRefreshing = false;
       }
     } else {
+      // Shared promise lock untuk request paralel yang menunggu refresh selesai
       const refreshedToken = await new Promise<string | null>((resolve) => {
         subscribeTokenRefresh(resolve);
       });
 
       if (refreshedToken && isNative) {
         headers.set("Authorization", `Bearer ${refreshedToken}`);
-        response = await fetch(url, { ...options, headers, credentials: isNative ? "same-origin" : "include" });
+        response = await fetch(url, {
+          ...options,
+          headers,
+          credentials: isNative ? "same-origin" : "include",
+        });
       } else if (!isNative) {
-        response = await fetch(url, { ...options, headers, credentials: "include" });
+        response = await fetch(url, {
+          ...options,
+          headers,
+          credentials: "include",
+        });
       }
     }
   }
@@ -127,7 +158,9 @@ async function baseApiClient<T = any>(
   } catch {
     return {
       success: false,
-      error: response.ok ? "Format respons tidak valid" : `Permintaan gagal dengan status ${response.status}`,
+      error: response.ok
+        ? "Format respons tidak valid"
+        : `Permintaan gagal dengan status ${response.status}`,
     };
   }
 }
@@ -162,5 +195,3 @@ export const apiClient: ApiClientInstance = Object.assign(baseApiClient, {
     return baseApiClient<T>(endpoint, { ...options, method: "DELETE" });
   },
 });
-
-

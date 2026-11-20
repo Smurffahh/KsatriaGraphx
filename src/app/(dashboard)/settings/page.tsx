@@ -12,6 +12,7 @@ import {
   Printer,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { ThermalPrinterPanel } from "@/components/settings/ThermalPrinterPanel";
 
 interface StoreSettingsData {
   id?: number;
@@ -113,19 +114,25 @@ export default function SettingsPage() {
     }
   }
 
-  // Jika Kasir, tampilkan blokir akses
+  // Jika Kasir, izinkan akses ke Thermal Printer Panel tetapi kunci profil toko
   if (!isLoading && user && user.role !== "OWNER") {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-8 text-center dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex size-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
-          <ShieldAlert className="size-8" />
+      <div className="space-y-6 pb-16 max-w-4xl mx-auto">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl dark:text-slate-50">
+            Pengaturan Printer Kasir
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Konfigurasi koneksi printer thermal Bluetooth untuk mencetak nota transaksi kasir.
+          </p>
         </div>
-        <h2 className="mt-4 text-lg font-bold text-slate-900 dark:text-slate-100">
-          Akses Khusus Pemilik Usaha (Owner)
-        </h2>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 max-w-md">
-          Halaman pengaturan profil toko, kontrol diskon kasir, dan konfigurasi nota hanya dapat dikelola oleh akun Owner.
-        </p>
+
+        <ThermalPrinterPanel storeName="Ksatria Graphx" />
+
+        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 text-xs text-slate-500">
+          <ShieldAlert className="size-5 shrink-0 text-amber-500" />
+          <span>Pengaturan profil toko, rekening pembayaran, dan plafon diskon kasir dikunci khusus akun Owner.</span>
+        </div>
       </div>
     );
   }
@@ -482,6 +489,9 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Panel Printer Thermal Bluetooth */}
+      <ThermalPrinterPanel storeName={formData.storeName} />
     </div>
   );
 }

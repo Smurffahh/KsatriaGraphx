@@ -5,8 +5,13 @@ import { db } from "@/db";
 import { orders, orderItems, payments, users } from "@/db/schema";
 import { requireAuth } from "@/lib/auth/guard";
 import { jsonResponse, handleApiError } from "@/lib/api/response";
+import { handleCorsPreflight } from "@/lib/api/cors";
 
 export const dynamic = "force-dynamic";
+
+export async function OPTIONS(request: Request) {
+  return handleCorsPreflight(request);
+}
 
 const dashboardQuerySchema = z
   .object({

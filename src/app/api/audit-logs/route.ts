@@ -5,8 +5,13 @@ import { db } from "@/db";
 import { auditLogs, users } from "@/db/schema";
 import { requireOwner } from "@/lib/auth/guard";
 import { jsonResponse, handleApiError } from "@/lib/api/response";
+import { handleCorsPreflight } from "@/lib/api/cors";
 
 export const dynamic = "force-dynamic";
+
+export async function OPTIONS(request: Request) {
+  return handleCorsPreflight(request);
+}
 
 const auditQuerySchema = z
   .object({

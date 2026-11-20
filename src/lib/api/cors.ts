@@ -24,8 +24,7 @@ export function getAllowedOrigins(): string[] {
     "capacitor://localhost",
   ].filter((o): o is string => Boolean(o && o !== "*"));
 
-  const list = parsedOrigins.length > 0 ? parsedOrigins : defaults;
-  return Array.from(new Set(list));
+  return Array.from(new Set([...defaults, ...parsedOrigins]));
 }
 
 export function isOriginAllowed(requestOrigin?: string | null): boolean {
@@ -59,7 +58,8 @@ export function getCorsHeaders(requestOrigin?: string | null): HeadersInit {
   if (!allowed || !requestOrigin) {
     return {
       "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Platform",
+      "Access-Control-Allow-Headers":
+        "Content-Type, Authorization, X-Client-Platform, Accept, Origin, X-Requested-With",
     };
   }
 
@@ -68,8 +68,10 @@ export function getCorsHeaders(requestOrigin?: string | null): HeadersInit {
   return {
     "Access-Control-Allow-Origin": cleanOrigin,
     "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Platform",
+    "Access-Control-Allow-Headers":
+      "Content-Type, Authorization, X-Client-Platform, Accept, Origin, X-Requested-With",
     "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Max-Age": "86400",
     Vary: "Origin",
   };
 }

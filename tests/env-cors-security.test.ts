@@ -2,10 +2,19 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-import { isOriginAllowed, getCorsHeaders, getAllowedOrigins, parseAllowedOrigins } from "@/lib/api/cors";
+import {
+  isOriginAllowed,
+  getCorsHeaders,
+  getAllowedOrigins,
+  parseAllowedOrigins,
+  handleCorsPreflight,
+} from "@/lib/api/cors";
 import { validateCsrfOrigin, getAppWebOrigin } from "@/lib/security/csrf";
 import { handleGuardError } from "@/lib/auth/guard";
 import { getServerEnv } from "@/lib/env";
+import { middleware } from "@/middleware";
+import { NextRequest } from "next/server";
+import { isNativeApp } from "@/lib/platform";
 
 describe("Validasi Konfigurasi Environment, CORS & 4-Layer Guard Produksi", () => {
   const originalEnv = { ...process.env };
@@ -132,6 +141,112 @@ describe("Validasi Konfigurasi Environment, CORS & 4-Layer Guard Produksi", () =
     it("harus menolak DATABASE_URL jika tidak menyertakan sslmode=require", () => {
       process.env.DATABASE_URL = "postgresql://user:pass@host/db?sslmode=disable";
       expect(() => getServerEnv()).toThrowError(/sslmode=require/);
+    });
+  });
+
+  describe("4. Preflight OPTIONS & Global Middleware CORS Gate", () => {
+    it("handleCorsPreflight harus mengembalikan 204 No Content untuk Origin https://localhost dan capacitor://localhost", () => {
+      const reqHttps = new Request("https://ksatriagraphx.vercel.app/api/auth/login", {
+        method: "OPTIONS",
+        headers: {
+          Origin: "https://localhost",
+          "Access-Control-Request-Method": "POST",
+          "Access-Control-Request-Headers": "Content-Type, Authorization, X-Client-Platform",
+        },
+      });
+
+      const resHttps = handleCorsPreflight(reqHttps);
+      expect(resHttps.status).toBe(204);
+      expect(resHttps.headers.get("Access-Control-Allow-Origin")).toBe("https://localhost");
+      expect(resHttps.headers.get("Access-Control-Allow-Credentials")).toBe("true");
+
+      const reqCap = new Request("https://ksatriagraphx.vercel.app/api/orders", {
+        method: "OPTIONS",
+        headers: {
+          Origin: "capacitor://localhost",
+          "Access-Control-Request-Method": "GET",
+        },
+      });
+
+      const resCap = handleCorsPreflight(reqCap);
+      expect(resCap.status).toBe(204);
+      expect(resCap.headers.get("Access-Control-Allow-Origin")).toBe("capacitor://localhost");
+    });
+
+    it("handleCorsPreflight harus menolak origin liar (https://evil.example) dengan status 403 Forbidden tanpa CORS header", () => {
+      const reqEvil = new Request("https://ksatriagraphx.vercel.app/api/auth/login", {
+        method: "OPTIONS",
+        headers: {
+          Origin: "https://evil.example",
+        },
+      });
+
+      const resEvil = handleCorsPreflight(reqEvil);
+      expect(resEvil.status).toBe(403);
+      expect(resEvil.headers.get("Access-Control-Allow-Origin")).toBeNull();
+    });
+
+    it("middleware Next.js harus mencegat OPTIONS di semua /api/** dan mengembalikan status 204 untuk APK", () => {
+      const nextReq = new NextRequest("https://ksatriagraphx.vercel.app/api/products", {
+        method: "OPTIONS",
+        headers: {
+          Origin: "https://localhost",
+          "Access-Control-Request-Method": "GET",
+        },
+      });
+
+      const nextRes = middleware(nextReq);
+      expect(nextRes.status).toBe(204);
+      expect(nextRes.headers.get("Access-Control-Allow-Origin")).toBe("https://localhost");
+      expect(nextRes.headers.get("Access-Control-Allow-Methods")).toContain("OPTIONS");
+    });
+
+    it("middleware Next.js harus menyematkan header CORS pada response /api/** jika origin sah", () => {
+      const nextReq = new NextRequest("https://ksatriagraphx.vercel.app/api/health", {
+        method: "GET",
+        headers: {
+          Origin: "https://localhost",
+        },
+      });
+
+      const nextRes = middleware(nextReq);
+      expect(nextRes.headers.get("Access-Control-Allow-Origin")).toBe("https://localhost");
+    });
+  });
+
+  describe("5. Platform Detection Hardening (isNativeApp)", () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it("harus mendeteksi native app jika window.location.origin adalah https://localhost", () => {
+      vi.stubGlobal("window", {
+        location: { origin: "https://localhost" },
+      });
+      expect(isNativeApp()).toBe(true);
+    });
+
+    it("harus mendeteksi native app jika window.location.origin adalah capacitor://localhost", () => {
+      vi.stubGlobal("window", {
+        location: { origin: "capacitor://localhost" },
+      });
+      expect(isNativeApp()).toBe(true);
+    });
+
+    it("harus mendeteksi native app jika window.Capacitor.isNativePlatform() mengembalikan true", () => {
+      vi.stubGlobal("window", {
+        location: { origin: "http://something-else.local" },
+        Capacitor: { isNativePlatform: () => true },
+      });
+      expect(isNativeApp()).toBe(true);
+    });
+
+    it("harus mengembalikan false di Web browser normal (https://ksatriagraphx.vercel.app)", () => {
+      vi.stubGlobal("window", {
+        location: { origin: "https://ksatriagraphx.vercel.app" },
+        Capacitor: undefined,
+      });
+      expect(isNativeApp()).toBe(false);
     });
   });
 });

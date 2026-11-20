@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Lock, User, AlertCircle, ShieldCheck } from "lucide-react";
 import { isNativeApp } from "@/lib/platform";
 import { secureStorage } from "@/lib/auth/secure-storage";
+import { resolveApiUrl } from "@/lib/api/client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,9 +27,10 @@ export default function LoginPage() {
     setErrorMessage(null);
 
     const isNative = isNativeApp();
+    const loginUrl = resolveApiUrl("/api/auth/login", isNative);
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch(loginUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,7 +46,9 @@ export default function LoginPage() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok || !data.success) {
-        setErrorMessage(data.error || "Gagal masuk ke sistem. Silakan periksa kembali akun Anda.");
+        setErrorMessage(
+          data.error || "Gagal masuk ke sistem. Silakan periksa kembali username dan password Anda."
+        );
         setIsLoading(false);
         return;
       }

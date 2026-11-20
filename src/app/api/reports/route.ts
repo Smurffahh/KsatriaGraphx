@@ -7,8 +7,13 @@ import { requireAuth } from "@/lib/auth/guard";
 import { jsonResponse, handleApiError } from "@/lib/api/response";
 import { buildSafeCsv } from "@/lib/security/csv-sanitize";
 import { recordAuditLog } from "@/lib/security/audit";
+import { handleCorsPreflight } from "@/lib/api/cors";
 
 export const dynamic = "force-dynamic";
+
+export async function OPTIONS(request: Request) {
+  return handleCorsPreflight(request);
+}
 
 const reportsQuerySchema = z
   .object({

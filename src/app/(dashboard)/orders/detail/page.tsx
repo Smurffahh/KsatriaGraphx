@@ -13,10 +13,12 @@ import {
   Banknote,
   Loader2,
   Edit2,
+  Printer,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { OrderPaymentModal } from "@/components/orders/OrderPaymentModal";
 import { OrderStatusModal } from "@/components/orders/OrderStatusModal";
+import { ReceiptModal } from "@/components/receipt/ReceiptModal";
 
 interface OrderDetailResponse {
   id: string;
@@ -101,6 +103,7 @@ function OrderDetailContent() {
 
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [receiptModalOpen, setReceiptModalOpen] = useState(false);
 
   const fetchOrderDetail = useCallback(async () => {
     if (!id) {
@@ -183,6 +186,15 @@ function OrderDetailContent() {
 
         {/* Quick Action Placeholders */}
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setReceiptModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-xl transition-colors shadow-xs min-h-[44px]"
+          >
+            <Printer className="size-4" />
+            <span>Cetak Nota</span>
+          </button>
+
           {order.customerPhoneSnapshot && (
             <a
               href={`https://wa.me/${order.customerPhoneSnapshot}`}
@@ -539,6 +551,12 @@ function OrderDetailContent() {
         order={order}
         userRole={currentUser?.role}
         onSuccess={fetchOrderDetail}
+      />
+
+      <ReceiptModal
+        isOpen={receiptModalOpen}
+        onClose={() => setReceiptModalOpen(false)}
+        order={order}
       />
     </div>
   );

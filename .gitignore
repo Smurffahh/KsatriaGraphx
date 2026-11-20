@@ -1,0 +1,70 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js build output & Vercel
+.next/
+out/
+build/
+dist/
+.vercel/
+coverage/
+
+# Production and local environment files (Zero secret leak)
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+*.pem
+*.key
+! .env.example
+
+# Local PRD and planning tasks (Kept safely on local disk, never pushed to git)
+tasks/
+Tasks/
+prd/
+PRD/
+*.prd.md
+*.PRD.md
+progress-*.md
+Progress-*.md
+
+# TypeScript cache & generated types
+*.tsbuildinfo
+next-env.d.ts
+
+# Temporary build scripts artifacts & scratch
+src/_api_temp/
+tmp/
+scratch/
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# AI tool configs & local assistant caches
+.antigravity/
+.cursor/
+.claude/
+
+# Android & Capacitor artifacts
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+*.apk
+*.aab
+*.keystore
+*.jks

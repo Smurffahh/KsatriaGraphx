@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -49,6 +50,7 @@
     "@capacitor/android": "^8.6.2",
     "@capacitor/cli": "^8.6.2",
     "@eslint/eslintrc": "^3.3.7",
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/postcss": "^4.0.9",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.13.9",
@@ -66,6 +68,7 @@
     "vitest": "^3.0.7"
   },
   "overrides": {
-    "postcss": "^8.5.33"
+    "postcss": "^8.5.33",
+    "zod": "^4.6.7"
   }
 }

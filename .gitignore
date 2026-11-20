@@ -9,6 +9,9 @@ build/
 dist/
 .vercel/
 coverage/
+playwright-report/
+test-results/
+playwright/.auth/
 
 # Production and local environment files (Zero secret leak)
 .env

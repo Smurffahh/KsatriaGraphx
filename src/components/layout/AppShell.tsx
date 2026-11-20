@@ -46,7 +46,7 @@ const navItems: NavItem[] = [
   { label: "Katalog Produk", href: "/products", icon: Package },
   { label: "Pelanggan", href: "/customers", icon: UsersIcon },
   { label: "Laporan Omzet", href: "/reports", icon: BarChart3 },
-  { label: "Pengaturan Toko", href: "/settings", icon: Settings },
+  { label: "Pengaturan Toko", href: "/settings", icon: Settings, ownerOnly: true },
   { label: "Kelola Pengguna", href: "/users", icon: UserCheck, ownerOnly: true, webOnly: true },
   { label: "Audit Log", href: "/audit-logs", icon: ShieldCheck, ownerOnly: true },
 ];

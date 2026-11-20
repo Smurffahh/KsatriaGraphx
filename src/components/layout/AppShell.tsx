@@ -107,11 +107,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const isOwner = user?.role === "OWNER";
 
-  const visibleNavItems = navItems.filter((item) => {
-    if (item.ownerOnly && !isOwner) return false;
-    if (item.webOnly && isNative) return false;
-    return true;
-  });
+  const visibleNavItems = navItems
+    .filter((item) => {
+      if (item.href === "/settings") {
+        return isOwner || isNative;
+      }
+      if (item.ownerOnly && !isOwner) return false;
+      if (item.webOnly && isNative) return false;
+      return true;
+    })
+    .map((item) => {
+      if (item.href === "/settings" && !isOwner && isNative) {
+        return { ...item, label: "Printer Kasir" };
+      }
+      return item;
+    });
 
   const mobileBottomNavItems = [
     { label: "POS", href: "/pos", icon: Calculator },

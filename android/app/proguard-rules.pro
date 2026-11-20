@@ -7,13 +7,20 @@
 -keep class com.getcapacitor.** { *; }
 -keepclassmembers class * {
     @com.getcapacitor.PluginMethod public *;
+    @com.getcapacitor.annotation.PluginMethod public *;
 }
+-keep @com.getcapacitor.annotation.CapacitorPlugin class * { *; }
 -keepattributes *Annotation*
 -keepattributes JavascriptInterface
+
+# Preserve Official & Third-Party Capacitor Plugins
+-keep class com.capacitorjs.plugins.** { *; }
+-keep class com.aparajita.capacitor.** { *; }
 
 # Preserve Secure Storage & Crypto classes
 -keep class javax.crypto.** { *; }
 -keep class java.security.** { *; }
+-keep class androidx.security.crypto.** { *; }
 
 # Preserve Application & Custom Native Plugins
 -keep class id.ksatriagraphx.app.** { *; }

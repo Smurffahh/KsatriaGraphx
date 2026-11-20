@@ -22,7 +22,7 @@ function subscribeTokenRefresh(cb: (token: string | null) => void) {
   refreshSubscribers.push(cb);
 }
 
-export async function apiClient<T = any>(
+async function baseApiClient<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
@@ -131,3 +131,36 @@ export async function apiClient<T = any>(
     };
   }
 }
+
+export interface ApiClientInstance {
+  <T = any>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>>;
+  get<T = any>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>>;
+  post<T = any>(endpoint: string, body?: any, options?: RequestInit): Promise<ApiResponse<T>>;
+  patch<T = any>(endpoint: string, body?: any, options?: RequestInit): Promise<ApiResponse<T>>;
+  delete<T = any>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>>;
+}
+
+export const apiClient: ApiClientInstance = Object.assign(baseApiClient, {
+  get: async <T = any>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> => {
+    return baseApiClient<T>(endpoint, { ...options, method: "GET" });
+  },
+  post: async <T = any>(endpoint: string, body?: any, options?: RequestInit): Promise<ApiResponse<T>> => {
+    return baseApiClient<T>(endpoint, {
+      ...options,
+      method: "POST",
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    });
+  },
+  patch: async <T = any>(endpoint: string, body?: any, options?: RequestInit): Promise<ApiResponse<T>> => {
+    return baseApiClient<T>(endpoint, {
+      ...options,
+      method: "PATCH",
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    });
+  },
+  delete: async <T = any>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> => {
+    return baseApiClient<T>(endpoint, { ...options, method: "DELETE" });
+  },
+});
+
+

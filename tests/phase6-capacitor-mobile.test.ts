@@ -46,6 +46,42 @@ describe("Fase 6: Capacitor Android Shell, Secure Storage & Bluetooth Suite (US-
       expect(content).toContain("minifyEnabled true");
       expect(content).toContain("shrinkResources true");
     });
+
+    it("android/app/proguard-rules.pro harus memproteksi kelas plugin ThermalPrinter, Capacitor, dan SecureStorage", () => {
+      const proguardPath = "android/app/proguard-rules.pro";
+      expect(fs.existsSync(proguardPath)).toBe(true);
+
+      const content = fs.readFileSync(proguardPath, "utf-8");
+      expect(content).toContain("-keep public class * extends com.getcapacitor.Plugin");
+      expect(content).toContain("-keep @com.getcapacitor.annotation.CapacitorPlugin class *");
+      expect(content).toContain("-keep class com.capacitorjs.plugins.**");
+      expect(content).toContain("-keep class com.aparajita.capacitor.**");
+      expect(content).toContain("-keep class id.ksatriagraphx.app.**");
+    });
+
+    it("MainActivity.java harus mendaftarkan ThermalPrinterPlugin sebelum super.onCreate", () => {
+      const mainActivityPath = "android/app/src/main/java/id/ksatriagraphx/app/MainActivity.java";
+      expect(fs.existsSync(mainActivityPath)).toBe(true);
+
+      const content = fs.readFileSync(mainActivityPath, "utf-8");
+      const registerIndex = content.indexOf("registerPlugin(ThermalPrinterPlugin.class);");
+      const superIndex = content.indexOf("super.onCreate(savedInstanceState);");
+
+      expect(registerIndex).toBeGreaterThan(-1);
+      expect(superIndex).toBeGreaterThan(-1);
+      expect(registerIndex).toBeLessThan(superIndex);
+    });
+
+    it("file_paths.xml harus memetakan cache-path dan external-path untuk FileProvider", () => {
+      const filePath = "android/app/src/main/res/xml/file_paths.xml";
+      expect(fs.existsSync(filePath)).toBe(true);
+
+      const content = fs.readFileSync(filePath, "utf-8");
+      expect(content).toContain("<cache-path");
+      expect(content).toContain("<external-path");
+      expect(content).toContain("<external-cache-path");
+      expect(content).toContain("<files-path");
+    });
   });
 
   describe("2. CORS Allowlist & Origin Security", () => {

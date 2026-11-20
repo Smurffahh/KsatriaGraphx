@@ -58,21 +58,22 @@ export default function SettingsPage() {
         const meRes = await apiClient<{ user: UserProfile }>("/api/auth/me");
         if (meRes.success && meRes.data?.user) {
           setUser(meRes.data.user);
-        }
-
-        const settingsRes = await apiClient<StoreSettingsData>("/api/settings");
-        if (settingsRes.success && settingsRes.data) {
-          setFormData({
-            storeName: settingsRes.data.storeName || "Ksatria Graphx",
-            tagline: settingsRes.data.tagline || "",
-            address: settingsRes.data.address || "",
-            phone: settingsRes.data.phone || "",
-            paymentInfo: settingsRes.data.paymentInfo || "",
-            receiptFooter: settingsRes.data.receiptFooter || "",
-            invoicePrefix: settingsRes.data.invoicePrefix || "KGX",
-            defaultPaperWidth: settingsRes.data.defaultPaperWidth || "MM_58",
-            maxCashierDiscountPercent: settingsRes.data.maxCashierDiscountPercent ?? 10,
-          });
+          if (meRes.data.user.role === "OWNER") {
+            const settingsRes = await apiClient<StoreSettingsData>("/api/settings");
+            if (settingsRes.success && settingsRes.data) {
+              setFormData({
+                storeName: settingsRes.data.storeName || "Ksatria Graphx",
+                tagline: settingsRes.data.tagline || "",
+                address: settingsRes.data.address || "",
+                phone: settingsRes.data.phone || "",
+                paymentInfo: settingsRes.data.paymentInfo || "",
+                receiptFooter: settingsRes.data.receiptFooter || "",
+                invoicePrefix: settingsRes.data.invoicePrefix || "KGX",
+                defaultPaperWidth: settingsRes.data.defaultPaperWidth || "MM_58",
+                maxCashierDiscountPercent: settingsRes.data.maxCashierDiscountPercent ?? 10,
+              });
+            }
+          }
         }
       } catch (err: unknown) {
         console.error("Gagal memuat pengaturan toko:", err);

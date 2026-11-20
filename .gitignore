@@ -13,10 +13,12 @@ coverage/
 # Production and local environment files (Zero secret leak)
 .env
 .env.local
+.env.vercel
+.env.production
+.env.production.local
 .env.*.local
 .env.development
 .env.test
-.env.production
 *.pem
 *.key
 ! .env.example

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 
 export const metadata: Metadata = {
   title: "Ksatria Graphx — POS & Kalkulator Percetakan",
@@ -21,7 +22,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body className="min-h-dvh antialiased flex flex-col">{children}</body>
+      <body className="min-h-dvh antialiased flex flex-col">
+        <QueryProvider>{children}</QueryProvider>
+      </body>
     </html>
   );
 }

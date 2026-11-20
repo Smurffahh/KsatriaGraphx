@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  LayoutDashboard,
   Calculator,
   ClipboardList,
   Package,
@@ -41,6 +42,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Kalkulator POS", href: "/pos", icon: Calculator },
   { label: "Daftar Pesanan", href: "/orders", icon: ClipboardList },
   { label: "Katalog Produk", href: "/products", icon: Package },

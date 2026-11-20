@@ -37,15 +37,37 @@ body {
 @media print {
   @page {
     margin: 0;
+    size: auto;
   }
 
   body {
     background: #ffffff !important;
     color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  .no-print {
+  /* Sembunyikan seluruh UI navigasi dan tombol saat print */
+  header,
+  nav,
+  aside,
+  footer,
+  .no-print,
+  button {
     display: none !important;
+  }
+
+  /* Format area cetak struk thermal / A5 */
+  .receipt-print-area {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 4mm !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    color: #000000 !important;
+    background: #ffffff !important;
   }
 
   .print-only {

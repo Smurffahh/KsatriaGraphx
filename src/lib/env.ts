@@ -26,16 +26,42 @@ const serverEnvSchema = z
       .optional()
       .or(z.literal("")),
     BLOB_READ_WRITE_TOKEN: z.string().optional().or(z.literal("")),
-    JWT_ACCESS_SECRET: z.string().min(16).default("dev-fallback-access-secret-min-32-chars-long"),
-    JWT_REFRESH_SECRET: z.string().min(16).default("dev-fallback-refresh-secret-min-32-chars-long"),
-    APP_WEB_ORIGIN: z.string().url().default("http://localhost:3000"),
-    ALLOWED_ORIGINS: z.string().default("http://localhost:3000,https://localhost,capacitor://localhost"),
+    JWT_ACCESS_SECRET: z
+      .string()
+      .min(32, "JWT_ACCESS_SECRET minimal 32 karakter")
+      .default("dev-fallback-access-secret-min-32-chars-long"),
+    JWT_REFRESH_SECRET: z
+      .string()
+      .min(32, "JWT_REFRESH_SECRET minimal 32 karakter")
+      .default("dev-fallback-refresh-secret-min-32-chars-long"),
+    APP_WEB_ORIGIN: z
+      .string()
+      .url("APP_WEB_ORIGIN wajib berupa URL valid (contoh: https://ksatriagraphx.vercel.app)")
+      .transform((val) => val.replace(/\/+$/, ""))
+      .default("http://localhost:3000"),
+    ALLOWED_ORIGINS: z
+      .string()
+      .default("http://localhost:3000,https://localhost,capacitor://localhost"),
+    NEXT_PUBLIC_APP_URL: z.string().optional().default("http://localhost:3000"),
+    NEXT_PUBLIC_API_BASE_URL: z.string().optional().default("http://localhost:3000"),
     DEFAULT_OWNER_NAME: z.string().default("Owner Ksatria Graphx"),
     DEFAULT_OWNER_USERNAME: z.string().default("owner"),
     DEFAULT_OWNER_EMAIL: z.string().email().default("owner@ksatriagraphx.com"),
-    DEFAULT_OWNER_PASSWORD: z.string().min(8).default("owner123456"),
+    DEFAULT_OWNER_PASSWORD: z.string().min(8).default("Dans_newbie2"),
   })
-  .passthrough();
+  .passthrough()
+  .refine(
+    (data) => {
+      if (data.JWT_ACCESS_SECRET && data.JWT_REFRESH_SECRET) {
+        return data.JWT_ACCESS_SECRET !== data.JWT_REFRESH_SECRET;
+      }
+      return true;
+    },
+    {
+      message: "JWT_ACCESS_SECRET dan JWT_REFRESH_SECRET wajib berbeda demi isolasi domain token",
+      path: ["JWT_REFRESH_SECRET"],
+    }
+  );
 
 export function getServerEnv() {
   const result = serverEnvSchema.safeParse(process.env);

@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { db } from "./index";
 import {
   users,
+  userSessions,
   storeSettings,
   categories,
   products,
@@ -24,7 +25,11 @@ export async function runSeed() {
   const ownerEmail = process.env.DEFAULT_OWNER_EMAIL || "owner@ksatriagraphx.com";
 
   const existingOwner = await db
-    .select({ id: users.id })
+    .select({
+      id: users.id,
+      passwordHash: users.passwordHash,
+      tokenVersion: users.tokenVersion,
+    })
     .from(users)
     .where(eq(users.username, ownerUsername))
     .limit(1);
@@ -43,6 +48,30 @@ export async function runSeed() {
       tokenVersion: 1,
       failedLoginAttempts: 0,
     });
+  } else {
+    const currentOwner = existingOwner[0];
+    const isPasswordMatch = await bcrypt.compare(ownerPassword, currentOwner.passwordHash);
+    if (!isPasswordMatch) {
+      const salt = await bcrypt.genSalt(12);
+      const newHash = await bcrypt.hash(ownerPassword, salt);
+      const nextVersion = (currentOwner.tokenVersion || 1) + 1;
+
+      await db
+        .update(users)
+        .set({
+          passwordHash: newHash,
+          tokenVersion: nextVersion,
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, currentOwner.id));
+
+      await db
+        .update(userSessions)
+        .set({ revokedAt: new Date() })
+        .where(eq(userSessions.userId, currentOwner.id));
+    }
   }
 
   const existingSettings = await db

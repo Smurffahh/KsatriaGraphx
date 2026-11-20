@@ -63,7 +63,7 @@ describe("Fase 6: Capacitor Android Shell, Secure Storage & Bluetooth Suite (US-
       const evilHeaders = getCorsHeaders("https://evil-attacker.com") as Record<string, string>;
       expect(evilHeaders["Access-Control-Allow-Origin"]).not.toBe("https://evil-attacker.com");
       expect(evilHeaders["Access-Control-Allow-Origin"]).not.toBe("*");
-      expect(evilHeaders["Access-Control-Allow-Credentials"]).toBe("true");
+      expect(evilHeaders["Access-Control-Allow-Origin"]).toBeUndefined();
     });
   });
 

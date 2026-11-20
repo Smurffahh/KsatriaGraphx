@@ -115,16 +115,19 @@ export async function assertWebOwnerOnly(request: Request): Promise<SessionResul
     throw new Error("FORBIDDEN_PLATFORM_NOT_WEB");
   }
 
+  const rawOrigin = request.headers.get("origin");
+  if (rawOrigin) {
+    const cleanOrigin = rawOrigin.trim().replace(/\/+$/, "");
+    if (cleanOrigin === "capacitor://localhost" || cleanOrigin === "https://localhost") {
+      throw new Error("FORBIDDEN_CAPACITOR_ORIGIN");
+    }
+  }
+
   const method = request.method.toUpperCase();
   if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
     const isValidOrigin = validateCsrfOrigin(request);
     if (!isValidOrigin) {
       throw new Error("FORBIDDEN_INVALID_ORIGIN");
-    }
-
-    const origin = request.headers.get("origin");
-    if (origin === "capacitor://localhost" || origin === "https://localhost") {
-      throw new Error("FORBIDDEN_CAPACITOR_ORIGIN");
     }
   }
 

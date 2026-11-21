@@ -65,6 +65,7 @@ Thumbs.db
 .cursor/
 .claude/
 skills/
+skills-lock.json
 
 # Android & Capacitor artifacts
 android/app/build/

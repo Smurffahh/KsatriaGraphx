@@ -3,6 +3,22 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
+import { useTheme } from "next-themes";
+
+function ThemeAwareToaster() {
+  const { resolvedTheme } = useTheme();
+
+  return (
+    <Toaster
+      theme={(resolvedTheme as "light" | "dark") || "system"}
+      richColors
+      closeButton
+      duration={3500}
+      position="top-right"
+      mobileOffset={{ top: "env(safe-area-inset-top, 16px)", left: "16px", right: "16px" }}
+    />
+  );
+}
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -10,7 +26,9 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000,
+            staleTime: 30 * 1000,
+            gcTime: 5 * 60 * 1000,
+            retry: 1,
             refetchOnWindowFocus: false,
           },
         },
@@ -20,13 +38,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <Toaster
-        richColors
-        closeButton
-        duration={3500}
-        position="top-right"
-        mobileOffset={{ top: "env(safe-area-inset-top, 16px)", left: "16px", right: "16px" }}
-      />
+      <ThemeAwareToaster />
     </QueryClientProvider>
   );
 }

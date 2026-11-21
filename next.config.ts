@@ -1,7 +1,18 @@
 import type { NextConfig } from "next";
+import fs from "fs";
+import path from "path";
 
 const isMobileBuild = process.env.BUILD_TARGET === "mobile";
 const isProduction = process.env.NODE_ENV === "production";
+
+let appVersion = "1.0.3";
+try {
+  const pkgPath = path.join(process.cwd(), "package.json");
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+  if (pkg.version) appVersion = pkg.version;
+} catch {
+  // fallback default
+}
 
 const securityHeaders = [
   {
@@ -43,6 +54,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_APP_VERSION: appVersion,
+  },
   poweredByHeader: false,
   serverExternalPackages: ["sharp"],
   images: {

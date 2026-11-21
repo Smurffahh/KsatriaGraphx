@@ -43,7 +43,7 @@ export const DEFAULT_PRODUCTS: DefaultProduct[] = [
     categorySlug: "banner-spanduk",
     sku: "BNR-FLX-280",
     name: "Banner Flexi 280gr Standard",
-    description: "Bahan flexi standard untuk spanduk outdoor ekonomis",
+    description: "Spanduk bahan flexi 280gr ekonomis untuk kebutuhan promosi harian indoor maupun outdoor.",
     pricingType: "AREA",
     unitLabel: "m²",
     basePrice: 20000,

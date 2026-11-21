@@ -1,6 +1,5 @@
 /**
  * Single Source of Truth for Application Versioning & Semantic Comparison.
- * PRD v1.1.0 (US-206)
  */
 
 export const APP_VERSION =

@@ -23,7 +23,7 @@ describe("US-207: GET /api/app/version Endpoint Suite", () => {
     );
   });
 
-  it("GET harus mengembalikan fallback 200 OK jika GitHub API gagal", async () => {
+  it("GET harus mengembalikan server fallback 200 OK jika GitHub API gagal", async () => {
     vi.spyOn(globalThis, "fetch").mockRejectedValue(
       new Error("GitHub API Unreachable")
     );
@@ -39,7 +39,32 @@ describe("US-207: GET /api/app/version Endpoint Suite", () => {
     expect(data.currentServerVersion).toBe(APP_VERSION);
     expect(data.latestVersion).toBe(APP_VERSION);
     expect(data.hasUpdate).toBe(false);
-    expect(data.source).toBe("fallback");
+    expect(data.source).toBe("server-fallback");
+    expect(data.downloadUrl).toContain(".apk");
+  });
+
+  it("GET dengan query ?force=1 harus menyertakan header bypass cache", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          tag_name: `v${APP_VERSION}`,
+          name: `Release v${APP_VERSION}`,
+          assets: [],
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      )
+    );
+
+    const req = new NextRequest("http://localhost:3000/api/app/version?force=1", {
+      method: "GET",
+    });
+
+    const res = await GET(req);
+    expect(res.status).toBe(200);
+    const cacheControl = res.headers.get("Cache-Control");
+    expect(cacheControl).toContain("no-store");
+    expect(cacheControl).toContain("no-cache");
+    expect(cacheControl).toContain("must-revalidate");
   });
 
   it("GET harus mem-parsing release GitHub dengan benar jika tersedia versi baru", async () => {
@@ -65,7 +90,7 @@ describe("US-207: GET /api/app/version Endpoint Suite", () => {
       })
     );
 
-    const req = new NextRequest("http://localhost:3000/api/app/version", {
+    const req = new NextRequest("http://localhost:3000/api/app/version?force=1", {
       method: "GET",
     });
 

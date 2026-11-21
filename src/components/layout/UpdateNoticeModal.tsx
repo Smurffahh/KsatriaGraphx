@@ -139,7 +139,7 @@ export function UpdateNoticeModal({
               className="w-full sm:w-auto gap-2"
             >
               <ExternalLink className="size-4" />
-              Unduh APK Terbaru
+              Unduh & Pasang APK
             </Button>
           ) : (
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -158,7 +158,7 @@ export function UpdateNoticeModal({
                 className="w-full sm:w-auto gap-2"
               >
                 <RefreshCw className="size-4" />
-                Muat Ulang Aplikasi
+                Muat Ulang Versi Baru
               </Button>
             </div>
           )}

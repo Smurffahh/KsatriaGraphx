@@ -34,6 +34,8 @@ describe("US-206: Application Versioning & Semantic Comparison Suite", () => {
 
   it("compareSemver harus membandingkan major, minor, patch secara presisi", () => {
     // a > b
+    expect(compareSemver("1.1.2", "1.1.1")).toBe(1);
+    expect(compareSemver("v1.1.3", "1.1.1")).toBe(1);
     expect(compareSemver("1.1.0", "1.0.3")).toBe(1);
     expect(compareSemver("2.0.0", "1.9.9")).toBe(1);
     expect(compareSemver("1.0.4", "1.0.3")).toBe(1);
@@ -47,6 +49,7 @@ describe("US-206: Application Versioning & Semantic Comparison Suite", () => {
     expect(compareSemver("v1.0.0", "v1.0.1")).toBe(-1);
 
     // a == b
+    expect(compareSemver("1.1.3", "1.1.3")).toBe(0);
     expect(compareSemver("1.0.3", "1.0.3")).toBe(0);
     expect(compareSemver("v1.0.3", "1.0.3")).toBe(0);
     expect(compareSemver("v1.1.0", "V1.1.0")).toBe(0);

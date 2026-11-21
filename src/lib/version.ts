@@ -4,7 +4,7 @@
  */
 
 export const APP_VERSION =
-  process.env.NEXT_PUBLIC_APP_VERSION || "1.1.2";
+  process.env.NEXT_PUBLIC_APP_VERSION || "1.1.3";
 
 export interface AppVersionResponse {
   currentServerVersion: string;
@@ -16,7 +16,8 @@ export interface AppVersionResponse {
   downloadUrl: string | null;
   releaseUrl: string;
   hasUpdate: boolean;
-  source: "github" | "fallback";
+  source: "github" | "fallback" | "server-fallback";
+  serverVersion?: string;
 }
 
 /**

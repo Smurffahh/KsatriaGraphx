@@ -80,9 +80,29 @@ export default function SettingsPage() {
     latestVersion,
     hasUpdate,
     isManualChecking,
-    checkForUpdatesManual,
+    checkForUpdate,
     setIsModalOpen,
   } = useAppUpdate();
+
+  const handleCheckUpdateClick = async () => {
+    const result = await checkForUpdate({ force: true, silent: true });
+    if (result.status === "update-available") {
+      setIsModalOpen(true);
+      toast.info(`Pembaruan v${result.latestVersion} tersedia!`, {
+        description: "Buka dialog pembaruan untuk melihat rincian perbaikan.",
+      });
+    } else if (result.status === "up-to-date") {
+      toast.success(`Aplikasi sudah menggunakan versi terbaru (v${result.currentVersion})`, {
+        description: "Tidak ada pembaruan tertunda.",
+      });
+    } else {
+      toast.error("Gagal memeriksa pembaruan", {
+        description:
+          result.errorMessage ||
+          "Pastikan koneksi internet aktif dan coba beberapa saat lagi.",
+      });
+    }
+  };
 
   const [formData, setFormData] = useState<StoreSettingsData>({
     storeName: "Ksatria Graphx",
@@ -209,7 +229,7 @@ export default function SettingsPage() {
           <div className="flex items-center gap-2">
             {hasUpdate ? (
               <span className="font-semibold text-primary">
-                Tersedia versi baru v{latestVersion}
+                Tersedia pembaruan: v{latestVersion}
               </span>
             ) : (
               <span className="font-semibold text-emerald-600 dark:text-emerald-400">
@@ -240,7 +260,7 @@ export default function SettingsPage() {
               className="gap-1.5"
             >
               <ArrowUpCircle className="size-4" />
-              <span>Lihat Pembaruan</span>
+              <span>Lihat & Unduh Pembaruan</span>
             </Button>
           )}
           <Button
@@ -248,7 +268,7 @@ export default function SettingsPage() {
             variant="outline"
             size="sm"
             disabled={isManualChecking}
-            onClick={checkForUpdatesManual}
+            onClick={handleCheckUpdateClick}
             className="gap-1.5"
           >
             <RefreshCw

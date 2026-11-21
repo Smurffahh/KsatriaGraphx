@@ -239,27 +239,27 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6">
       {/* Header Halaman */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl dark:text-slate-50">
+          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
             Katalog Produk & Master Percetakan
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             Kelola produk percetakan, harga meteran/grosir bertingkat, kategori, dan opsi finishing.
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center rounded-xl border border-slate-200 bg-white p-1 shadow-2xs dark:border-slate-800 dark:bg-slate-900 self-start sm:self-auto">
+        <div className="flex items-center rounded-lg border border-border bg-card p-1 shadow-2xs self-start sm:self-auto">
           <button
             type="button"
             onClick={() => setActiveTab("products")}
-            className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+            className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
               activeTab === "products"
-                ? "bg-slate-900 text-white shadow-xs dark:bg-slate-100 dark:text-slate-900"
-                : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
             <Package className="size-3.5" />
@@ -268,10 +268,10 @@ export default function ProductsPage() {
           <button
             type="button"
             onClick={() => setActiveTab("categories")}
-            className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+            className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
               activeTab === "categories"
-                ? "bg-slate-900 text-white shadow-xs dark:bg-slate-100 dark:text-slate-900"
-                : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
             <Layers className="size-3.5" />
@@ -280,10 +280,10 @@ export default function ProductsPage() {
           <button
             type="button"
             onClick={() => setActiveTab("finishings")}
-            className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+            className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
               activeTab === "finishings"
-                ? "bg-slate-900 text-white shadow-xs dark:bg-slate-100 dark:text-slate-900"
-                : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
             <Scissors className="size-3.5" />
@@ -293,7 +293,7 @@ export default function ProductsPage() {
       </div>
 
       {pageError && (
-        <div className="flex items-center gap-2 rounded-xl bg-rose-50 p-4 text-xs sm:text-sm text-rose-700 dark:bg-rose-950/60 dark:text-rose-300">
+        <div className="flex items-center gap-2 rounded-lg bg-destructive/10 p-4 text-xs sm:text-sm text-destructive">
           <AlertCircle className="size-5 shrink-0" />
           <span>{pageError}</span>
         </div>
@@ -322,13 +322,13 @@ export default function ProductsPage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             {/* Search Input */}
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari nama produk atau SKU..."
-                className="w-full rounded-xl border border-slate-300 bg-white pl-10 pr-4 py-2.5 text-base sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+                className="w-full rounded-lg border border-input bg-card pl-10 pr-4 py-2.5 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
               />
             </div>
 
@@ -337,7 +337,7 @@ export default function ProductsPage() {
               <button
                 type="button"
                 onClick={handleOpenAddProduct}
-                className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-700 active:scale-95"
+                className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95"
               >
                 <Plus className="size-4" />
                 Tambah Produk
@@ -350,10 +350,10 @@ export default function ProductsPage() {
             <button
               type="button"
               onClick={() => setSelectedCategoryFilter("ALL")}
-              className={`min-h-[34px] shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition-all ${
+              className={`min-h-[34px] shrink-0 rounded-lg px-3 py-1 text-xs font-semibold transition-all ${
                 selectedCategoryFilter === "ALL"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                  ? "bg-primary text-primary-foreground shadow-xs"
+                  : "bg-secondary text-secondary-foreground hover:bg-muted"
               }`}
             >
               Semua Kategori
@@ -363,10 +363,10 @@ export default function ProductsPage() {
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategoryFilter(cat.id)}
-                className={`min-h-[34px] shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition-all ${
+                className={`min-h-[34px] shrink-0 rounded-lg px-3 py-1 text-xs font-semibold transition-all ${
                   selectedCategoryFilter === cat.id
-                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "bg-secondary text-secondary-foreground hover:bg-muted"
                 }`}
               >
                 {cat.name}
@@ -376,19 +376,19 @@ export default function ProductsPage() {
 
           {/* Daftar Produk (Responsive: Cards on Mobile, Table on Desktop) */}
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white py-16 dark:border-slate-800 dark:bg-slate-900">
-              <div className="size-8 animate-spin rounded-full border-2 border-slate-900 border-t-transparent dark:border-slate-100" />
-              <p className="mt-3 text-xs text-slate-500">Memuat katalog produk...</p>
+            <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-16">
+              <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <p className="mt-3 text-xs text-muted-foreground">Memuat katalog produk...</p>
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center dark:border-slate-800 dark:bg-slate-900">
-              <Package className="size-12 text-slate-300 dark:text-slate-600 mb-2" />
-              <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-16 text-center">
+              <Package className="size-12 text-muted-foreground/40 mb-2" />
+              <p className="text-sm font-semibold text-foreground">
                 {searchQuery || selectedCategoryFilter !== "ALL"
                   ? "Tidak Ada Produk yang Cocok"
                   : "Katalog Produk Masih Kosong"}
               </p>
-              <p className="text-xs text-slate-500 mt-1 max-w-sm">
+              <p className="text-xs text-muted-foreground mt-1 max-w-sm">
                 {searchQuery || selectedCategoryFilter !== "ALL"
                   ? "Coba sesuaikan kata kunci pencarian atau ganti filter kategori."
                   : "Mulai tambahkan produk percetakan meteran atau satuan dengan foto dan harga tier."}
@@ -397,10 +397,10 @@ export default function ProductsPage() {
           ) : (
             <>
               {/* Tampilan Desktop (Table View) */}
-              <div className="hidden md:block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="hidden md:block overflow-hidden rounded-xl border border-border bg-card shadow-2xs">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50/75 text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-400">
+                    <tr className="border-b border-border bg-muted/50 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                       <th className="py-3 px-4 w-16">Foto</th>
                       <th className="py-3 px-4">Nama Produk & SKU</th>
                       <th className="py-3 px-4">Kategori</th>
@@ -410,12 +410,12 @@ export default function ProductsPage() {
                       {isOwner && <th className="py-3 px-4 text-right">Aksi</th>}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-sm dark:divide-slate-800">
+                  <tbody className="divide-y divide-border text-sm">
                     {filteredProducts.map((p) => (
-                      <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                      <tr key={p.id} className="hover:bg-muted/40 transition-colors">
                         {/* Thumbnail Foto */}
                         <td className="py-3 px-4">
-                          <div className="relative size-12 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800 flex items-center justify-center">
+                          <div className="relative size-12 shrink-0 overflow-hidden rounded-lg border border-border bg-muted flex items-center justify-center">
                             {p.imageUrl ? (
                               <Image
                                 src={p.imageUrl}
@@ -424,16 +424,16 @@ export default function ProductsPage() {
                                 className="object-cover"
                               />
                             ) : (
-                              <ImageIcon className="size-5 text-slate-400 dark:text-slate-600" />
+                              <ImageIcon className="size-5 text-muted-foreground" />
                             )}
                           </div>
                         </td>
 
                         {/* Nama & SKU */}
                         <td className="py-3 px-4">
-                          <p className="font-bold text-slate-900 dark:text-slate-100">{p.name}</p>
+                          <p className="font-bold text-foreground">{p.name}</p>
                           {p.sku && (
-                            <span className="font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                            <span className="font-mono text-[11px] text-muted-foreground">
                               SKU: {p.sku}
                             </span>
                           )}
@@ -441,7 +441,7 @@ export default function ProductsPage() {
 
                         {/* Kategori */}
                         <td className="py-3 px-4">
-                          <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                          <span className="text-xs font-medium text-foreground">
                             {p.categoryName || "-"}
                           </span>
                         </td>
@@ -450,8 +450,8 @@ export default function ProductsPage() {
                         <td className="py-3 px-4">
                           <div className="flex flex-col gap-1 items-start">
                             {getPricingTypeBadge(p.pricingType)}
-                            <span className="text-xs text-slate-500">
-                              Satuan: <strong className="text-slate-700 dark:text-slate-300">{p.unitLabel}</strong>
+                            <span className="text-xs text-muted-foreground">
+                              Satuan: <strong className="text-foreground">{p.unitLabel}</strong>
                             </span>
                           </div>
                         </td>
@@ -459,18 +459,18 @@ export default function ProductsPage() {
                         {/* Harga Dasar & Tier */}
                         <td className="py-3 px-4">
                           <div>
-                            <span className="font-mono font-bold text-slate-900 dark:text-slate-100 tabular-nums">
+                            <span className="font-mono font-bold text-foreground tabular-nums">
                               Rp {p.basePrice.toLocaleString("id-ID")}
                             </span>
-                            <span className="text-xs text-slate-500"> / {p.unitLabel}</span>
+                            <span className="text-xs text-muted-foreground"> / {p.unitLabel}</span>
                           </div>
                           {p.pricingType === "UNIT" && p.priceTiers && p.priceTiers.length > 0 && (
-                            <p className="mt-0.5 text-[11px] text-blue-600 dark:text-blue-400">
+                            <p className="mt-0.5 text-[11px] text-primary font-medium">
                               {p.priceTiers.length} tingkat harga grosir
                             </p>
                           )}
                           {p.pricingType === "AREA" && (
-                            <p className="mt-0.5 text-[11px] text-slate-500">
+                            <p className="mt-0.5 text-[11px] text-muted-foreground">
                               Min: {p.minArea} m² &bull; {p.areaRounding}
                             </p>
                           )}
@@ -482,7 +482,7 @@ export default function ProductsPage() {
                             className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                               p.isActive
                                 ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
-                                : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                                : "bg-muted text-muted-foreground"
                             }`}
                           >
                             {p.isActive ? "Aktif" : "Nonaktif"}
@@ -496,7 +496,7 @@ export default function ProductsPage() {
                               <button
                                 type="button"
                                 onClick={() => handleOpenEditProduct(p)}
-                                className="inline-flex min-h-[38px] items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                                className="inline-flex min-h-[38px] items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted active:scale-95 transition-colors"
                               >
                                 <Edit2 className="size-3.5" />
                                 Edit
@@ -507,7 +507,7 @@ export default function ProductsPage() {
                                   setDeleteProductTarget(p);
                                   setDeleteProductError(null);
                                 }}
-                                className="inline-flex min-h-[38px] items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 active:scale-95 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-300"
+                                className="inline-flex min-h-[38px] items-center gap-1 rounded-lg border border-destructive/20 bg-destructive/10 px-2.5 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/20 active:scale-95 transition-colors"
                               >
                                 <Trash2 className="size-3.5" />
                                 Hapus
@@ -526,11 +526,11 @@ export default function ProductsPage() {
                 {filteredProducts.map((p) => (
                   <div
                     key={p.id}
-                    className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900"
+                    className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-2xs"
                   >
                     <div className="flex items-start gap-3">
                       {/* Thumbnail Foto */}
-                      <div className="relative size-20 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800 flex items-center justify-center">
+                      <div className="relative size-20 shrink-0 overflow-hidden rounded-lg border border-border bg-muted flex items-center justify-center">
                         {p.imageUrl ? (
                           <Image
                             src={p.imageUrl}
@@ -539,45 +539,45 @@ export default function ProductsPage() {
                             className="object-cover"
                           />
                         ) : (
-                          <ImageIcon className="size-7 text-slate-400 dark:text-slate-600" />
+                          <ImageIcon className="size-7 text-muted-foreground" />
                         )}
                       </div>
 
                       {/* Detail Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-medium text-slate-500 truncate">
+                          <span className="text-xs font-medium text-muted-foreground truncate">
                             {p.categoryName || "Umum"}
                           </span>
                           <span
                             className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                               p.isActive
                                 ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
-                                : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                                : "bg-muted text-muted-foreground"
                             }`}
                           >
                             {p.isActive ? "Aktif" : "Nonaktif"}
                           </span>
                         </div>
 
-                        <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm leading-snug mt-0.5 line-clamp-2">
+                        <h3 className="font-bold text-foreground text-sm leading-snug mt-0.5 line-clamp-2">
                           {p.name}
                         </h3>
 
                         <div className="mt-2 flex items-baseline gap-1">
-                          <span className="font-mono font-bold text-base text-slate-900 dark:text-slate-50 tabular-nums">
+                          <span className="font-mono font-bold text-base text-foreground tabular-nums">
                             Rp {p.basePrice.toLocaleString("id-ID")}
                           </span>
-                          <span className="text-xs text-slate-500">/ {p.unitLabel}</span>
+                          <span className="text-xs text-muted-foreground">/ {p.unitLabel}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between border-t border-slate-100 pt-2.5 dark:border-slate-800">
+                    <div className="flex items-center justify-between border-t border-border pt-2.5">
                       <div className="flex items-center gap-1.5">
                         {getPricingTypeBadge(p.pricingType)}
                         {p.pricingType === "UNIT" && p.priceTiers && p.priceTiers.length > 0 && (
-                          <span className="text-[11px] text-blue-600 font-medium">
+                          <span className="text-[11px] text-primary font-medium">
                             {p.priceTiers.length} tier grosir
                           </span>
                         )}
@@ -588,7 +588,7 @@ export default function ProductsPage() {
                           <button
                             type="button"
                             onClick={() => handleOpenEditProduct(p)}
-                            className="inline-flex min-h-[38px] items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                            className="inline-flex min-h-[38px] items-center gap-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted transition-colors"
                           >
                             <Edit2 className="size-3.5" />
                             Edit
@@ -599,7 +599,7 @@ export default function ProductsPage() {
                               setDeleteProductTarget(p);
                               setDeleteProductError(null);
                             }}
-                            className="inline-flex min-h-[38px] items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-300"
+                            className="inline-flex min-h-[38px] items-center gap-1 rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/20 transition-colors"
                           >
                             <Trash2 className="size-3.5" />
                             Hapus
@@ -626,17 +626,17 @@ export default function ProductsPage() {
           {/* Dialog Konfirmasi Hapus Produk */}
           {deleteProductTarget && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" onClick={() => setDeleteProductTarget(null)} />
-              <div className="relative w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
-                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+              <div className="fixed inset-0 bg-background/80 backdrop-blur-xs" onClick={() => setDeleteProductTarget(null)} />
+              <div className="relative w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-2xl">
+                <h3 className="text-base font-bold text-foreground">
                   Hapus Produk?
                 </h3>
-                <p className="mt-2 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
                   Anda yakin ingin menghapus <strong>{deleteProductTarget.name}</strong>? Foto di storage akan otomatis dibersihkan.
                 </p>
 
                 {deleteProductError && (
-                  <div className="mt-3 flex items-center gap-1.5 rounded-lg bg-rose-50 p-2.5 text-xs text-rose-700 dark:bg-rose-950/60 dark:text-rose-300">
+                  <div className="mt-3 flex items-center gap-1.5 rounded-lg bg-destructive/10 p-2.5 text-xs text-destructive">
                     <AlertCircle className="size-4 shrink-0" />
                     <span>{deleteProductError}</span>
                   </div>
@@ -647,7 +647,7 @@ export default function ProductsPage() {
                     type="button"
                     onClick={() => setDeleteProductTarget(null)}
                     disabled={isDeletingProduct}
-                    className="min-h-[40px] rounded-xl border border-slate-300 px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300"
+                    className="min-h-[40px] rounded-lg border border-border px-3.5 py-1.5 text-xs font-semibold text-foreground hover:bg-muted"
                   >
                     Batal
                   </button>
@@ -655,7 +655,7 @@ export default function ProductsPage() {
                     type="button"
                     onClick={handleDeleteProductConfirm}
                     disabled={isDeletingProduct}
-                    className="min-h-[40px] rounded-xl bg-rose-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-rose-700 disabled:opacity-50"
+                    className="min-h-[40px] rounded-lg bg-destructive px-3.5 py-1.5 text-xs font-semibold text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
                   >
                     {isDeletingProduct ? "Menghapus..." : "Ya, Hapus"}
                   </button>

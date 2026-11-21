@@ -199,7 +199,7 @@ export default function PosPage() {
   };
 
   return (
-    <div className="space-y-4 max-w-7xl mx-auto pb-24 lg:pb-0">
+    <div className="space-y-4">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>

@@ -204,7 +204,7 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="space-y-5 max-w-7xl mx-auto">
+    <div className="space-y-5">
       {/* Page Title & Action */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>

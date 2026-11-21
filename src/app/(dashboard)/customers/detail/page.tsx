@@ -50,7 +50,7 @@ interface CustomerDetailData {
 
 function CustomerDetailSkeleton() {
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-6">
       <Skeleton className="h-8 w-28 rounded-xl" />
 
       <div className="p-6 rounded-2xl bg-card border border-border shadow-xs space-y-6">
@@ -145,7 +145,7 @@ function CustomerDetailContent() {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-6">
       {/* Top Navigation */}
       <div className="flex items-center justify-between gap-4">
         <Button

@@ -4,6 +4,32 @@ Semua pembaruan terstruktur untuk proyek **Ksatria Graphx** didokumentasikan dal
 
 ---
 
+## [v1.1.1] - 2026-11-21
+
+Rilis pembaruan antarmuka dan kestabilan sistem: penyempurnaan sistem tema OKLCH (Mode Terang & Mode Gelap), penyeragaman lebar kontainer seluruh halaman, perbaikan posisi sticky footer sidebar desktop, serta penyelarasan gaya notifikasi toast.
+
+### Penyempurnaan Tema & Desain Token OKLCH
+- **Palet Warna OKLCH Presisi**:
+  - Memutakhirkan `src/app/globals.css` dengan token warna OKLCH modern (`--background`, `--foreground`, `--card`, `--primary`, `--secondary`, `--muted`, `--accent`, `--destructive`, `--border`, `--input`, `--ring`, `--chart-1` s.d. `--chart-5`, dan `--sidebar-*`) untuk Mode Terang dan Mode Gelap.
+  - Memastikan kontras tajam sesuai WCAG AA tanpa warna hardcoded (`slate-*`/`blue-*`), serta radius seragam `0.375rem` (`rounded-lg`).
+  - Mengintegrasikan variabel font Next.js `--font-inter` dan `--font-jetbrains-mono` secara konsisten pada elemen dasar `layout.tsx` dan `globals.css`.
+
+### Penyeragaman Lebar Kontainer Halaman & Layout
+- **Eliminasi Lompatan Lebar Antarhalaman**:
+  - Menetapkan batas lebar tunggal `max-w-[1440px] px-4 py-5 sm:px-6 lg:px-8 lg:py-6` langsung di dalam kontainer utama `AppShell.tsx`.
+  - Membersihkan pembatas lebar lokal (`max-w-4xl`, `max-w-5xl`, `max-w-7xl`) dan padding vertikal berlebih dari seluruh 11 halaman operasional (`/dashboard`, `/pos`, `/orders`, `/orders/detail`, `/products`, `/customers`, `/customers/detail`, `/reports`, `/settings`, `/users`, dan `/audit-logs`), memastikan transisi antarhalaman sejajar dan mulus.
+- **Perbaikan Posisi Sticky Footer Sidebar Desktop**:
+  - Mengisolasi tinggi sidebar kiri desktop dengan `lg:sticky lg:top-0 lg:h-dvh` dan memisahkan area navigasi tengah (`overflow-y-auto`) dengan footer profil pengguna/versi (`shrink-0`).
+  - Informasi akun pengguna, tombol keluar sesi, dan badge versi kini selalu tampil terkunci di dasar layar desktop tanpa tergulung saat halaman panjang di-scroll.
+
+### Penyelarasan Komponen Sekunder & Notifikasi
+- **Harmonisasi Modal & Tab Produk**:
+  - Menyelaraskan seluruh modal tambah/edit dan dialog konfirmasi hapus pada `CategoryTab.tsx`, `FinishingTab.tsx`, dan `ProductFormModal.tsx` menggunakan semantic tokens dan backdrop modern.
+- **Styling Notifikasi Toast Sonner**:
+  - Menyelaraskan komponen `<Toaster />` di `QueryProvider.tsx` dengan variabel semantik tema (`var(--popover)`, `var(--popover-foreground)`, `var(--border)`, dan `var(--radius)`).
+
+---
+
 ## [v1.1.0] - 2026-11-21
 
 Rilis pembaruan minor utama untuk perombakan antarmuka pengguna (UI/UX Overhaul), implementasi sistem tema ganda (Mode Gelap & Mode Terang), navigasi responsif tunggal anti-double navbar, perombakan menyeluruh halaman Dashboard, transisi layar mulus (shaped skeletons anti-blank screen), serta sistem notifikasi pembaruan aplikasi langsung (In-App Updater).

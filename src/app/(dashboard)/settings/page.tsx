@@ -264,7 +264,7 @@ export default function SettingsPage() {
   // Jika Kasir, izinkan akses ke Thermal Printer Panel dan Kartu Versi (profil toko terkunci)
   if (user && user.role !== "OWNER") {
     return (
-      <div className="space-y-6 pb-16 max-w-4xl mx-auto">
+      <div className="space-y-6">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
             Pengaturan Printer Kasir
@@ -291,7 +291,7 @@ export default function SettingsPage() {
 
   // Tampilan Owner Lengkap
   return (
-    <div className="space-y-6 pb-16">
+    <div className="space-y-6">
       {/* Page Header */}
       <div>
         <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">

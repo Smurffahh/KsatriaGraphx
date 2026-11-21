@@ -154,7 +154,7 @@ function getProductionBadge(status: string) {
 
 function DashboardSkeleton() {
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-6 animate-in fade-in duration-200">
       {/* Header Skeleton */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1.5">
@@ -241,7 +241,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="space-y-6">
       {/* ========================================================= */}
       {/* HEADER DASHBOARD                                          */}
       {/* ========================================================= */}
@@ -465,8 +465,8 @@ export default function DashboardPage() {
                   >
                     <defs>
                       <linearGradient id="omzetGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.25} />
-                        <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.0} />
+                        <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0.0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
@@ -497,7 +497,7 @@ export default function DashboardPage() {
                             transaksi: number;
                           };
                           return (
-                            <div className="rounded-xl border border-border bg-card p-3 shadow-lg text-xs space-y-1">
+                            <div className="rounded-lg border border-border bg-popover text-popover-foreground p-3 shadow-md text-xs space-y-1">
                               <p className="font-semibold text-foreground">
                                 {formatDateLabel(item.dateKey)}
                               </p>
@@ -516,7 +516,7 @@ export default function DashboardPage() {
                     <Area
                       type="monotone"
                       dataKey="omzet"
-                      stroke="var(--primary)"
+                      stroke="var(--chart-1)"
                       strokeWidth={2.5}
                       fillOpacity={1}
                       fill="url(#omzetGradient)"

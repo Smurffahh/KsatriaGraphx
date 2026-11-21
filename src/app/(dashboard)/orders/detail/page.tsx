@@ -101,7 +101,7 @@ interface CurrentUser {
 
 function OrderDetailSkeleton() {
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <Skeleton className="h-8 w-44 rounded-xl" />
         <Skeleton className="h-8 w-32 rounded-xl" />
@@ -217,7 +217,7 @@ function OrderDetailContent() {
   const isCancelled = order.productionStatus === "CANCELLED";
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+    <div className="space-y-6">
       {/* Top Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <Button

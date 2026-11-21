@@ -21,6 +21,7 @@ import {
   type DefaultPrinterConfig,
 } from "@/lib/printer/bluetooth";
 import { isNativeApp } from "@/lib/platform";
+import { toast } from "sonner";
 
 export function ThermalPrinterPanel({ storeName = "Ksatria Graphx" }: { storeName?: string }) {
   const [isNative, setIsNative] = useState(false);
@@ -82,6 +83,7 @@ export function ThermalPrinterPanel({ storeName = "Ksatria Graphx" }: { storeNam
     };
     saveDefaultPrinter(config);
     setCurrentPrinter(config);
+    toast.success(`Printer "${device.name}" berhasil ditetapkan sebagai printer default.`);
     setStatusMessage({
       type: "success",
       text: `Printer "${device.name}" berhasil ditetapkan sebagai printer default.`,
@@ -103,6 +105,7 @@ export function ThermalPrinterPanel({ storeName = "Ksatria Graphx" }: { storeNam
   const handleDisconnectPrinter = () => {
     clearDefaultPrinter();
     setCurrentPrinter(null);
+    toast.info("Printer default telah diputus.");
     setStatusMessage({
       type: "info",
       text: "Printer default telah diputus dan dihapus dari memori aplikasi.",
@@ -111,6 +114,7 @@ export function ThermalPrinterPanel({ storeName = "Ksatria Graphx" }: { storeNam
 
   const handleTestPrint = async () => {
     if (!currentPrinter) {
+      toast.error("Pilih printer thermal terlebih dahulu sebelum mencetak tes.");
       setStatusMessage({
         type: "error",
         text: "Pilih printer thermal terlebih dahulu sebelum mencetak tes.",
@@ -123,20 +127,24 @@ export function ThermalPrinterPanel({ storeName = "Ksatria Graphx" }: { storeNam
     try {
       const res = await printTestReceipt(storeName, paperWidth);
       if (res.success) {
+        toast.success("Struk tes berhasil dikirim ke printer thermal!");
         setStatusMessage({
           type: "success",
           text: "Struk tes berhasil dikirim ke printer thermal!",
         });
       } else {
+        toast.error(res.message);
         setStatusMessage({
           type: "error",
           text: res.message,
         });
       }
     } catch {
+      const errMsg = "Terjadi kesalahan saat mengirim perintah cetak ke printer.";
+      toast.error(errMsg);
       setStatusMessage({
         type: "error",
-        text: "Terjadi kesalahan saat mengirim perintah cetak ke printer.",
+        text: errMsg,
       });
     } finally {
       setIsTesting(false);

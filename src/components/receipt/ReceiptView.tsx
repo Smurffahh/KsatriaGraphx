@@ -17,6 +17,7 @@ import {
 } from "@/lib/printer/share";
 import { printReceiptThermal } from "@/lib/printer/bluetooth";
 import { isNativeApp } from "@/lib/platform";
+import { toast } from "sonner";
 
 interface ReceiptViewProps {
   order: ReceiptOrderData;
@@ -59,11 +60,18 @@ export function ReceiptView({
         storeSettings,
         paperWidth === "A5" ? "80mm" : paperWidth
       );
+      if (res.success) {
+        toast.success("Struk berhasil dikirim ke printer thermal");
+      } else {
+        toast.error(res.message);
+      }
       setThermalFeedback({ text: res.message, error: !res.success });
       setTimeout(() => setThermalFeedback(null), 5000);
     } catch {
+      const errMsg = "Gagal menghubungkan ke printer thermal.";
+      toast.error(errMsg);
       setThermalFeedback({
-        text: "Gagal menghubungkan ke printer thermal.",
+        text: errMsg,
         error: true,
       });
     } finally {
@@ -79,8 +87,10 @@ export function ReceiptView({
         storeSettings,
         paperWidth === "A5" ? "80mm" : paperWidth
       );
+      toast.success("Gambar nota PNG berhasil diunduh");
     } catch (err) {
       console.error("Gagal export PNG:", err);
+      toast.error("Gagal mengekspor gambar nota PNG");
     } finally {
       setIsExporting(false);
     }
@@ -94,8 +104,10 @@ export function ReceiptView({
         storeSettings,
         paperWidth === "A5" ? "80mm" : paperWidth
       );
+      toast.success("Nota berhasil dibagikan");
     } catch (err) {
       console.error("Gagal share native:", err);
+      toast.error("Gagal membagikan nota");
     } finally {
       setIsExporting(false);
     }
@@ -107,6 +119,7 @@ export function ReceiptView({
       order,
       storeSettings
     );
+    toast.success("Membuka WhatsApp untuk mengirim nota...");
     window.open(url, "_blank", "noopener,noreferrer");
   };
 

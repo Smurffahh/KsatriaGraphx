@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Plus, Edit2, Trash2, X, AlertCircle, Save, Scissors } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { toast } from "sonner";
 
 export interface FinishingItem {
   id: string;
@@ -84,6 +85,7 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
         if (!res.success) {
           throw new Error(res.error || "Gagal memperbarui finishing");
         }
+        toast.success("Opsi finishing berhasil diperbarui");
       } else {
         const res = await apiClient("/api/finishings", {
           method: "POST",
@@ -99,6 +101,7 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
         if (!res.success) {
           throw new Error(res.error || "Gagal menambahkan finishing");
         }
+        toast.success("Opsi finishing baru berhasil ditambahkan");
       }
 
       await onRefresh();
@@ -106,6 +109,7 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Terjadi kesalahan";
       setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -126,11 +130,13 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
         throw new Error(res.error || "Gagal menghapus finishing");
       }
 
+      toast.success(`Finishing "${deleteTarget.name}" berhasil dihapus`);
       await onRefresh();
       setDeleteTarget(null);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Terjadi kesalahan";
       setDeleteError(msg);
+      toast.error(msg);
     } finally {
       setIsDeleting(false);
     }

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Loader2, Save, User, Phone, MapPin, FileText } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { toast } from "sonner";
 
 export interface CustomerData {
   id: string;
@@ -81,11 +82,18 @@ export function CustomerFormModal({
         throw new Error(res.error || "Gagal menyimpan data pelanggan");
       }
 
+      toast.success(
+        initialData?.id
+          ? "Data pelanggan berhasil diperbarui"
+          : "Pelanggan baru berhasil ditambahkan"
+      );
       onSuccess(res.data);
       onClose();
     } catch (err: unknown) {
       const errorObj = err as { message?: string };
-      setErrorMessage(errorObj.message || "Gagal menyimpan data pelanggan");
+      const msg = errorObj.message || "Gagal menyimpan data pelanggan";
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }

@@ -11,6 +11,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { toast } from "sonner";
 
 interface OrderPaymentModalProps {
   isOpen: boolean;
@@ -85,11 +86,14 @@ export function OrderPaymentModal({
         throw new Error(res.error || "Gagal memproses pembayaran");
       }
 
+      toast.success(`Pembayaran untuk nota ${order.invoiceNumber} berhasil dicatat!`);
       onSuccess();
       onClose();
     } catch (err: unknown) {
       const errorObj = err as { message?: string };
-      setErrorMessage(errorObj.message || "Gagal memproses pembayaran");
+      const msg = errorObj.message || "Gagal memproses pembayaran";
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }

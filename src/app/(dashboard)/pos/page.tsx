@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Search,
   ShoppingCart,
@@ -37,6 +39,7 @@ interface CurrentUser {
 }
 
 export default function PosPage() {
+  const queryClient = useQueryClient();
   const [products, setProducts] = useState<PosProductItem[]>([]);
   const [finishings, setFinishings] = useState<PosFinishingOption[]>([]);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
@@ -122,14 +125,17 @@ export default function PosPage() {
       }
       return [...prev, item];
     });
+    toast.success(`"${item.product.name}" ditambahkan ke keranjang`);
   };
 
   const handleRemoveCartItem = (cartItemId: string) => {
     setCart((prev) => prev.filter((i) => i.cartItemId !== cartItemId));
+    toast.info("Item dihapus dari keranjang");
   };
 
   const handleClearCart = () => {
     setCart([]);
+    toast.info("Keranjang pesanan dikosongkan");
   };
 
   const handleOrderSuccess = (orderResult: {
@@ -141,6 +147,10 @@ export default function PosPage() {
     changeAmount: number;
     paymentStatus: string;
   }) => {
+    queryClient.invalidateQueries({ queryKey: ["orders"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    queryClient.invalidateQueries({ queryKey: ["reports"] });
+    queryClient.invalidateQueries({ queryKey: ["customers"] });
     setCompletedOrder(orderResult);
     setCart([]);
     setSuccessModalOpen(true);

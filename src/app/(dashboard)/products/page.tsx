@@ -14,6 +14,7 @@ import {
   ImageIcon,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { toast } from "sonner";
 import { ProductFormModal, type ProductFormData } from "@/components/products/ProductFormModal";
 import { CategoryTab, type CategoryItem } from "@/components/products/CategoryTab";
 import { FinishingTab, type FinishingItem } from "@/components/products/FinishingTab";
@@ -175,6 +176,7 @@ export default function ProductsPage() {
         if (!res.success) {
           throw new Error(res.error || "Gagal memperbarui produk");
         }
+        toast.success("Produk berhasil diperbarui");
       } else {
         // Tambah Produk
         const res = await apiClient("/api/products", {
@@ -184,10 +186,15 @@ export default function ProductsPage() {
         if (!res.success) {
           throw new Error(res.error || "Gagal menambahkan produk");
         }
+        toast.success("Produk baru berhasil ditambahkan");
       }
 
       await loadInitialData();
       setIsProductModalOpen(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Terjadi kesalahan saat menyimpan produk";
+      toast.error(msg);
+      throw err;
     } finally {
       setIsSubmittingProduct(false);
     }
@@ -208,11 +215,13 @@ export default function ProductsPage() {
         throw new Error(res.error || "Gagal menghapus produk");
       }
 
+      toast.success(`Produk "${deleteProductTarget.name}" berhasil dihapus`);
       await loadInitialData();
       setDeleteProductTarget(null);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus";
       setDeleteProductError(msg);
+      toast.error(msg);
     } finally {
       setIsDeletingProduct(false);
     }

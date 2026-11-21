@@ -24,6 +24,7 @@ import {
 } from "@/lib/calculator/pricing";
 import type { CartItem } from "./PosItemCalculator";
 import { CustomerFormModal, type CustomerData } from "../customers/CustomerFormModal";
+import { toast } from "sonner";
 
 interface StoreSettingsData {
   invoicePrefix: string;
@@ -180,12 +181,16 @@ export function PosCheckoutModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName.trim()) {
-      setErrorMessage("Nama pelanggan wajib diisi");
+      const msg = "Nama pelanggan wajib diisi";
+      setErrorMessage(msg);
+      toast.error(msg);
       return;
     }
 
     if (isDiscountOverLimit) {
-      setErrorMessage(`Diskon melebihi batas plafon kasir (${maxCashierPercent}%)`);
+      const msg = `Diskon melebihi batas plafon kasir (${maxCashierPercent}%)`;
+      setErrorMessage(msg);
+      toast.error(msg);
       return;
     }
 
@@ -240,11 +245,14 @@ export function PosCheckoutModal({
         throw new Error(res.error || "Gagal menyimpan transaksi pesanan");
       }
 
+      toast.success(`Nota ${res.data.invoiceNumber} berhasil disimpan!`);
       onSuccess(res.data);
       onClose();
     } catch (err: unknown) {
       const errorObj = err as { message?: string };
-      setErrorMessage(errorObj.message || "Gagal menyimpan transaksi pesanan");
+      const msg = errorObj.message || "Gagal menyimpan transaksi pesanan";
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }

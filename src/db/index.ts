@@ -1,13 +1,14 @@
 import dotenv from "dotenv";
-import { drizzle, type NeonHttpDatabase } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
+import { drizzle, type NeonDatabase } from "drizzle-orm/neon-serverless";
+import { Pool } from "@neondatabase/serverless";
 import * as schema from "./schema";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config({ path: ".env" });
 
-export type Database = NeonHttpDatabase<typeof schema>;
+export type Database = NeonDatabase<typeof schema>;
 
+let cachedPool: Pool | null = null;
 let cachedDb: Database | null = null;
 
 export function getDb(): Database {
@@ -27,8 +28,8 @@ export function getDb(): Database {
     );
   }
 
-  const client = neon(connectionString);
-  cachedDb = drizzle({ client, schema });
+  cachedPool = new Pool({ connectionString });
+  cachedDb = drizzle({ client: cachedPool, schema });
   return cachedDb;
 }
 

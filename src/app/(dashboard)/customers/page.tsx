@@ -18,6 +18,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { toast } from "sonner";
 import { CustomerFormModal, type CustomerData } from "@/components/customers/CustomerFormModal";
 
 interface CustomerListItem extends CustomerData {
@@ -123,11 +124,14 @@ export default function CustomersPage() {
       if (!res.success) {
         throw new Error(res.error || "Gagal menghapus pelanggan");
       }
+      toast.success("Pelanggan berhasil dihapus");
       setDeleteConfirmId(null);
       fetchCustomers();
     } catch (err: unknown) {
       const errorObj = err as { message?: string };
-      setActionError(errorObj.message || "Gagal menghapus pelanggan");
+      const msg = errorObj.message || "Gagal menghapus pelanggan";
+      setActionError(msg);
+      toast.error(msg);
     } finally {
       setIsDeleting(false);
     }

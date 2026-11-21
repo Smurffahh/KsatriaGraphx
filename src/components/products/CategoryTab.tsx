@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Plus, Edit2, Trash2, X, AlertCircle, Save, Folder } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { toast } from "sonner";
 
 export interface CategoryItem {
   id: string;
@@ -80,6 +81,7 @@ export function CategoryTab({ categories, onRefresh, isOwner }: CategoryTabProps
         if (!res.success) {
           throw new Error(res.error || "Gagal memperbarui kategori");
         }
+        toast.success("Kategori berhasil diperbarui");
       } else {
         // Create new
         const res = await apiClient("/api/categories", {
@@ -95,6 +97,7 @@ export function CategoryTab({ categories, onRefresh, isOwner }: CategoryTabProps
         if (!res.success) {
           throw new Error(res.error || "Gagal menambahkan kategori");
         }
+        toast.success("Kategori baru berhasil ditambahkan");
       }
 
       await onRefresh();
@@ -102,6 +105,7 @@ export function CategoryTab({ categories, onRefresh, isOwner }: CategoryTabProps
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Terjadi kesalahan";
       setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -122,11 +126,13 @@ export function CategoryTab({ categories, onRefresh, isOwner }: CategoryTabProps
         throw new Error(res.error || "Gagal menghapus kategori");
       }
 
+      toast.success(`Kategori "${deleteTarget.name}" berhasil dihapus`);
       await onRefresh();
       setDeleteTarget(null);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Terjadi kesalahan";
       setDeleteError(msg);
+      toast.error(msg);
     } finally {
       setIsDeleting(false);
     }

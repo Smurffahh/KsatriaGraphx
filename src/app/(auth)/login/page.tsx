@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Lock, User, AlertCircle, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 import { isNativeApp } from "@/lib/platform";
 import { secureStorage } from "@/lib/auth/secure-storage";
 import { resolveApiUrl } from "@/lib/api/client";
@@ -47,17 +48,18 @@ export default function LoginPage() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok || !data.success) {
+        let errorMsg = "";
         if (response.status === 401) {
-          setErrorMessage("Username atau password salah.");
+          errorMsg = "Username atau password salah.";
         } else if (response.status === 429) {
-          setErrorMessage("Terlalu banyak percobaan login. Silakan tunggu beberapa menit.");
+          errorMsg = "Terlalu banyak percobaan login. Silakan tunggu beberapa menit.";
         } else if (response.status === 403) {
-          setErrorMessage("Akses ditolak oleh kebijakan keamanan server (kode 403).");
+          errorMsg = "Akses ditolak oleh kebijakan keamanan server (kode 403).";
         } else {
-          setErrorMessage(
-            data.error || `Terjadi kesalahan saat masuk ke sistem (kode ${response.status}).`
-          );
+          errorMsg = data.error || `Terjadi kesalahan saat masuk ke sistem (kode ${response.status}).`;
         }
+        setErrorMessage(errorMsg);
+        toast.error(errorMsg);
         setIsLoading(false);
         return;
       }
@@ -69,17 +71,20 @@ export default function LoginPage() {
             refreshToken: data.data.refreshToken,
           });
         } catch {
-          setErrorMessage("Gagal menyimpan sesi terenkripsi di perangkat (kode STORAGE).");
+          const storageMsg = "Gagal menyimpan sesi terenkripsi di perangkat (kode STORAGE).";
+          setErrorMessage(storageMsg);
+          toast.error(storageMsg);
           setIsLoading(false);
           return;
         }
       }
 
+      toast.success(`Berhasil masuk sebagai ${data.data?.user?.name || "Pengguna"}`);
       router.replace("/pos");
     } catch {
-      setErrorMessage(
-        "Tidak dapat terhubung ke server. Periksa koneksi internet atau konfigurasi server (kode NET)."
-      );
+      const netMsg = "Tidak dapat terhubung ke server. Periksa koneksi internet atau konfigurasi server (kode NET).";
+      setErrorMessage(netMsg);
+      toast.error(netMsg);
       setIsLoading(false);
     }
   }

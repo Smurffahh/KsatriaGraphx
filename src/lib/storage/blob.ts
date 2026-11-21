@@ -22,20 +22,45 @@ function getBlobToken(): string {
 /**
  * Mengunggah buffer WebP produk ke Vercel Blob store dengan nama UUID acak murni.
  * Anti path traversal (nama file asli dari pengguna tidak pernah dipakai).
+ * Mendukung toko publik maupun toko privat (fallback otomatis).
  */
 export async function uploadProductImage(webpBuffer: Buffer): Promise<UploadResult> {
   const token = getBlobToken();
   const fileKey = `products/${crypto.randomUUID()}.webp`;
 
-  const blob = await put(fileKey, webpBuffer, {
-    access: "public",
-    contentType: "image/webp",
-    addRandomSuffix: false,
-    token,
-  });
+  let blob;
+  let isPrivate = false;
+
+  try {
+    blob = await put(fileKey, webpBuffer, {
+      access: "public",
+      contentType: "image/webp",
+      addRandomSuffix: false,
+      token,
+    });
+  } catch (error: any) {
+    if (
+      error?.message?.includes("Cannot use public access on a private store") ||
+      error?.message?.includes("private store")
+    ) {
+      isPrivate = true;
+      blob = await put(fileKey, webpBuffer, {
+        access: "private",
+        contentType: "image/webp",
+        addRandomSuffix: false,
+        token,
+      });
+    } else {
+      throw error;
+    }
+  }
+
+  const imageUrl = isPrivate
+    ? `/api/uploads/product-image?key=${encodeURIComponent(blob.pathname)}`
+    : blob.url;
 
   return {
-    imageUrl: blob.url,
+    imageUrl,
     imageKey: blob.pathname,
   };
 }
@@ -56,6 +81,17 @@ export async function deleteProductImage(imageUrl: string | null | undefined): P
 
   try {
     const token = getBlobToken();
+
+    if (imageUrl.startsWith("/api/uploads/product-image")) {
+      const url = new URL(imageUrl, "http://localhost");
+      const key = url.searchParams.get("key") || url.searchParams.get("pathname");
+      if (key) {
+        await del(key, { token });
+        return true;
+      }
+      return false;
+    }
+
     await del(imageUrl, { token });
     return true;
   } catch (error) {

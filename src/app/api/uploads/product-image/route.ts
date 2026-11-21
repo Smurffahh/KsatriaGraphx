@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { get } from "@vercel/blob";
 import { requireOwner } from "@/lib/auth/guard";
 import { validateCsrfOrigin } from "@/lib/security/csrf";
 import { checkRateLimit } from "@/lib/security/rate-limit";
@@ -13,9 +14,74 @@ import {
 import { uploadProductImage } from "@/lib/storage/blob";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function OPTIONS(request: Request) {
   return handleCorsPreflight(request);
+}
+
+export async function GET(request: Request) {
+  const origin = request.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
+  const { searchParams } = new URL(request.url);
+  const rawKey = searchParams.get("key") || searchParams.get("pathname");
+
+  if (!rawKey) {
+    return NextResponse.json(
+      { success: false, error: "Parameter 'key' wajib disertakan" },
+      { status: 400, headers: corsHeaders }
+    );
+  }
+
+  // Sanitasi & proteksi path traversal
+  const cleanKey = decodeURIComponent(rawKey).trim();
+  if (
+    cleanKey.includes("..") ||
+    cleanKey.includes("//") ||
+    !cleanKey.startsWith("products/")
+  ) {
+    return NextResponse.json(
+      { success: false, error: "Path gambar tidak valid" },
+      { status: 400, headers: corsHeaders }
+    );
+  }
+
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) {
+    return NextResponse.json(
+      { success: false, error: "Konfigurasi media storage belum siap" },
+      { status: 503, headers: corsHeaders }
+    );
+  }
+
+  try {
+    const result = await get(cleanKey, { access: "private", token });
+    if (!result || !result.stream) {
+      return NextResponse.json(
+        { success: false, error: "Foto produk tidak ditemukan" },
+        { status: 404, headers: corsHeaders }
+      );
+    }
+
+    return new NextResponse(result.stream as any, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": result.blob.contentType || "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+      },
+    });
+  } catch (err) {
+    console.error("[SERVE_PRODUCT_IMAGE_ERROR]", {
+      name: (err as any)?.name,
+      message: (err as any)?.message,
+    });
+    return NextResponse.json(
+      { success: false, error: "Gagal memuat foto produk" },
+      { status: 500, headers: corsHeaders }
+    );
+  }
 }
 
 export async function POST(request: Request) {
@@ -173,11 +239,24 @@ export async function POST(request: Request) {
       }
     }
 
-    console.error("[Upload Product Image Error]:", error);
+    const errObj = error as { name?: string; message?: string; code?: string };
+    console.error("[UPLOAD_PRODUCT_IMAGE_ERROR]", {
+      name: errObj?.name,
+      message: errObj?.message,
+      code: errObj?.code,
+    });
+
+    const isStorageConfigError =
+      errObj?.message?.includes("BLOB_READ_WRITE_TOKEN") ||
+      errObj?.message?.includes("store") ||
+      errObj?.message?.includes("credentials");
+
     return NextResponse.json(
       {
         success: false,
-        error: "Terjadi kesalahan internal saat memproses upload foto",
+        error: isStorageConfigError
+          ? "Layanan penyimpanan foto belum terkonfigurasi dengan benar"
+          : "Terjadi kesalahan saat memproses dan menyimpan upload foto",
         code: "INTERNAL_SERVER_ERROR",
       },
       { status: 500, headers: corsHeaders }

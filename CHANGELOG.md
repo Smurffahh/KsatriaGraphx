@@ -4,6 +4,37 @@ Semua pembaruan terstruktur untuk proyek **Ksatria Graphx** didokumentasikan dal
 
 ---
 
+## [v1.1.3] - 2026-11-21
+
+Pembaruan deteksi pembaruan aplikasi (In-App Update Notification): perbaikan endpoint versi server dengan bypass cache, penyeragaman URL target APK, sinkronisasi reactive modal lintas instance, eliminasi stale state pada tombol periksa pembaruan, serta fallback cerdas tahan rate limit GitHub API.
+
+### Perbaikan Endpoint Deteksi Pembaruan Server
+- **Bypass Cache & Respon Dinamis Real-Time**:
+  - Menetapkan `export const dynamic = "force-dynamic"` pada `src/app/api/app/version/route.ts` agar endpoint tidak pernah di-cache statis saat build Next.js.
+  - Mendukung parameter query `?force=1` dan `?refresh=1` dengan header `Cache-Control: no-store, no-cache, must-revalidate` untuk melewati cache in-memory server dan WebView saat pengguna menekan tombol periksa pembaruan secara manual.
+  - Menetapkan header `Cache-Control: no-store` pada respon normal agar WebView Android tidak menyimpan cache basi dari respons sebelumnya.
+- **Dual-Source Resilience & Fallback Tahan Rate-Limit**:
+  - Menyertakan header autentikasi `Authorization: Bearer` jika `GITHUB_TOKEN` tersedia.
+  - Menyediakan fallback otomatis berbasis `APP_VERSION` server, ekstraksi catatan rilis dari berkas `CHANGELOG.md` lokal, dan URL unduh APK rilis resmi saat GitHub API mengalami pembatasan kuota (status 403) atau tidak dapat dijangkau.
+
+### Perbaikan Client APK & Web
+- **Target URL APK & Header Platform Akurat**:
+  - Memperbaiki `resolveApiUrl` pada `src/lib/api/client.ts` agar selalu mengarahkan permintaan APK ke domain backend produksi `https://ksatriagraphx.vercel.app` dengan header `X-Client-Platform: apk` dan `cache: "no-store"`.
+- **Sinkronisasi Reaktif Dialog Pembaruan**:
+  - Mengintegrasikan module-level subscriber pada `src/hooks/useAppUpdate.ts` sehingga perubahan status buka/tutup modal tersinkronisasi secara instan antara komponen tata letak `AppShell.tsx` dan halaman pengaturan `settings/page.tsx`.
+- **Eliminasi Stale State & Pembedaan Status yang Jujur**:
+  - Memperbarui fungsi `checkForUpdate` agar mengembalikan objek hasil terstruktur (`UpdateCheckOutcome`) dengan 3 status terpisah: `"update-available"`, `"up-to-date"`, dan `"error"`.
+  - Tombol **Periksa Pembaruan** di `src/app/(dashboard)/settings/page.tsx` mengambil keputusan tampilan toast dan pembukaan modal langsung dari nilai yang dikembalikan, tanpa bergantung pada React state lama.
+  - Menampilkan pesan error yang jujur saat koneksi internet gagal dan tidak pernah menampilkan status keliru seolah-olah aplikasi sudah versi mutakhir.
+
+### Penjaminan Kualitas & Pengujian Otomatis
+- **Uji Unit & E2E Komprehensif**:
+  - Memperkuat pengujian unit `src/app/api/app/version/route.test.ts` dan `src/lib/version.test.ts` untuk memvalidasi preflight CORS, bypass cache `?force=1`, server fallback, dan perbandingan SemVer presisi.
+  - Menambahkan suite pengujian E2E Playwright `tests/e2e/app-update.spec.ts` yang memverifikasi pembukaan modal otomatis, interaksi tombol "Nanti Saja", pemeriksaan manual, dan penanganan error jaringan pada Desktop Chrome dan Mobile Chrome.
+  - Seluruh 29 skenario pengujian E2E Playwright lulus 100%.
+
+---
+
 ## [v1.1.2] - 2026-11-21
 
 Pembaruan stabilitas dan audit menyeluruh operasi CRUD: perbaikan upload foto produk pada store Vercel Blob privat, perbaikan skema validasi tambah dan edit produk, normalisasi input pada 6 modul inti, serta penambahan rangkaian uji regresi otomatis di Web dan Android APK.

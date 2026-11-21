@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { isNativeApp } from "@/lib/platform";
 import { resolveApiUrl } from "@/lib/api/client";
@@ -13,33 +13,76 @@ import {
 
 const STORAGE_KEY_DISMISSED = "kgx_dismissed_update_version";
 
-async function fetchAppVersion(): Promise<AppVersionResponse> {
+// Module-level reactive store untuk menyinkronkan dialog antar instance hook (AppShell vs Settings)
+let globalIsModalOpen = false;
+const modalSubscribers = new Set<(isOpen: boolean) => void>();
+
+function setGlobalModalOpen(isOpen: boolean) {
+  globalIsModalOpen = isOpen;
+  modalSubscribers.forEach((cb) => cb(isOpen));
+}
+
+export interface UpdateCheckOutcome {
+  status: "update-available" | "up-to-date" | "error";
+  currentVersion: string;
+  latestVersion: string | null;
+  release: AppVersionResponse | null;
+  errorMessage?: string;
+}
+
+export async function fetchAppVersion(force: boolean = false): Promise<AppVersionResponse> {
   const isNative = isNativeApp();
-  const url = resolveApiUrl("/api/app/version", isNative);
+  const queryParams = new URLSearchParams();
+  if (force) {
+    queryParams.set("force", "1");
+    queryParams.set("_t", String(Date.now()));
+  }
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : "";
+  const url = resolveApiUrl(`/api/app/version${queryString}`, isNative);
 
   const res = await fetch(url, {
     method: "GET",
     headers: {
       Accept: "application/json",
-      "X-Client-Platform": isNative ? "android" : "web",
+      "X-Client-Platform": isNative ? "apk" : "web",
     },
+    cache: "no-store",
   });
 
   if (!res.ok) {
     throw new Error(`Gagal memuat status versi (${res.status})`);
   }
 
-  const json = await res.json();
+  const json = (await res.json()) as AppVersionResponse;
+  const targetLatest = json.latestVersion || APP_VERSION;
+  const hasUpdate = compareSemver(targetLatest, APP_VERSION) > 0;
+
   return {
     ...json,
-    hasUpdate: compareSemver(json.latestVersion || APP_VERSION, APP_VERSION) > 0,
+    latestVersion: targetLatest,
+    hasUpdate,
   };
 }
 
 export function useAppUpdate() {
+  const queryClient = useQueryClient();
   const [dismissedVersion, setDismissedVersion] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpenState] = useState(globalIsModalOpen);
   const [isManualChecking, setIsManualChecking] = useState(false);
+
+  useEffect(() => {
+    const handler = (open: boolean) => {
+      setIsModalOpenState(open);
+    };
+    modalSubscribers.add(handler);
+    return () => {
+      modalSubscribers.delete(handler);
+    };
+  }, []);
+
+  const setIsModalOpen = useCallback((open: boolean) => {
+    setGlobalModalOpen(open);
+  }, []);
 
   useEffect(() => {
     try {
@@ -48,18 +91,17 @@ export function useAppUpdate() {
         setDismissedVersion(stored);
       }
     } catch {
-      // Abaikan jika local storage tidak tersedia
+      // Abaikan jika localStorage tidak tersedia
     }
   }, []);
 
   const {
     data: versionData,
     isLoading,
-    refetch,
   } = useQuery<AppVersionResponse>({
     queryKey: ["app-version"],
-    queryFn: fetchAppVersion,
-    staleTime: 5 * 60 * 1000,
+    queryFn: () => fetchAppVersion(false),
+    staleTime: 3 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -78,34 +120,72 @@ export function useAppUpdate() {
       // Abaikan error localStorage
     }
     setIsModalOpen(false);
-  }, [latestVersion]);
+  }, [latestVersion, setIsModalOpen]);
 
-  const checkForUpdatesManual = useCallback(async () => {
-    setIsManualChecking(true);
-    try {
-      const result = await refetch();
-      const freshData = result.data;
-      if (freshData?.hasUpdate) {
-        setIsModalOpen(true);
-        toast.info(
-          `Tersedia pembaruan versi v${freshData.latestVersion}!`,
-          {
-            description: "Buka dialog pembaruan untuk melihat rincian perbaikan.",
+  const checkForUpdate = useCallback(
+    async (options?: { force?: boolean; silent?: boolean }): Promise<UpdateCheckOutcome> => {
+      const force = options?.force ?? true;
+      const silent = options?.silent ?? false;
+
+      setIsManualChecking(true);
+      try {
+        const freshData = await fetchAppVersion(force);
+        queryClient.setQueryData(["app-version"], freshData);
+
+        if (freshData.hasUpdate) {
+          setIsModalOpen(true);
+          if (!silent) {
+            toast.info(`Tersedia pembaruan versi v${freshData.latestVersion}!`, {
+              description: "Buka dialog pembaruan untuk melihat rincian perbaikan.",
+            });
           }
-        );
-      } else {
-        toast.success("Aplikasi sudah menggunakan versi terbaru", {
-          description: `Versi aktif: v${APP_VERSION} • Tidak ada pembaruan tertunda.`,
-        });
+          return {
+            status: "update-available",
+            currentVersion: APP_VERSION,
+            latestVersion: freshData.latestVersion,
+            release: freshData,
+          };
+        } else {
+          if (!silent) {
+            toast.success("Aplikasi sudah menggunakan versi terbaru", {
+              description: `Versi aktif: v${APP_VERSION} • Tidak ada pembaruan tertunda.`,
+            });
+          }
+          return {
+            status: "up-to-date",
+            currentVersion: APP_VERSION,
+            latestVersion: freshData.latestVersion,
+            release: freshData,
+          };
+        }
+      } catch (err) {
+        const errorMsg =
+          err instanceof Error && err.message
+            ? err.message
+            : "Gagal memeriksa pembaruan. Pastikan koneksi internet aktif.";
+
+        if (!silent) {
+          toast.error("Gagal memeriksa pembaruan", {
+            description: "Pastikan koneksi internet aktif dan coba beberapa saat lagi.",
+          });
+        }
+        return {
+          status: "error",
+          currentVersion: APP_VERSION,
+          latestVersion: null,
+          release: null,
+          errorMessage: errorMsg,
+        };
+      } finally {
+        setIsManualChecking(false);
       }
-    } catch {
-      toast.error("Gagal memeriksa pembaruan", {
-        description: "Pastikan koneksi internet aktif dan coba beberapa saat lagi.",
-      });
-    } finally {
-      setIsManualChecking(false);
-    }
-  }, [refetch]);
+    },
+    [queryClient, setIsModalOpen]
+  );
+
+  const checkForUpdatesManual = useCallback(async (): Promise<UpdateCheckOutcome> => {
+    return checkForUpdate({ force: true, silent: false });
+  }, [checkForUpdate]);
 
   return {
     versionData,
@@ -118,6 +198,7 @@ export function useAppUpdate() {
     isModalOpen,
     setIsModalOpen,
     dismissUpdate,
+    checkForUpdate,
     checkForUpdatesManual,
   };
 }

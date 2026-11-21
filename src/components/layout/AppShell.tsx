@@ -100,6 +100,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     isModalOpen,
     setIsModalOpen,
     dismissUpdate,
+    checkForUpdate,
   } = useAppUpdate();
 
   useEffect(() => {
@@ -107,6 +108,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       setIsModalOpen(true);
     }
   }, [isUpdateAvailable, setIsModalOpen]);
+
+  useEffect(() => {
+    let lastActive = Date.now();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        const now = Date.now();
+        if (now - lastActive > 30 * 60 * 1000) {
+          checkForUpdate({ force: true, silent: true });
+        }
+        lastActive = now;
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [checkForUpdate]);
 
   useEffect(() => {
     setIsNative(isNativeApp());

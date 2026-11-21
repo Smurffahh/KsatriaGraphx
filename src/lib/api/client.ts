@@ -30,7 +30,9 @@ export function resolveApiUrl(endpoint: string, isNative: boolean): string {
     return endpoint;
   }
   if (isNative) {
-    const baseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || "").replace(/\/$/, "");
+    const baseUrl = (
+      process.env.NEXT_PUBLIC_API_BASE_URL || "https://ksatriagraphx.vercel.app"
+    ).replace(/\/$/, "");
     if (baseUrl) {
       return `${baseUrl}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
     }

@@ -19,6 +19,7 @@ import {
 import { apiClient } from "@/lib/api/client";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
 import { Button } from "@/components/ui/button";
 
 interface ReportSummary {
@@ -73,6 +74,7 @@ function formatCurrency(amount: number): string {
 function ReportsSkeleton() {
   return (
     <div className="space-y-6">
+      <PageLoadingBanner message="Memuat laporan omzet..." />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div
@@ -248,6 +250,7 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
+      <PageLoadingBanner isRefetching={isFetching && !isLoading} />
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

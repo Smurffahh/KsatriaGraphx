@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { m } from "motion/react";
 import {
   TrendingUp,
   Banknote,
@@ -30,6 +31,10 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
+import { AnimatedNumber } from "@/components/ui/animated-number";
+import { formatRupiah } from "@/lib/utils";
+import { staggerContainer, fadeUpItem, EASE_SMOOTH } from "@/lib/motion";
 import {
   Table,
   TableHeader,
@@ -97,10 +102,6 @@ interface OwnerDashboardData {
 
 type DashboardData = CashierDashboardData | OwnerDashboardData;
 
-function formatCurrency(amount: number): string {
-  return `Rp ${amount.toLocaleString("id-ID")}`;
-}
-
 function formatCompactRupiah(value: number): string {
   if (value >= 1_000_000_000) {
     return `${(value / 1_000_000_000).toFixed(1).replace(".", ",")} M`;
@@ -154,12 +155,14 @@ function getProductionBadge(status: string) {
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-6">
+      <PageLoadingBanner message="Memuat ringkasan performa toko..." />
+
       {/* Header Skeleton */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1.5">
-          <Skeleton className="h-7 w-44" />
-          <Skeleton className="h-4 w-64" />
+          <Skeleton className="h-7 w-44 rounded-lg" />
+          <Skeleton className="h-4 w-64 rounded-md" />
         </div>
         <div className="flex items-center gap-2">
           <Skeleton className="h-9 w-24 rounded-xl" />
@@ -208,7 +211,6 @@ export default function DashboardPage() {
   const ownerData = isOwner ? (dashboardData as OwnerDashboardData) : null;
   const cashierData = !isOwner ? (dashboardData as CashierDashboardData) : null;
 
-  // Tanggal hari ini terformat WIB
   const formattedToday = useMemo(() => {
     return new Intl.DateTimeFormat("id-ID", {
       dateStyle: "full",
@@ -242,6 +244,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Top Refetch Shimmer Bar jika background update */}
+      <PageLoadingBanner isRefetching={isFetching && !isLoading} />
+
       {/* ========================================================= */}
       {/* HEADER DASHBOARD                                          */}
       {/* ========================================================= */}
@@ -261,42 +266,34 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
-          {/* Filter Range Periode (Owner) */}
+          {/* Filter Range Periode Bergeser Mulus (Owner) */}
           {isOwner && (
-            <div className="inline-flex rounded-xl bg-muted p-1 border border-border/80">
-              <button
-                type="button"
-                onClick={() => setRange("1d")}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                  range === "1d"
-                    ? "bg-card text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Hari Ini
-              </button>
-              <button
-                type="button"
-                onClick={() => setRange("7d")}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                  range === "7d"
-                    ? "bg-card text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                7 Hari
-              </button>
-              <button
-                type="button"
-                onClick={() => setRange("30d")}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                  range === "30d"
-                    ? "bg-card text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                30 Hari
-              </button>
+            <div className="inline-flex rounded-xl bg-muted p-1 border border-border/80 relative">
+              {(["1d", "7d", "30d"] as const).map((r) => {
+                const isActive = range === r;
+                const label = r === "1d" ? "Hari Ini" : r === "7d" ? "7 Hari" : "30 Hari";
+                return (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setRange(r)}
+                    className={`relative z-10 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                      isActive
+                        ? "text-foreground font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {isActive && (
+                      <m.span
+                        layoutId="dashboard-period-indicator"
+                        className="absolute inset-0 z-[-1] rounded-lg bg-card shadow-xs border border-border/40"
+                        transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                      />
+                    )}
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           )}
 
@@ -324,115 +321,154 @@ export default function DashboardPage() {
       </div>
 
       {/* ========================================================= */}
-      {/* ROW 1: 4 KARTU KPI TERSTRUKTUR (GRID 2 x 2 / 4 x 1)        */}
+      {/* ROW 1: 4 KARTU KPI TERSTRUKTUR DENGAN ANIMATED NUMBER      */}
       {/* ========================================================= */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <m.div
+        variants={staggerContainer(0.045)}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
+      >
         {/* KPI 1: Omzet */}
-        <Card className="hover:border-primary/40 transition-colors">
-          <CardContent className="p-4 sm:p-5 space-y-2">
-            <div className="flex items-center justify-between text-muted-foreground">
-              <span className="text-[11px] font-semibold uppercase tracking-wider">
-                {isOwner ? "Omzet Periode" : "Omzet Hari Ini"}
-              </span>
-              <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
-                <TrendingUp className="size-4" />
+        <m.div variants={fadeUpItem}>
+          <Card className="motion-safe:hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-xs transition-[transform,border-color,box-shadow] duration-150">
+            <CardContent className="p-4 sm:p-5 space-y-2">
+              <div className="flex items-center justify-between text-muted-foreground">
+                <span className="text-[11px] font-semibold uppercase tracking-wider">
+                  {isOwner ? "Omzet Periode" : "Omzet Hari Ini"}
+                </span>
+                <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                  <TrendingUp className="size-4" />
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums tracking-tight">
-                {formatCurrency(
-                  isOwner ? ownerData?.kpi.totalOmzet ?? 0 : cashierData?.kpi.todayOmzet ?? 0
-                )}
+              <div>
+                <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums tracking-tight">
+                  <AnimatedNumber
+                    value={
+                      isOwner
+                        ? ownerData?.kpi.totalOmzet ?? 0
+                        : cashierData?.kpi.todayOmzet ?? 0
+                    }
+                    format="currency"
+                  />
+                </div>
+                <div className="text-[11px] text-muted-foreground mt-0.5">
+                  <AnimatedNumber
+                    value={
+                      isOwner
+                        ? ownerData?.kpi.totalOrders ?? 0
+                        : cashierData?.kpi.todayOrdersCount ?? 0
+                    }
+                    format="integer"
+                    suffix={isOwner ? " nota transaksi" : " nota dicetak"}
+                  />
+                </div>
               </div>
-              <div className="text-[11px] text-muted-foreground mt-0.5">
-                {isOwner
-                  ? `${ownerData?.kpi.totalOrders ?? 0} nota transaksi`
-                  : `${cashierData?.kpi.todayOrdersCount ?? 0} nota dicetak`}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </m.div>
 
         {/* KPI 2: Uang Masuk Aktual */}
-        <Card className="hover:border-emerald-500/40 transition-colors">
-          <CardContent className="p-4 sm:p-5 space-y-2">
-            <div className="flex items-center justify-between text-muted-foreground">
-              <span className="text-[11px] font-semibold uppercase tracking-wider">
-                {isOwner ? "Uang Masuk" : "Uang Fisik Kasir"}
-              </span>
-              <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500">
-                <Banknote className="size-4" />
+        <m.div variants={fadeUpItem}>
+          <Card className="motion-safe:hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-xs transition-[transform,border-color,box-shadow] duration-150">
+            <CardContent className="p-4 sm:p-5 space-y-2">
+              <div className="flex items-center justify-between text-muted-foreground">
+                <span className="text-[11px] font-semibold uppercase tracking-wider">
+                  {isOwner ? "Uang Masuk" : "Uang Fisik Kasir"}
+                </span>
+                <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500">
+                  <Banknote className="size-4" />
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums tracking-tight">
-                {formatCurrency(
-                  isOwner
-                    ? ownerData?.kpi.totalCashIn ?? 0
-                    : cashierData?.kpi.todayMoneyReceived ?? 0
-                )}
+              <div>
+                <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums tracking-tight">
+                  <AnimatedNumber
+                    value={
+                      isOwner
+                        ? ownerData?.kpi.totalCashIn ?? 0
+                        : cashierData?.kpi.todayMoneyReceived ?? 0
+                    }
+                    format="currency"
+                  />
+                </div>
+                <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">
+                  Pembayaran diterima
+                </div>
               </div>
-              <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">
-                Pembayaran diterima
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </m.div>
 
         {/* KPI 3: Total Piutang (Owner) / Shift Kasir */}
-        <Card className="hover:border-amber-500/40 transition-colors">
-          <CardContent className="p-4 sm:p-5 space-y-2">
-            <div className="flex items-center justify-between text-muted-foreground">
-              <span className="text-[11px] font-semibold uppercase tracking-wider">
-                {isOwner ? "Sisa Tagihan DP" : "Transaksi Saya"}
-              </span>
-              <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-500">
-                <Receipt className="size-4" />
+        <m.div variants={fadeUpItem}>
+          <Card className="motion-safe:hover:-translate-y-0.5 hover:border-amber-500/40 hover:shadow-xs transition-[transform,border-color,box-shadow] duration-150">
+            <CardContent className="p-4 sm:p-5 space-y-2">
+              <div className="flex items-center justify-between text-muted-foreground">
+                <span className="text-[11px] font-semibold uppercase tracking-wider">
+                  {isOwner ? "Sisa Tagihan DP" : "Transaksi Saya"}
+                </span>
+                <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-500">
+                  <Receipt className="size-4" />
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums tracking-tight">
-                {isOwner
-                  ? formatCurrency(ownerData?.kpi.totalPiutang ?? 0)
-                  : `${cashierData?.kpi.todayOrdersCount ?? 0} Transaksi`}
+              <div>
+                <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums tracking-tight">
+                  {isOwner ? (
+                    <AnimatedNumber
+                      value={ownerData?.kpi.totalPiutang ?? 0}
+                      format="currency"
+                    />
+                  ) : (
+                    <AnimatedNumber
+                      value={cashierData?.kpi.todayOrdersCount ?? 0}
+                      format="integer"
+                      suffix=" Transaksi"
+                    />
+                  )}
+                </div>
+                <div className="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">
+                  {isOwner ? (
+                    <Link href="/orders" className="hover:underline inline-flex items-center gap-0.5">
+                      <span>Lihat di Pesanan</span>
+                      <ArrowRight className="size-3" />
+                    </Link>
+                  ) : (
+                    "Shift kerja aktif"
+                  )}
+                </div>
               </div>
-              <div className="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">
-                {isOwner ? (
-                  <Link href="/orders" className="hover:underline inline-flex items-center gap-0.5">
-                    <span>Lihat di Pesanan</span>
-                    <ArrowRight className="size-3" />
-                  </Link>
-                ) : (
-                  "Shift kerja aktif"
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </m.div>
 
         {/* KPI 4: Antrean Produksi Aktif */}
-        <Card className="hover:border-blue-500/40 transition-colors">
-          <CardContent className="p-4 sm:p-5 space-y-2">
-            <div className="flex items-center justify-between text-muted-foreground">
-              <span className="text-[11px] font-semibold uppercase tracking-wider">
-                Antrean Produksi
-              </span>
-              <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500">
-                <Clock className="size-4" />
+        <m.div variants={fadeUpItem}>
+          <Card className="motion-safe:hover:-translate-y-0.5 hover:border-blue-500/40 hover:shadow-xs transition-[transform,border-color,box-shadow] duration-150">
+            <CardContent className="p-4 sm:p-5 space-y-2">
+              <div className="flex items-center justify-between text-muted-foreground">
+                <span className="text-[11px] font-semibold uppercase tracking-wider">
+                  Antrean Produksi
+                </span>
+                <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500">
+                  <Clock className="size-4" />
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums tracking-tight">
-                {dashboardData.kpi.activeQueueCount}{" "}
-                <span className="text-sm font-medium text-muted-foreground">pesanan</span>
+              <div>
+                <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums tracking-tight">
+                  <AnimatedNumber
+                    value={dashboardData.kpi.activeQueueCount}
+                    format="integer"
+                  />{" "}
+                  <span className="text-sm font-medium text-muted-foreground">pesanan</span>
+                </div>
+                <div className="text-[11px] text-muted-foreground mt-0.5">
+                  Proses & siap ambil
+                </div>
               </div>
-              <div className="text-[11px] text-muted-foreground mt-0.5">
-                Proses & siap ambil
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </m.div>
+      </m.div>
 
       {/* ========================================================= */}
       {/* ROW 2: GRAFIK TREN OMZET (2/3) & TOP PRODUK (1/3)          */}
@@ -502,7 +538,7 @@ export default function DashboardPage() {
                                 {formatDateLabel(item.dateKey)}
                               </p>
                               <p className="font-bold text-primary tabular-nums text-sm">
-                                {formatCurrency(item.omzet)}
+                                {formatRupiah(item.omzet)}
                               </p>
                               <p className="text-[11px] text-muted-foreground">
                                 {item.transaksi} transaksi tercatat
@@ -520,6 +556,9 @@ export default function DashboardPage() {
                       strokeWidth={2.5}
                       fillOpacity={1}
                       fill="url(#omzetGradient)"
+                      isAnimationActive={true}
+                      animationDuration={450}
+                      animationEasing="ease-out"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -567,13 +606,16 @@ export default function DashboardPage() {
                           {p.productName}
                         </span>
                         <span className="font-bold text-foreground tabular-nums">
-                          {formatCurrency(p.totalRevenue)}
+                          {formatRupiah(p.totalRevenue)}
                         </span>
                       </div>
                       <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                        <div
-                          className="h-full bg-primary rounded-full transition-all duration-300"
-                          style={{ width: `${percent}%` }}
+                        <m.div
+                          initial={{ scaleX: 0 }}
+                          animate={{ scaleX: percent / 100 }}
+                          transition={{ delay: 0.08 + idx * 0.04, duration: 0.45, ease: EASE_SMOOTH }}
+                          className="h-full bg-primary rounded-full origin-left"
+                          style={{ width: "100%" }}
                         />
                       </div>
                       <div className="text-[10px] text-muted-foreground">
@@ -608,9 +650,9 @@ export default function DashboardPage() {
             </p>
           </div>
           <Link href="/orders">
-            <Button variant="ghost" size="sm" className="gap-1 text-xs font-semibold">
+            <Button variant="ghost" size="sm" className="gap-1 text-xs font-semibold group">
               <span>Semua Pesanan</span>
-              <ArrowRight className="size-3.5" />
+              <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform duration-150" />
             </Button>
           </Link>
         </CardHeader>
@@ -632,7 +674,7 @@ export default function DashboardPage() {
                   </TableHeader>
                   <TableBody>
                     {dashboardData.recentOrders.map((order) => (
-                      <TableRow key={order.id} className="hover:bg-muted/50">
+                      <TableRow key={order.id} className="hover:bg-muted/50 group">
                         <TableCell className="font-mono font-bold text-foreground">
                           {order.invoiceNumber}
                         </TableCell>
@@ -642,13 +684,13 @@ export default function DashboardPage() {
                         <TableCell>{getPaymentBadge(order.paymentStatus)}</TableCell>
                         <TableCell>{getProductionBadge(order.productionStatus)}</TableCell>
                         <TableCell className="text-right font-bold tabular-nums text-foreground">
-                          {formatCurrency(order.grandTotal)}
+                          {formatRupiah(order.grandTotal)}
                         </TableCell>
                         <TableCell className="text-right">
                           <Link href={`/orders/detail?id=${order.id}`}>
                             <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs gap-1">
                               <span>Detail</span>
-                              <ArrowUpRight className="size-3" />
+                              <ArrowUpRight className="size-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-150" />
                             </Button>
                           </Link>
                         </TableCell>
@@ -671,7 +713,7 @@ export default function DashboardPage() {
                         {order.invoiceNumber}
                       </span>
                       <span className="font-bold text-xs text-foreground tabular-nums">
-                        {formatCurrency(order.grandTotal)}
+                        {formatRupiah(order.grandTotal)}
                       </span>
                     </div>
 

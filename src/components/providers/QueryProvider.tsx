@@ -4,6 +4,8 @@ import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { useTheme } from "next-themes";
+import { MotionConfig, LazyMotion, domMax } from "motion/react";
+import { SplashTransitionProvider } from "./SplashTransitionProvider";
 
 function ThemeAwareToaster() {
   const { resolvedTheme } = useTheme();
@@ -45,8 +47,14 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
-      <ThemeAwareToaster />
+      <MotionConfig reducedMotion="user">
+        <LazyMotion features={domMax}>
+          <SplashTransitionProvider>
+            {children}
+            <ThemeAwareToaster />
+          </SplashTransitionProvider>
+        </LazyMotion>
+      </MotionConfig>
     </QueryClientProvider>
   );
 }

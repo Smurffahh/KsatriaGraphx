@@ -67,6 +67,7 @@ test.describe("E2E: Quick Calculator & Material Comparison", () => {
     // Aktifkan toggle Bandingkan 2 Bahan
     const compareSwitch = page.locator('button[role="switch"]');
     await expect(compareSwitch).toBeVisible();
+    await expect(compareSwitch).toBeEnabled({ timeout: 15000 });
     await compareSwitch.click();
 
     // Verifikasi slot Bahan Pembanding (Opsi B) muncul

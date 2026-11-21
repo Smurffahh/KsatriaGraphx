@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
 import { Button } from "@/components/ui/button";
 
 interface OrderListItem {
@@ -56,6 +57,7 @@ interface OrdersApiResponse {
 function OrdersSkeleton() {
   return (
     <div className="space-y-4">
+      <PageLoadingBanner message="Memuat daftar pesanan..." />
       {/* Mobile Card Skeleton */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 lg:hidden">
         {Array.from({ length: 4 }).map((_, i) => (

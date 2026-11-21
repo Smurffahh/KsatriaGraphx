@@ -33,6 +33,8 @@ import { AppShellSkeleton } from "./AppShellSkeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { m } from "motion/react";
+import { EASE_SMOOTH } from "@/lib/motion";
 import {
   Sheet,
   SheetContent,
@@ -329,7 +331,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold transition-colors min-h-[38px] ${
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold active:scale-[0.98] transition-[transform,colors] min-h-[38px] ${
                         isActive
                           ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-xs"
                           : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -357,7 +359,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold transition-colors min-h-[38px] ${
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold active:scale-[0.98] transition-[transform,colors] min-h-[38px] ${
                         isActive
                           ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-xs"
                           : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -480,7 +482,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Main Content Canvas */}
           <main className="flex-1 min-w-0 bg-muted/40 dark:bg-background pb-24 lg:pb-8">
             <div className="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
-              {children}
+              <m.div
+                key={pathname}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.18, ease: EASE_SMOOTH }}
+              >
+                {children}
+              </m.div>
             </div>
           </main>
         </div>
@@ -493,7 +502,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* 1. Dashboard */}
         <Link
           href="/dashboard"
-          className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[44px] transition-colors rounded-xl ${
+          className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[44px] active:scale-95 transition-[transform,colors] rounded-xl ${
             pathname === "/dashboard"
               ? "text-primary font-bold"
               : "text-muted-foreground hover:text-foreground"
@@ -506,7 +515,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* 2. POS (Disorot sebagai Aksi Kasir Utama) */}
         <Link
           href="/pos"
-          className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[44px] transition-colors rounded-xl ${
+          className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[44px] active:scale-95 transition-[transform,colors] rounded-xl ${
             pathname === "/pos"
               ? "text-primary font-bold"
               : "text-muted-foreground hover:text-foreground"
@@ -521,7 +530,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* 3. Pesanan */}
         <Link
           href="/orders"
-          className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[44px] transition-colors rounded-xl ${
+          className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[44px] active:scale-95 transition-[transform,colors] rounded-xl ${
             pathname.startsWith("/orders")
               ? "text-primary font-bold"
               : "text-muted-foreground hover:text-foreground"
@@ -534,7 +543,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* 4. Produk */}
         <Link
           href="/products"
-          className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[44px] transition-colors rounded-xl ${
+          className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[44px] active:scale-95 transition-[transform,colors] rounded-xl ${
             pathname.startsWith("/products")
               ? "text-primary font-bold"
               : "text-muted-foreground hover:text-foreground"
@@ -548,7 +557,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <button
           type="button"
           onClick={() => setIsMenuSheetOpen(true)}
-          className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[44px] transition-colors rounded-xl ${
+          className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[44px] active:scale-95 transition-[transform,colors] rounded-xl ${
             isMenuSheetOpen || pathname === "/customers" || pathname === "/reports" || pathname === "/settings" || pathname === "/users" || pathname === "/audit-logs"
               ? "text-primary font-bold"
               : "text-muted-foreground hover:text-foreground"
@@ -569,7 +578,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           onClick={() => setIsQuickCalcOpen(true)}
           aria-label="Buka Kalkulator Cepat"
           title="Buka Kalkulator Cepat"
-          className={`fixed right-4 z-40 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/20 active:scale-95 transition-all lg:hidden ${
+          className={`fixed right-4 z-40 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/20 active:scale-95 motion-safe:hover:scale-105 transition-[transform,colors,opacity] duration-150 lg:hidden cursor-pointer ${
             pathname === "/pos"
               ? "bottom-[calc(8.75rem+env(safe-area-inset-bottom))]"
               : "bottom-[calc(4.75rem+env(safe-area-inset-bottom))]"

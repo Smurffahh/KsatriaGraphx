@@ -24,6 +24,7 @@ import { useAppUpdate } from "@/hooks/useAppUpdate";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
 
 interface StoreSettingsData {
   id?: number;
@@ -47,6 +48,7 @@ interface UserProfile {
 function SettingsSkeleton() {
   return (
     <div className="space-y-6 pb-16">
+      <PageLoadingBanner message="Memuat pengaturan toko..." />
       <div className="space-y-2">
         <Skeleton className="h-7 w-64 rounded-xl" />
         <Skeleton className="h-4 w-96 rounded-lg" />

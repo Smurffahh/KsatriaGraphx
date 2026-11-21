@@ -4,6 +4,53 @@ Semua pembaruan terstruktur untuk proyek **Ksatria Graphx** didokumentasikan dal
 
 ---
 
+## [v1.3.0] - 2026-11-22
+
+Rilis minor v1.3.0 menghadirkan sistem Splash Screen pra-login dan pasca-login personal, animasi bertahap (stagger) pada halaman masuk, dashboard toko interaktif dengan visualisasi data halus, indikator pemuatan data kontekstual di seluruh modul, serta umpan balik mikro pada tombol dan navigasi dengan kepatuhan penuh terhadap standar aksesibilitas dan preferensi gerak pengguna (*prefers-reduced-motion*).
+
+### Sistem Splash Screen & Transisi Masuk Personal
+- **Splash Screen Pra-Login (`PreLoginSplash.tsx`)**:
+  - Menampilkan pembuka aplikasi dengan emblem KG dan efek skala halus selama ~1,25 detik saat pengguna pertama kali membuka tab atau aplikasi.
+  - Memori sesi (*sessionStorage*) mencegah tampilan berulang pada tab yang sama, serta mendukung lewati instan melalui ketukan atau klik layar.
+- **Splash Screen Pasca-Login Personal (`PostLoginSplash.tsx`)**:
+  - Menampilkan sapaan nama pengguna terotentikasi, lencana peran akun (OWNER atau KASIR), dan animasi status progres persiapan ruang kerja.
+  - Prefetch paralel data esensial (`/api/dashboard`, `/api/products`, `/api/settings/public`) saat transisi berjalan untuk memastikan halaman tujuan langsung terisi data tanpa jeda.
+
+### Animasi Halaman Masuk & Interaksi Mikro
+- **Stagger Entrance Form Login**:
+  - Urutan kemunculan bertahap dari emblem, judul, kartu form, kolom username, password, hingga tombol aksi menggunakan kurva percepatan GPU-accelerated.
+  - Efek goyangan mikro (*micro-shake*) kartu saat terjadi kegagalan autentikasi tanpa memuat ulang halaman.
+  - Transisi pergantian ikon lihat/sembunyikan password yang mulus menggunakan mode wait AnimatePresence.
+- **Umpan Balik Tekan & Gerakan Ringan**:
+  - Seluruh tombol utama dan navigasi dilengkapi efek active scale 0.96 saat ditekan untuk responsivitas sentuh yang mantap.
+  - Tab navigasi mobile dan menu sidebar menggunakan transisi warna dan skala ikon yang spesifik tanpa pemborosan komputasi layout.
+
+### Dashboard Interaktif & Metrik Dinamis
+- **Animasi Angka Metrik (`AnimatedNumber.tsx`)**:
+  - 4 kartu metrik utama (Omzet, Uang Masuk, Sisa Tagihan DP, dan Antrean Produksi) menghitung naik secara halus menuju nilai aktual menggunakan *cubic ease-out*.
+  - Font `JetBrains Mono` berformat `tabular-nums` memastikan lebar angka konsisten tanpa getaran tata letak (Zero CLS).
+- **Indikator Filter Periode Bergerak**:
+  - Penanda aktif filter periode (Hari Ini, 7 Hari, 30 Hari) bergeser secara fisik menggunakan animasi layoutId bersama.
+- **Visualisasi Grafik & Progres Bar GPU**:
+  - Grafik tren penjualan Recharts dilengkapi durasi animasi masuk 450ms.
+  - Baris produk terlaris menggunakan animasi lebar berbasis `scaleX` GPU-accelerated dari sisi kiri (`origin-left`) tanpa memicu re-layout browser.
+
+### Indikator Pemuatan Data Kontekstual di Seluruh Modul
+- **Komponen Loading Seragam (`PageLoadingBanner.tsx`)**:
+  - Banner status pemuatan data yang ringkas, bersih, dan kontekstual dipasang pada seluruh skeleton modul (Dashboard, Kasir POS, Katalog Produk, Pesanan, Pelanggan, Laporan, Pengaturan Toko, Pengguna, dan Audit Log).
+  - Garis pembaruan latar belakang (*top shimmer bar*) muncul di tepi paling atas layar saat data disegarkan tanpa menutupi konten kerja pengguna.
+
+### Aksesibilitas & Penjaminan Mutu
+- **Dukungan Penuh Prefers-Reduced-Motion**:
+  - Konfigurasi `MotionConfig reducedMotion="user"` secara global menonaktifkan seluruh animasi gerak dan beralih ke rendering instan saat pengguna mengaktifkan mode hemat gerak di sistem operasi mereka.
+  - Halaman pratinjau struk (`ReceiptView.tsx`) dijaga 100% statis demi kepastian cetak printer thermal.
+- **Validasi Uji Otomatis & Keamanan**:
+  - Pengujian baru Playwright E2E (`motion-and-splash.spec.ts`) memvalidasi alur splash pra-login, login sukses, interaksi dashboard, dan mode reduced-motion.
+  - Seluruh 197 pengujian unit Vitest dan 41 pengujian E2E Playwright lulus 100% tanpa kegagalan.
+  - Kompilasi ganda (Web Next.js & Android APK sync) lulus 100% dengan status Zero Secret Leak.
+
+---
+
 ## [v1.2.1] - 2026-11-21
 
 Pembaruan antarmuka pemilih produk pada Kalkulator Cepat: penggantian dropdown sederhana dengan katalog visual interaktif bergaya POS, pencarian instan nama produk & SKU, filter kategori dinamis, perbaikan sinkronisasi data produk aktif, penyelarasan jarak header sheet, dan validasi mutu menyeluruh.

@@ -4,6 +4,27 @@ Semua pembaruan terstruktur untuk proyek **Ksatria Graphx** didokumentasikan dal
 
 ---
 
+## [v1.0.2] - 2026-11-21
+
+Rilis pembaruan produksi resmi untuk pemulihan menyeluruh autentikasi Android APK, sinkronisasi kredensial database Neon live, pengerasan ProGuard, dan otomasi rilis GitHub Actions.
+
+### Perbaikan Kritis
+- **Resolusi Jalur Login Android APK Produksi**: Menyesuaikan resolusi endpoint autentikasi pada `src/app/(auth)/login/page.tsx` menggunakan `resolveApiUrl("/api/auth/login", isNative)` sehingga request login dari native WebView Capacitor (`https://localhost`) terarah tepat ke server produksi (`https://ksatriagraphx.vercel.app`).
+- **CORS Preflight & Kontrak Token APK**: Menerapkan respon instan `204 No Content` pada preflight global `OPTIONS` di `src/middleware.ts` untuk origin `https://localhost` dan `capacitor://localhost`, serta mengembalikan payload JSON token `{ accessToken, refreshToken, user }` khusus platform native tanpa ketergantungan cookie.
+- **Pengecualian CSRF untuk Origin Native**: Mengesampingkan validasi Origin/Referer CSRF berbasis browser pada `src/lib/security/csrf.ts` khusus untuk request resmi dari origin native Capacitor (`https://localhost` dan `capacitor://localhost`).
+- **Diagnosa Error Login Informatif**: Memperjelas pesan error pada halaman login kasir/pengguna (HTTP 401: Kredensial tidak valid; HTTP 429: Batas percobaan terlampaui; HTTP 403: Pelanggaran kebijakan; kode `NET`: Gangguan koneksi internet atau CORS; kode `STORAGE`: Kegagalan penyimpanan token lokal).
+
+### Keamanan & Infrastruktur
+- **Sinkronisasi Environment Bebas Konflik**: Memisahkan berkas konfigurasi antara `.env.local` (lingkup lokal lengkap) dan `.env.vercel` (bebas dari variabel `DATABASE_URL` dan `BLOB_READ_WRITE_TOKEN` agar tidak menimpa integrasi auto-connect Neon & Vercel Blob di dashboard Vercel).
+- **Idempotent Seed & Pembaruan Kredensial Owner**: Menyempurnakan `src/db/seed.ts` agar memperbarui hash password Owner (`bcryptjs` cost >= 12), memastikan akun aktif (`isActive = true`), mereset batas percobaan gagal dan status penguncian, serta merevoke sesi lama secara aman.
+- **Hardening ProGuard/R8 Android**: Menambahkan aturan eksplisit pada `android/app/proguard-rules.pro` untuk mencegah optimasi R8 memotong paket `@aparajita/capacitor-secure-storage` dan plugin `ThermalPrinterPlugin`.
+
+### Peningkatan & Rilis
+- **Otomasi Catatan Rilis & Checksum SHA-256**: Mengintegrasikan script `scripts/extract-changelog.mjs` ke workflow `.github/workflows/android-apk.yml` untuk memublikasikan release notes dinamis, panduan instalasi, dan tabel checksum SHA-256 pada GitHub Releases.
+- **Pembersihan Boilerplate & Dead Code**: Menghapus file templat Next.js yang tidak terpakai, menjaga kebersihan bundle rilis, dan memverifikasi proteksi zero secret leak pada seluruh aset publik client.
+
+---
+
 ## [v1.0.1] - 2026-11-21
 
 Rilis pembaruan pemeliharaan dan penguatan arsitektur autentikasi Android APK, penanganan CORS preflight menyeluruh, pemisahan diagnostik login, serta otomasi rilis GitHub Actions.

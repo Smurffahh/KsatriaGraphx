@@ -4,6 +4,46 @@ Semua pembaruan terstruktur untuk proyek **Ksatria Graphx** didokumentasikan dal
 
 ---
 
+## [v1.2.0] - 2026-11-21
+
+Pembaruan fitur Kalkulator Cepat & Komparasi Bahan: penambahan lembar cek harga instan dari halaman mana saja, simulasi perbandingan 2 bahan percetakan berdampingan, salin draf estimasi WhatsApp, handoff item ke keranjang POS anti-timpa, pemicu global (shortcut keyboard Alt+K, tombol Top Bar desktop, dan FAB mobile adaptif), serta perbaikan ketahanan koneksi database pool.
+
+### Fitur Kalkulator Cepat & Cek Harga Instan
+- **Akses Langsung Tanpa Pindah Halaman**:
+  - Menyediakan lembar kalkulator cepat (`QuickCalculatorSheet.tsx`) yang dapat dipanggil seketika dari halaman mana pun melalui shortcut keyboard `Alt+K` (atau `Option+K` di macOS), tombol **Cek Harga** pada Top Bar desktop, serta tombol mengambang bulat (FAB) di perangkat mobile.
+  - Tampilan responsif adaptif: membuka panel samping kanan (`slide-over`) pada layar komputer dan membuka lembar bawah (`bottom sheet`) dengan batasan tinggi aman pada layar ponsel.
+- **Kalkulasi Akurat Memakai Rumus Tunggal**:
+  - Memakai ulang fungsi inti perhitungan harga dari `src/lib/calculator/pricing.ts` (`calculateOrderItem`), menjamin hasil hitung selalu identik dengan kalkulator transaksi kasir tanpa duplikasi rumus.
+  - Mendukung produk cetak meteran (`AREA`) dengan input dimensi (panjang dan lebar dalam meter maupun sentimeter beserta preset ukuran populer seperti 1×1, 2×1, 3×1, dan 4×1), pembulatan luas, luas minimum order, dan kuantitas pesanan.
+  - Mendukung produk satuan (`UNIT`) dengan stepper jumlah kuantitas pesanan.
+  - Mendukung pilihan finishing dinamis berbasis biaya datar, per kuantitas, maupun per luas meter persegi.
+
+### Perbandingan 2 Bahan Berdampingan
+- **Simulasi Komparasi Bahan Sejenis**:
+  - Fitur toggle **Bandingkan 2 Bahan** yang memfilter pilihan Bahan Pembanding (Opsi B) agar selalu satu jenis tarif dengan Bahan Utama (Opsi A) (misal bahan meteran dibanding bahan meteran).
+  - Menampilkan kartu perbandingan berdampingan lengkap dengan nama produk, tarif dasar, rincian finishing, dan estimasi total biaya.
+  - Analisis selisih harga otomatis dengan penanda visual warna hijau dan badge **Lebih Hemat** pada opsi bahan yang lebih ekonomis.
+  - Tombol aksi mandiri di setiap kartu (**Pilih Opsi A ke POS** dan **Pilih Opsi B ke POS**) untuk memudahkan kasir menentukan pilihan terbaik bersama pelanggan.
+
+### Ekspor Estimasi WhatsApp & Handoff Keranjang POS
+- **Format Pesan WhatsApp Siap Kirim**:
+  - Modul pembuat pesan `src/lib/calculator/estimate-text.ts` yang menyusun rincian spesifikasi cetak, breakdown biaya, dan catatan syarat cetak dalam format pesan WhatsApp rapi.
+  - Mendukung salin teks estimasi bahan tunggal maupun teks perbandingan dua bahan lengkap dengan analisis selisih harga.
+  - Mekanisme penyalinan teks clipboard yang aman dengan fallback textarea untuk browser WebView Android.
+- **Jembatan Keranjang Kasir POS (Anti-Timpa)**:
+  - Modul jembatan `src/lib/pos/cart-bridge.ts` yang menyalurkan item hasil kalkulasi ke keranjang POS via browser custom event atau penyimpanan sesi aman.
+  - Logika penerimaan di `src/app/(dashboard)/pos/page.tsx` memastikan item baru ditambahkan (*append*) ke daftar keranjang kasir tanpa menghapus item yang sudah ada sebelumnya.
+
+### Ketahanan Koneksi Database & Penjaminan Kualitas
+- **Pemulihan Otomatis Koneksi Pool Neon**:
+  - Menambahkan penanganan event error pada koneksi pool database Neon Serverless (`src/db/index.ts`) agar instans cache pool otomatis di-reset saat koneksi WebSocket idle ditutup server, mencegah kegagalan query berulang pada sesi jangka panjang.
+- **Uji Unit & E2E Komprehensif**:
+  - Pengujian unit `src/lib/calculator/estimate-text.test.ts` dan `src/lib/pos/cart-bridge.test.ts` memvalidasi akurasi teks WhatsApp dan integritas jembatan keranjang (197 pengujian unit Vitest lulus 100%).
+  - Pengujian otomatis Playwright E2E `tests/e2e/quick-calculator.spec.ts` memvalidasi alur desktop, shortcut Alt+K, FAB mobile, serta handoff anti-timpa keranjang kasir (33 skenario Playwright lulus 100%).
+  - Verifikasi keamanan ganda pada folder `.next/static` dan `out/` membuktikan nol kebocoran kredensial (Zero Secret Leak).
+
+---
+
 ## [v1.1.3] - 2026-11-21
 
 Pembaruan deteksi pembaruan aplikasi (In-App Update Notification): perbaikan endpoint versi server dengan bypass cache, penyeragaman URL target APK, sinkronisasi reactive modal lintas instance, eliminasi stale state pada tombol periksa pembaruan, serta fallback cerdas tahan rate limit GitHub API.

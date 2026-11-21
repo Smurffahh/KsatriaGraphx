@@ -26,6 +26,10 @@ import { PosCheckoutModal } from "@/components/pos/PosCheckoutModal";
 import { PosSuccessModal } from "@/components/pos/PosSuccessModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import {
+  consumePendingCartItems,
+  subscribePosAppendItem,
+} from "@/lib/pos/cart-bridge";
 
 interface CategoryOption {
   id: string;
@@ -119,6 +123,29 @@ export default function PosPage() {
       .finally(() => {
         setIsLoading(false);
       });
+  }, []);
+
+  useEffect(() => {
+    // 1. Konsumsi antrean item dari QuickCalculator jika baru navigasi dari halaman lain
+    const pendingItems = consumePendingCartItems();
+    if (pendingItems.length > 0) {
+      setCart((prev) => [...prev, ...pendingItems]);
+      toast.success(
+        pendingItems.length === 1
+          ? `${pendingItems[0].product.name} ditambahkan ke keranjang POS`
+          : `${pendingItems.length} item ditambahkan ke keranjang POS`
+      );
+    }
+
+    // 2. Berlangganan event jika kasir berada di /pos dan mengirim item dari QuickCalculator
+    const unsubscribe = subscribePosAppendItem((newItem) => {
+      setCart((prev) => [...prev, newItem]);
+      toast.success(`${newItem.product.name} ditambahkan ke keranjang POS`);
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const filteredProducts = useMemo(() => {

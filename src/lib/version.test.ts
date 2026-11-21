@@ -4,6 +4,8 @@ import {
   formatVersionLabel,
   formatVersionBadge,
   compareSemver,
+  isValidReleaseUrl,
+  parseChangelogLines,
 } from "./version";
 
 describe("US-206: Application Versioning & Semantic Comparison Suite", () => {
@@ -48,5 +50,44 @@ describe("US-206: Application Versioning & Semantic Comparison Suite", () => {
     expect(compareSemver("1.0.3", "1.0.3")).toBe(0);
     expect(compareSemver("v1.0.3", "1.0.3")).toBe(0);
     expect(compareSemver("v1.1.0", "V1.1.0")).toBe(0);
+  });
+
+  it("isValidReleaseUrl harus memvalidasi URL resmi dan menolak domain liar", () => {
+    expect(
+      isValidReleaseUrl(
+        "https://github.com/Smurffahh/KsatriaGraphx/releases/tag/v1.1.0"
+      )
+    ).toBe(true);
+    expect(
+      isValidReleaseUrl(
+        "https://github.com/Smurffahh/KsatriaGraphx/releases/download/v1.1.0/KsatriaGraphx-v1.1.0-release.apk"
+      )
+    ).toBe(true);
+
+    // Domain berbahaya / spoofing
+    expect(isValidReleaseUrl("https://malicious-site.com/apk.apk")).toBe(false);
+    expect(isValidReleaseUrl("http://github.com/Smurffahh/KsatriaGraphx")).toBe(
+      false
+    );
+    expect(isValidReleaseUrl("javascript:alert(1)")).toBe(false);
+    expect(isValidReleaseUrl("")).toBe(false);
+    expect(isValidReleaseUrl(null)).toBe(false);
+  });
+
+  it("parseChangelogLines harus membersihkan markdown dan mengembalikan baris yang aman", () => {
+    const markdown = `
+# Release Notes v1.1.0
+---
+- Perbaikan layout dashboard dan mode gelap
+* Penambahan sistem in-app update
+1. Optimasi performa render tabel
+**Full Changelog**: https://github.com/Smurffahh/KsatriaGraphx/compare/v1.0.3...v1.1.0
+    `;
+
+    const lines = parseChangelogLines(markdown);
+    expect(lines).toHaveLength(3);
+    expect(lines[0]).toBe("Perbaikan layout dashboard dan mode gelap");
+    expect(lines[1]).toBe("Penambahan sistem in-app update");
+    expect(lines[2]).toBe("Optimasi performa render tabel");
   });
 });

@@ -18,11 +18,14 @@ import {
   Plus,
   Printer,
   ChevronRight,
+  ArrowUpCircle,
 } from "lucide-react";
 import { isNativeApp } from "@/lib/platform";
 import { apiClient } from "@/lib/api/client";
 import { secureStorage } from "@/lib/auth/secure-storage";
 import { formatVersionBadge, formatVersionLabel } from "@/lib/version";
+import { useAppUpdate } from "@/hooks/useAppUpdate";
+import { UpdateNoticeModal } from "./UpdateNoticeModal";
 import { toast } from "sonner";
 import { ThemeToggle } from "./ThemeToggle";
 import { AppShellSkeleton } from "./AppShellSkeleton";
@@ -87,6 +90,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [isMenuSheetOpen, setIsMenuSheetOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const {
+    versionData,
+    currentVersion,
+    latestVersion,
+    hasUpdate,
+    isUpdateAvailable,
+    isModalOpen,
+    setIsModalOpen,
+    dismissUpdate,
+  } = useAppUpdate();
+
+  useEffect(() => {
+    if (isUpdateAvailable) {
+      setIsModalOpen(true);
+    }
+  }, [isUpdateAvailable, setIsModalOpen]);
 
   useEffect(() => {
     setIsNative(isNativeApp());
@@ -214,6 +234,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          {hasUpdate && (
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="relative flex size-8 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors hover:bg-primary/20"
+              title={`Pembaruan v${latestVersion} tersedia`}
+              aria-label="Pembaruan Aplikasi Tersedia"
+            >
+              <span className="absolute -top-0.5 -right-0.5 flex size-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex size-2 rounded-full bg-primary"></span>
+              </span>
+              <ArrowUpCircle className="size-4" />
+            </button>
+          )}
           <Badge
             variant={isOwner ? "default" : "secondary"}
             className="text-[10px] px-2 py-0.5 uppercase tracking-wider"
@@ -334,11 +369,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </button>
             </div>
 
-            {/* Badge Versi Single Source of Truth */}
-            <div className="text-center">
-              <span className="inline-block text-[10px] font-medium text-muted-foreground/80">
+            {/* Titik 2: Badge Versi Single Source of Truth + Indikator Update */}
+            <div className="flex items-center justify-between px-1">
+              <span className="text-[10px] font-medium text-muted-foreground/80">
                 {formatVersionBadge(isNative)}
               </span>
+              {hasUpdate && (
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary hover:bg-primary/20 transition-colors"
+                  title={`Pembaruan v${latestVersion} tersedia`}
+                >
+                  <span className="relative flex size-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+                    <span className="relative inline-flex size-1.5 rounded-full bg-primary"></span>
+                  </span>
+                  <span>Update</span>
+                </button>
+              )}
             </div>
           </div>
         </aside>
@@ -350,15 +399,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Desktop Sticky Topbar (>= 1024px) */}
           <header className="hidden h-14 items-center justify-between border-b border-border bg-card/80 px-6 backdrop-blur-md lg:flex sticky top-0 z-20">
             <div>
-              <h1 className="text-base font-bold text-foreground leading-tight">
+              <p className="text-base font-bold text-foreground leading-tight">
                 {pageMeta.title}
-              </h1>
+              </p>
               <p className="text-xs text-muted-foreground leading-none mt-0.5">
                 {pageMeta.subtitle}
               </p>
             </div>
 
             <div className="flex items-center gap-3">
+              {hasUpdate && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsModalOpen(true)}
+                  className="gap-1.5 border-primary/40 text-primary bg-primary/5 hover:bg-primary/10"
+                >
+                  <span className="relative flex size-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+                    <span className="relative inline-flex size-2 rounded-full bg-primary"></span>
+                  </span>
+                  <span>Pembaruan v{latestVersion}</span>
+                </Button>
+              )}
               <ThemeToggle />
               <Link href="/pos">
                 <Button size="sm" className="gap-1.5 rounded-xl font-semibold shadow-xs">
@@ -564,11 +627,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <Separator />
 
-          {/* Footer Sheet: Version & Logout */}
+          {/* Titik 3: Info Versi & Status Update di Bottom Sheet */}
           <div className="pt-2 flex items-center justify-between">
-            <span className="text-[11px] font-medium text-muted-foreground">
-              {formatVersionLabel(isNative)}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-[11px] font-medium text-muted-foreground">
+                {formatVersionLabel(isNative)}
+              </span>
+              {hasUpdate ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuSheetOpen(false);
+                    setIsModalOpen(true);
+                  }}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline text-left mt-0.5"
+                >
+                  <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+                  Pembaruan v{latestVersion} Tersedia
+                </button>
+              ) : (
+                <span className="text-[10px] text-muted-foreground/70">
+                  Versi terbaru aktif
+                </span>
+              )}
+            </div>
             <Button
               variant="destructive"
               size="sm"
@@ -614,6 +696,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* In-App Update Modal */}
+      <UpdateNoticeModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onDismiss={() => dismissUpdate()}
+        versionData={versionData}
+        currentVersion={currentVersion}
+      />
     </div>
   );
 }

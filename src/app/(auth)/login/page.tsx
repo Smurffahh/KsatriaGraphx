@@ -1,12 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Lock, User, AlertCircle, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { isNativeApp } from "@/lib/platform";
 import { secureStorage } from "@/lib/auth/secure-storage";
 import { resolveApiUrl } from "@/lib/api/client";
+import { formatVersionLabel } from "@/lib/version";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,6 +19,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isNative, setIsNative] = useState(false);
+
+  useEffect(() => {
+    setIsNative(isNativeApp());
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -27,21 +35,21 @@ export default function LoginPage() {
     setIsLoading(true);
     setErrorMessage(null);
 
-    const isNative = isNativeApp();
-    const loginUrl = resolveApiUrl("/api/auth/login", isNative);
+    const isNativePlatform = isNativeApp();
+    const loginUrl = resolveApiUrl("/api/auth/login", isNativePlatform);
 
     try {
       const response = await fetch(loginUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-client-platform": isNative ? "apk" : "web",
+          "x-client-platform": isNativePlatform ? "apk" : "web",
         },
-        credentials: isNative ? "omit" : "include",
+        credentials: isNativePlatform ? "omit" : "include",
         body: JSON.stringify({
           usernameOrEmail: usernameOrEmail.trim(),
           password,
-          deviceName: isNative ? "Android POS" : "Web Desktop",
+          deviceName: isNativePlatform ? "Android POS" : "Web Desktop",
         }),
       });
 
@@ -64,7 +72,7 @@ export default function LoginPage() {
         return;
       }
 
-      if (isNative && data.data?.accessToken && data.data?.refreshToken) {
+      if (isNativePlatform && data.data?.accessToken && data.data?.refreshToken) {
         try {
           await secureStorage.saveTokens({
             accessToken: data.data.accessToken,
@@ -90,28 +98,33 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center bg-slate-100/70 p-4 dark:bg-slate-950 sm:p-6">
+    <main className="relative flex min-h-dvh flex-col items-center justify-center bg-background p-4 sm:p-6 text-foreground">
+      {/* Top Floating Theme Toggle */}
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+
       <div className="w-full max-w-sm">
         {/* Header Logo & Title */}
         <div className="mb-6 flex flex-col items-center text-center">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-900 font-black text-lg text-white shadow-sm dark:bg-slate-50 dark:text-slate-900">
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary font-black text-lg text-primary-foreground shadow-xs">
             KG
           </div>
-          <h1 className="mt-4 text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 sm:text-2xl">
+          <h1 className="mt-4 text-xl sm:text-2xl font-bold tracking-tight text-foreground">
             Ksatria Graphx
           </h1>
-          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+          <p className="mt-1 text-xs text-muted-foreground">
             Sistem Kasir & Manajemen Percetakan
           </p>
         </div>
 
         {/* Card Form */}
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
-          <div className="mb-5 border-b border-slate-100 pb-4 dark:border-slate-800">
-            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+        <div className="rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-xs">
+          <div className="mb-5 border-b border-border/80 pb-4">
+            <h2 className="text-base font-semibold text-foreground">
               Masuk ke Akun
             </h2>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               Gunakan kredensial yang telah didaftarkan
             </p>
           </div>
@@ -119,7 +132,7 @@ export default function LoginPage() {
           {errorMessage && (
             <div
               role="alert"
-              className="mb-5 flex items-start gap-2.5 rounded-xl bg-rose-50 p-3 text-xs text-rose-700 ring-1 ring-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:ring-rose-800/40"
+              className="mb-5 flex items-start gap-2.5 rounded-xl bg-destructive/10 p-3 text-xs text-destructive border border-destructive/20"
             >
               <AlertCircle className="size-4 shrink-0 mt-0.5" />
               <div className="flex-1 leading-relaxed">{errorMessage}</div>
@@ -130,12 +143,12 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="usernameOrEmail"
-                className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-300"
+                className="mb-1.5 block text-xs font-medium text-foreground"
               >
                 Username atau Email
               </label>
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
                   <User className="size-4" />
                 </div>
                 <input
@@ -147,7 +160,7 @@ export default function LoginPage() {
                   value={usernameOrEmail}
                   onChange={(e) => setUsernameOrEmail(e.target.value)}
                   placeholder="Masukkan username atau email"
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-slate-100 dark:focus:ring-slate-100 sm:text-sm"
+                  className="h-11 w-full rounded-xl border border-input bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-ring"
                 />
               </div>
             </div>
@@ -155,12 +168,12 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="password"
-                className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-300"
+                className="mb-1.5 block text-xs font-medium text-foreground"
               >
                 Password
               </label>
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
                   <Lock className="size-4" />
                 </div>
                 <input
@@ -172,12 +185,12 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Masukkan password akun"
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-slate-100 dark:focus:ring-slate-100 sm:text-sm"
+                  className="h-11 w-full rounded-xl border border-input bg-background pl-9 pr-11 text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-ring"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex size-11 items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                  className="absolute inset-y-0 right-0 flex size-11 items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
                   aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
                 >
                   {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -186,27 +199,27 @@ export default function LoginPage() {
             </div>
 
             <div className="pt-2">
-              <button
+              <Button
                 type="submit"
                 disabled={isLoading}
-                className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200"
+                className="w-full h-11 text-sm font-semibold shadow-xs"
               >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent dark:border-slate-900" />
-                    <span>Memverifikasi...</span>
-                  </div>
-                ) : (
-                  <span>Masuk ke Sistem</span>
-                )}
-              </button>
+                {isLoading ? "Memverifikasi..." : "Masuk ke Sistem"}
+              </Button>
             </div>
           </form>
 
-          <div className="mt-6 flex items-center justify-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
-            <ShieldCheck className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+          <div className="mt-6 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+            <ShieldCheck className="size-3.5 text-emerald-500" />
             <span>Sistem terlindungi autentikasi sesi berlapis</span>
           </div>
+        </div>
+
+        {/* Titik 1: Footer Versi Single Source of Truth */}
+        <div className="mt-6 text-center">
+          <span className="text-[11px] font-medium text-muted-foreground">
+            {formatVersionLabel(isNative)}
+          </span>
         </div>
       </div>
     </main>

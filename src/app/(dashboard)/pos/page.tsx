@@ -12,7 +12,6 @@ import {
   Package,
   ArrowRight,
   Calculator,
-  Loader2,
   AlertCircle,
   Plus,
 } from "lucide-react";
@@ -25,11 +24,19 @@ import {
 } from "@/components/pos/PosItemCalculator";
 import { PosCheckoutModal } from "@/components/pos/PosCheckoutModal";
 import { PosSuccessModal } from "@/components/pos/PosSuccessModal";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 
 interface CategoryOption {
   id: string;
   name: string;
   slug: string;
+}
+
+interface PosCatalogItem extends PosProductItem {
+  categoryId?: string | null;
+  description?: string | null;
+  isActive?: boolean;
 }
 
 interface CurrentUser {
@@ -38,9 +45,32 @@ interface CurrentUser {
   role: "OWNER" | "KASIR";
 }
 
+function PosCatalogSkeleton() {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div
+          key={i}
+          className="rounded-2xl border border-border bg-card p-3 shadow-xs space-y-3"
+        >
+          <Skeleton className="w-full aspect-square rounded-xl" />
+          <div className="space-y-1.5">
+            <Skeleton className="h-4 w-3/4 rounded-md" />
+            <Skeleton className="h-3 w-1/2 rounded-md" />
+          </div>
+          <div className="pt-2 border-t border-border/50 flex items-center justify-between">
+            <Skeleton className="h-5 w-20 rounded-md" />
+            <Skeleton className="size-7 rounded-lg" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function PosPage() {
   const queryClient = useQueryClient();
-  const [products, setProducts] = useState<PosProductItem[]>([]);
+  const [products, setProducts] = useState<PosCatalogItem[]>([]);
   const [finishings, setFinishings] = useState<PosFinishingOption[]>([]);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
@@ -73,7 +103,7 @@ export default function PosPage() {
     Promise.all([
       apiClient.get<{ user: CurrentUser }>("/api/auth/me"),
       apiClient.get<CategoryOption[]>("/api/categories"),
-      apiClient.get<PosProductItem[]>("/api/products"),
+      apiClient.get<PosCatalogItem[]>("/api/products"),
       apiClient.get<PosFinishingOption[]>("/api/finishings"),
     ])
       .then(([meRes, catRes, prodRes, finRes]) => {
@@ -82,9 +112,9 @@ export default function PosPage() {
         if (prodRes.success && prodRes.data) setProducts(prodRes.data);
         if (finRes.success && finRes.data) setFinishings(finRes.data);
       })
-      .catch((err: unknown) => {
-        const errorObj = err as { message?: string };
-        setError(errorObj.message || "Gagal memuat katalog kasir");
+      .catch((err) => {
+        console.error("Gagal memuat data master POS:", err);
+        setError("Gagal memuat data produk & kalkulator. Silakan muat ulang.");
       })
       .finally(() => {
         setIsLoading(false);
@@ -93,15 +123,23 @@ export default function PosPage() {
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
+      const matchCat =
+        selectedCategory === "ALL" || p.categoryId === selectedCategory;
       const matchSearch =
-        search.trim() === "" ||
-        p.name.toLowerCase().includes(search.toLowerCase());
-      return matchSearch;
+        !search.trim() ||
+        p.name.toLowerCase().includes(search.toLowerCase()) ||
+        (p.description && p.description.toLowerCase().includes(search.toLowerCase()));
+      return matchCat && matchSearch && p.isActive;
     });
-  }, [products, search]);
+  }, [products, selectedCategory, search]);
 
-  const cartSubtotal = cart.reduce((acc, curr) => acc + curr.itemSubtotal, 0);
-  const totalCartQty = cart.reduce((acc, curr) => acc + curr.quantity, 0);
+  const cartSubtotal = useMemo(() => {
+    return cart.reduce((acc, item) => acc + item.itemSubtotal, 0);
+  }, [cart]);
+
+  const totalCartQty = useMemo(() => {
+    return cart.reduce((acc, item) => acc + item.quantity, 0);
+  }, [cart]);
 
   const handleOpenProduct = (p: PosProductItem) => {
     setSelectedProduct(p);
@@ -109,33 +147,36 @@ export default function PosPage() {
     setCalcModalOpen(true);
   };
 
-  const handleEditCartItem = (ci: CartItem) => {
-    setSelectedProduct(ci.product);
-    setEditingCartItem(ci);
+  const handleEditCartItem = (item: CartItem) => {
+    setSelectedProduct(item.product);
+    setEditingCartItem(item);
     setCalcModalOpen(true);
   };
 
   const handleAddToCart = (item: CartItem) => {
-    setCart((prev) => {
-      const existsIndex = prev.findIndex((i) => i.cartItemId === item.cartItemId);
-      if (existsIndex >= 0) {
-        const copy = [...prev];
-        copy[existsIndex] = item;
-        return copy;
-      }
-      return [...prev, item];
-    });
-    toast.success(`"${item.product.name}" ditambahkan ke keranjang`);
+    if (editingCartItem) {
+      setCart((prev) =>
+        prev.map((c) => (c.cartItemId === item.cartItemId ? item : c))
+      );
+      toast.success("Item berhasil diperbarui");
+    } else {
+      setCart((prev) => [...prev, item]);
+      toast.success("Produk ditambahkan ke keranjang");
+    }
+    setCalcModalOpen(false);
+    setEditingCartItem(null);
   };
 
   const handleRemoveCartItem = (cartItemId: string) => {
-    setCart((prev) => prev.filter((i) => i.cartItemId !== cartItemId));
+    setCart((prev) => prev.filter((c) => c.cartItemId !== cartItemId));
     toast.info("Item dihapus dari keranjang");
   };
 
   const handleClearCart = () => {
-    setCart([]);
-    toast.info("Keranjang pesanan dikosongkan");
+    if (window.confirm("Kosongkan semua item di keranjang?")) {
+      setCart([]);
+      toast.info("Keranjang telah dikosongkan");
+    }
   };
 
   const handleOrderSuccess = (orderResult: {
@@ -147,6 +188,7 @@ export default function PosPage() {
     changeAmount: number;
     paymentStatus: string;
   }) => {
+    setCheckoutModalOpen(false);
     queryClient.invalidateQueries({ queryKey: ["orders"] });
     queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     queryClient.invalidateQueries({ queryKey: ["reports"] });
@@ -161,11 +203,11 @@ export default function PosPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text flex items-center gap-2">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <Calculator className="size-6 text-primary" />
             <span>Kalkulator & Kasir POS</span>
           </h1>
-          <p className="text-xs text-text-muted mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Pilih produk percetakan, hitung dimensi & finishing, lalu simpan nota
           </p>
         </div>
@@ -174,7 +216,7 @@ export default function PosPage() {
           <button
             type="button"
             onClick={handleClearCart}
-            className="text-xs text-text-muted hover:text-danger self-start sm:self-auto flex items-center gap-1 min-h-[44px]"
+            className="text-xs text-muted-foreground hover:text-destructive self-start sm:self-auto flex items-center gap-1 min-h-[44px]"
           >
             <Trash2 className="size-3.5" />
             <span>Kosongkan Keranjang</span>
@@ -183,7 +225,7 @@ export default function PosPage() {
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-danger/10 border border-danger/20 text-danger text-xs flex items-center gap-2">
+        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2">
           <AlertCircle className="size-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -196,13 +238,13 @@ export default function PosPage() {
           {/* Search Bar & Category Filter */}
           <div className="space-y-3">
             <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-text-muted" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Cari produk percetakan (Banner, Kaos, Brosur...)"
-                className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm bg-surface border border-border rounded-xl text-text placeholder:text-text-muted/60 focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary"
               />
             </div>
 
@@ -213,8 +255,8 @@ export default function PosPage() {
                   onClick={() => setSelectedCategory("ALL")}
                   className={`px-3 py-1.5 rounded-xl font-medium shrink-0 transition-colors ${
                     selectedCategory === "ALL"
-                      ? "bg-primary text-white"
-                      : "bg-surface border border-border text-text-muted hover:text-text"
+                      ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                      : "bg-card border border-border text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   Semua Kategori
@@ -226,8 +268,8 @@ export default function PosPage() {
                     onClick={() => setSelectedCategory(c.id)}
                     className={`px-3 py-1.5 rounded-xl font-medium shrink-0 transition-colors ${
                       selectedCategory === c.id
-                        ? "bg-primary text-white"
-                        : "bg-surface border border-border text-text-muted hover:text-text"
+                        ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                        : "bg-card border border-border text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     {c.name}
@@ -239,15 +281,14 @@ export default function PosPage() {
 
           {/* Product Grid */}
           {isLoading ? (
-            <div className="p-12 text-center text-text-muted">
-              <Loader2 className="size-6 animate-spin mx-auto mb-2 text-primary" />
-              <span className="text-sm">Memuat katalog produk...</span>
-            </div>
+            <PosCatalogSkeleton />
           ) : filteredProducts.length === 0 ? (
-            <div className="p-12 text-center rounded-2xl bg-surface border border-border">
-              <Package className="size-10 mx-auto text-text-muted/40 mb-3" />
-              <h3 className="text-base font-semibold text-text">Produk Tidak Ditemukan</h3>
-              <p className="text-xs text-text-muted mt-1">
+            <div className="p-12 text-center rounded-2xl bg-card border border-border">
+              <Package className="size-10 mx-auto text-muted-foreground/40 mb-3" />
+              <h3 className="text-base font-semibold text-foreground">
+                Produk Tidak Ditemukan
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
                 Silakan periksa kata kunci pencarian atau tambah produk baru di Katalog Produk.
               </p>
             </div>
@@ -257,11 +298,11 @@ export default function PosPage() {
                 <div
                   key={p.id}
                   onClick={() => handleOpenProduct(p)}
-                  className="group bg-surface border border-border hover:border-primary/50 rounded-2xl p-3 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+                  className="group bg-card border border-border hover:border-primary/50 rounded-2xl p-3 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
                 >
                   <div>
                     {/* Thumbnail Image */}
-                    <div className="w-full aspect-square rounded-xl bg-surface-muted border border-border/40 overflow-hidden relative mb-2.5 flex items-center justify-center">
+                    <div className="w-full aspect-square rounded-xl bg-muted border border-border/40 overflow-hidden relative mb-2.5 flex items-center justify-center">
                       {p.imageUrl ? (
                         <Image
                           src={p.imageUrl}
@@ -271,26 +312,26 @@ export default function PosPage() {
                           className="object-cover group-hover:scale-105 transition-transform duration-200"
                         />
                       ) : (
-                        <Package className="size-8 text-text-muted/40" />
+                        <Package className="size-8 text-muted-foreground/40" />
                       )}
                       <span className="absolute top-2 left-2 px-1.5 py-0.5 text-[9px] font-bold rounded-md bg-black/60 text-white backdrop-blur-xs">
                         {p.pricingType}
                       </span>
                     </div>
 
-                    <h3 className="font-semibold text-xs text-text line-clamp-2 leading-snug">
+                    <h3 className="font-semibold text-xs text-foreground line-clamp-2 leading-snug">
                       {p.name}
                     </h3>
                   </div>
 
                   <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between">
                     <div>
-                      <div className="text-[10px] text-text-muted">Mulai dari</div>
+                      <div className="text-[10px] text-muted-foreground">Mulai dari</div>
                       <div className="text-xs font-bold text-primary tabular-nums">
                         Rp {p.basePrice.toLocaleString("id-ID")}
                       </div>
                     </div>
-                    <div className="size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                    <div className="size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                       <Plus className="size-4" />
                     </div>
                   </div>
@@ -301,13 +342,13 @@ export default function PosPage() {
         </div>
 
         {/* Desktop Cart Column (Right) */}
-        <div className="hidden lg:block lg:col-span-5 xl:col-span-4 bg-surface border border-border rounded-2xl shadow-xs overflow-hidden sticky top-20">
-          <div className="p-4 border-b border-border bg-surface-muted/30 flex items-center justify-between">
+        <div className="hidden lg:block lg:col-span-5 xl:col-span-4 bg-card border border-border rounded-2xl shadow-xs overflow-hidden sticky top-20">
+          <div className="p-4 border-b border-border bg-muted/40 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ShoppingCart className="size-4 text-primary" />
-              <h2 className="text-sm font-bold text-text">Keranjang Nota</h2>
+              <h2 className="text-sm font-bold text-foreground">Keranjang Nota</h2>
             </div>
-            <span className="text-xs text-text-muted tabular-nums">
+            <span className="text-xs text-muted-foreground tabular-nums">
               {cart.length} item ({totalCartQty} pcs)
             </span>
           </div>
@@ -315,10 +356,10 @@ export default function PosPage() {
           {/* Cart Item List */}
           <div className="p-4 max-h-[calc(100dvh-320px)] overflow-y-auto space-y-3">
             {cart.length === 0 ? (
-              <div className="py-12 text-center text-text-muted">
-                <ShoppingCart className="size-8 mx-auto text-text-muted/40 mb-2" />
+              <div className="py-12 text-center text-muted-foreground">
+                <ShoppingCart className="size-8 mx-auto text-muted-foreground/40 mb-2" />
                 <p className="text-xs font-medium">Keranjang masih kosong</p>
-                <p className="text-[11px] text-text-muted mt-0.5">
+                <p className="text-[11px] text-muted-foreground mt-0.5">
                   Klik produk di samping untuk menghitung harga & finishing
                 </p>
               </div>
@@ -326,12 +367,12 @@ export default function PosPage() {
               cart.map((ci) => (
                 <div
                   key={ci.cartItemId}
-                  className="p-3 rounded-xl bg-surface-muted/30 border border-border/70 space-y-2 text-xs"
+                  className="p-3 rounded-xl bg-muted/30 border border-border/70 space-y-2 text-xs"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <span className="font-semibold text-text">{ci.product.name}</span>
-                      <div className="text-[11px] text-text-muted mt-0.5">
+                      <span className="font-semibold text-foreground">{ci.product.name}</span>
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
                         {ci.product.pricingType === "AREA" && (
                           <span>
                             {ci.width} × {ci.height} {ci.unit} ({ci.billedAreaM2} m²) •{" "}
@@ -351,7 +392,7 @@ export default function PosPage() {
                       <button
                         type="button"
                         onClick={() => handleEditCartItem(ci)}
-                        className="p-1 text-text-muted hover:text-text rounded-md hover:bg-surface"
+                        className="p-1 text-muted-foreground hover:text-foreground rounded-md hover:bg-card"
                         title="Ubah"
                       >
                         <Edit2 className="size-3.5" />
@@ -359,7 +400,7 @@ export default function PosPage() {
                       <button
                         type="button"
                         onClick={() => handleRemoveCartItem(ci.cartItemId)}
-                        className="p-1 text-text-muted hover:text-danger rounded-md hover:bg-surface"
+                        className="p-1 text-muted-foreground hover:text-destructive rounded-md hover:bg-card"
                         title="Hapus"
                       >
                         <Trash2 className="size-3.5" />
@@ -373,7 +414,7 @@ export default function PosPage() {
                       {ci.finishings.map((f) => (
                         <span
                           key={f.finishingId}
-                          className="px-1.5 py-0.5 rounded bg-surface border border-border/80 text-text-muted"
+                          className="px-1.5 py-0.5 rounded bg-card border border-border/80 text-muted-foreground"
                         >
                           {f.name} (Rp {f.subtotal.toLocaleString("id-ID")})
                         </span>
@@ -382,14 +423,14 @@ export default function PosPage() {
                   )}
 
                   {ci.itemNotes && (
-                    <div className="text-[10px] text-text-muted italic bg-surface/50 p-1.5 rounded">
+                    <div className="text-[10px] text-muted-foreground italic bg-muted/40 p-1.5 rounded">
                       {ci.itemNotes}
                     </div>
                   )}
 
                   <div className="flex items-center justify-between pt-1 border-t border-border/50 font-medium">
-                    <span className="text-text-muted">Subtotal Item:</span>
-                    <span className="font-bold text-text tabular-nums">
+                    <span className="text-muted-foreground">Subtotal Item:</span>
+                    <span className="font-bold text-foreground tabular-nums">
                       Rp {ci.itemSubtotal.toLocaleString("id-ID")}
                     </span>
                   </div>
@@ -400,22 +441,22 @@ export default function PosPage() {
 
           {/* Cart Footer */}
           {cart.length > 0 && (
-            <div className="p-4 border-t border-border bg-surface-muted/30 space-y-3">
+            <div className="p-4 border-t border-border bg-muted/40 space-y-3">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-text-muted font-medium">Estimasi Subtotal:</span>
+                <span className="text-muted-foreground font-medium">Estimasi Subtotal:</span>
                 <span className="font-bold text-primary text-base tabular-nums">
                   Rp {cartSubtotal.toLocaleString("id-ID")}
                 </span>
               </div>
 
-              <button
+              <Button
                 type="button"
                 onClick={() => setCheckoutModalOpen(true)}
-                className="w-full inline-flex items-center justify-center gap-2 py-3 bg-primary hover:bg-primary-hover text-white text-sm font-semibold rounded-xl shadow-xs transition-colors min-h-[44px]"
+                className="w-full min-h-[44px] gap-2 font-semibold"
               >
                 <span>Proses Checkout Nota</span>
                 <ArrowRight className="size-4" />
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -423,9 +464,9 @@ export default function PosPage() {
 
       {/* Sticky Bottom Bar (Mobile Only) */}
       {cart.length > 0 && (
-        <div className="lg:hidden fixed bottom-16 left-0 right-0 p-3 bg-surface border-t border-border shadow-lg flex items-center justify-between z-30">
+        <div className="lg:hidden fixed bottom-16 left-0 right-0 p-3 bg-card border-t border-border shadow-lg flex items-center justify-between z-30">
           <div>
-            <div className="text-[11px] text-text-muted">
+            <div className="text-[11px] text-muted-foreground">
               {cart.length} item ({totalCartQty} pcs)
             </div>
             <div className="text-base font-bold text-primary tabular-nums">
@@ -433,14 +474,14 @@ export default function PosPage() {
             </div>
           </div>
 
-          <button
+          <Button
             type="button"
             onClick={() => setCheckoutModalOpen(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-sm font-semibold rounded-xl shadow-xs min-h-[44px]"
+            className="min-h-[44px] gap-2 px-5 font-semibold"
           >
             <span>Checkout</span>
             <ArrowRight className="size-4" />
-          </button>
+          </Button>
         </div>
       )}
 

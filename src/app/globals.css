@@ -29,6 +29,13 @@
   --color-warning: var(--warning);
   --color-info: var(--info);
 
+  /* Legacy Compatibility Aliases (Maps to Shadcn Semantic Tokens) */
+  --color-surface: var(--card);
+  --color-surface-muted: var(--muted);
+  --color-text: var(--foreground);
+  --color-text-muted: var(--muted-foreground);
+  --color-danger: var(--destructive);
+
   /* Legacy Status Compatibility */
   --color-status-paid: var(--success);
   --color-status-partial: var(--warning);

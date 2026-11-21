@@ -30,6 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiClient } from "@/lib/api/client";
+import { m, AnimatePresence } from "motion/react";
 import {
   QuickCatalogPicker,
   resolveProductImageUrl,
@@ -152,6 +153,7 @@ export function QuickCalculatorSheet({
   const [isPickerAOpen, setIsPickerAOpen] = useState(false);
   const [isPickerBOpen, setIsPickerBOpen] = useState(false);
   const [isComparisonMode, setIsComparisonMode] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -359,6 +361,8 @@ export function QuickCalculatorSheet({
     }
 
     if (success) {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 1500);
       toast.success("Estimasi harga siap ditempel ke WhatsApp", {
         description: "Format teks rapi berhasil disalin ke papan klip.",
       });
@@ -1053,10 +1057,35 @@ export function QuickCalculatorSheet({
             variant="outline"
             onClick={handleCopyEstimate}
             disabled={!calcResultA}
-            className="gap-2 h-10 text-xs font-semibold"
+            className="gap-2 h-10 text-xs font-semibold min-w-[150px]"
           >
-            <Copy className="size-4" />
-            <span>Salin Estimasi (WA)</span>
+            <AnimatePresence mode="wait" initial={false}>
+              {isCopied ? (
+                <m.span
+                  key="copied"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold"
+                >
+                  <Check className="size-4" />
+                  <span>Tersalin!</span>
+                </m.span>
+              ) : (
+                <m.span
+                  key="copy"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex items-center gap-1.5"
+                >
+                  <Copy className="size-4" />
+                  <span>Salin Estimasi (WA)</span>
+                </m.span>
+              )}
+            </AnimatePresence>
           </Button>
 
           {!isComparisonMode && (

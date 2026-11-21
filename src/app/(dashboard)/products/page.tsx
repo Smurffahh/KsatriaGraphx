@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { ProductFormModal, type ProductFormData } from "@/components/products/ProductFormModal";
 import { CategoryTab, type CategoryItem } from "@/components/products/CategoryTab";
 import { FinishingTab, type FinishingItem } from "@/components/products/FinishingTab";
+import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
 
 interface ProductItem {
   id: string;
@@ -380,9 +381,13 @@ export default function ProductsPage() {
 
           {/* Daftar Produk (Responsive: Cards on Mobile, Table on Desktop) */}
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-16">
-              <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              <p className="mt-3 text-xs text-muted-foreground">Memuat katalog produk...</p>
+            <div className="space-y-4">
+              <PageLoadingBanner message="Memuat katalog produk..." />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="h-32 rounded-xl bg-card border border-border p-4 animate-pulse" />
+                ))}
+              </div>
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-16 text-center">

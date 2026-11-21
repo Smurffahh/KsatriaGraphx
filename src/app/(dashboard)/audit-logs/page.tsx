@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
 import { Button } from "@/components/ui/button";
 
 interface AuditLogItem {
@@ -47,7 +48,9 @@ interface AuditLogResponse {
 
 function AuditLogsSkeleton() {
   return (
-    <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-4">
+    <div className="space-y-4">
+      <PageLoadingBanner message="Memuat log aktivitas..." />
+      <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-4">
       <Skeleton className="h-4 w-48 rounded-md" />
       <div className="space-y-3">
         {Array.from({ length: 6 }).map((_, i) => (
@@ -62,6 +65,7 @@ function AuditLogsSkeleton() {
             <Skeleton className="h-6 w-20 rounded-md" />
           </div>
         ))}
+      </div>
       </div>
     </div>
   );
@@ -143,6 +147,7 @@ export default function AuditLogsPage() {
 
   return (
     <div className="space-y-6">
+      <PageLoadingBanner isRefetching={isFetching && !isLoading} />
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

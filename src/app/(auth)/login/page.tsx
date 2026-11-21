@@ -1,18 +1,21 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Lock, User, AlertCircle, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { m, AnimatePresence } from "motion/react";
 import { isNativeApp } from "@/lib/platform";
 import { secureStorage } from "@/lib/auth/secure-storage";
 import { resolveApiUrl } from "@/lib/api/client";
 import { formatVersionLabel } from "@/lib/version";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Button } from "@/components/ui/button";
+import { PreLoginSplash } from "@/components/auth/PreLoginSplash";
+import { useSplashTransition } from "@/components/providers/SplashTransitionProvider";
+import { staggerContainer, fadeUpItem } from "@/lib/motion";
 
 export default function LoginPage() {
-  const router = useRouter();
+  const { triggerPostLoginTransition } = useSplashTransition();
 
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,6 +23,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isNative, setIsNative] = useState(false);
+  const [isSplashDone, setIsSplashDone] = useState(false);
+  const [isShaking, setIsShaking] = useState(false);
 
   useEffect(() => {
     setIsNative(isNativeApp());
@@ -29,6 +34,8 @@ export default function LoginPage() {
     e.preventDefault();
     if (!usernameOrEmail.trim() || !password.trim()) {
       setErrorMessage("Username/email dan password wajib diisi");
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 380);
       return;
     }
 
@@ -69,6 +76,8 @@ export default function LoginPage() {
         setErrorMessage(errorMsg);
         toast.error(errorMsg);
         setIsLoading(false);
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), 380);
         return;
       }
 
@@ -88,140 +97,188 @@ export default function LoginPage() {
       }
 
       toast.success(`Berhasil masuk sebagai ${data.data?.user?.name || "Pengguna"}`);
-      router.replace("/pos");
+
+      // Transisi personal pasca-login dengan pemanasan data paralel
+      triggerPostLoginTransition({
+        userName: data.data?.user?.name || "Pengguna",
+        userRole: data.data?.user?.role || "KASIR",
+        targetUrl: "/dashboard",
+      });
     } catch {
       const netMsg = "Tidak dapat terhubung ke server. Periksa koneksi internet atau konfigurasi server (kode NET).";
       setErrorMessage(netMsg);
       toast.error(netMsg);
       setIsLoading(false);
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 380);
     }
   }
 
   return (
-    <main className="relative flex min-h-dvh flex-col items-center justify-center bg-background p-4 sm:p-6 text-foreground">
-      {/* Top Floating Theme Toggle */}
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
-      </div>
+    <>
+      {/* Splash Screen Pra-Login (hanya muncul di sesi awal) */}
+      <PreLoginSplash onComplete={() => setIsSplashDone(true)} />
 
-      <div className="w-full max-w-sm">
-        {/* Header Logo & Title */}
-        <div className="mb-6 flex flex-col items-center text-center">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary font-black text-lg text-primary-foreground shadow-xs">
-            KG
-          </div>
-          <h1 className="mt-4 text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-            Ksatria Graphx
-          </h1>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Sistem Kasir & Manajemen Percetakan
-          </p>
+      <main className="relative flex min-h-dvh flex-col items-center justify-center bg-background p-4 sm:p-6 text-foreground overflow-hidden">
+        {/* Top Floating Theme Toggle */}
+        <div className="absolute top-4 right-4 z-20">
+          <ThemeToggle />
         </div>
 
-        {/* Card Form */}
-        <div className="rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-xs">
-          <div className="mb-5 border-b border-border/80 pb-4">
-            <h2 className="text-base font-semibold text-foreground">
-              Masuk ke Akun
-            </h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Gunakan kredensial yang telah didaftarkan
+        <m.div
+          variants={staggerContainer(0.06)}
+          initial="hidden"
+          animate={isSplashDone ? "visible" : "hidden"}
+          className="w-full max-w-sm"
+        >
+          {/* 1. Header Logo & Title */}
+          <m.div variants={fadeUpItem} className="mb-6 flex flex-col items-center text-center">
+            <div className="flex size-12 items-center justify-center rounded-2xl bg-primary font-black text-lg text-primary-foreground shadow-xs">
+              KG
+            </div>
+            <h1 className="mt-4 text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              Ksatria Graphx
+            </h1>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Sistem Kasir & Manajemen Percetakan
             </p>
-          </div>
+          </m.div>
 
-          {errorMessage && (
-            <div
-              role="alert"
-              className="mb-5 flex items-start gap-2.5 rounded-xl bg-destructive/10 p-3 text-xs text-destructive border border-destructive/20"
-            >
-              <AlertCircle className="size-4 shrink-0 mt-0.5" />
-              <div className="flex-1 leading-relaxed">{errorMessage}</div>
+          {/* 2. Card Form dengan Micro-Shake saat Error */}
+          <m.div
+            variants={fadeUpItem}
+            animate={isShaking ? { x: [0, -8, 8, -6, 6, -3, 3, 0] } : {}}
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+            className="rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-xs"
+          >
+            <div className="mb-5 border-b border-border/80 pb-4">
+              <h2 className="text-base font-semibold text-foreground">
+                Masuk ke Akun
+              </h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Gunakan kredensial yang telah didaftarkan
+              </p>
             </div>
-          )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="usernameOrEmail"
-                className="mb-1.5 block text-xs font-medium text-foreground"
+            {errorMessage && (
+              <div
+                role="alert"
+                className="mb-5 flex items-start gap-2.5 rounded-xl bg-destructive/10 p-3 text-xs text-destructive border border-destructive/20"
               >
-                Username atau Email
-              </label>
-              <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
-                  <User className="size-4" />
-                </div>
-                <input
-                  id="usernameOrEmail"
-                  name="usernameOrEmail"
-                  type="text"
-                  autoComplete="username"
-                  required
-                  value={usernameOrEmail}
-                  onChange={(e) => setUsernameOrEmail(e.target.value)}
-                  placeholder="Masukkan username atau email"
-                  className="h-11 w-full rounded-xl border border-input bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-ring"
-                />
+                <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                <div className="flex-1 leading-relaxed">{errorMessage}</div>
               </div>
-            </div>
+            )}
 
-            <div>
-              <label
-                htmlFor="password"
-                className="mb-1.5 block text-xs font-medium text-foreground"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
-                  <Lock className="size-4" />
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Masukkan password akun"
-                  className="h-11 w-full rounded-xl border border-input bg-background pl-9 pr-11 text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-ring"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex size-11 items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* 3. Field Username */}
+              <m.div variants={fadeUpItem}>
+                <label
+                  htmlFor="usernameOrEmail"
+                  className="mb-1.5 block text-xs font-medium text-foreground"
                 >
-                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </button>
-              </div>
+                  Username atau Email
+                </label>
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+                    <User className="size-4" />
+                  </div>
+                  <input
+                    id="usernameOrEmail"
+                    name="usernameOrEmail"
+                    type="text"
+                    autoComplete="username"
+                    required
+                    value={usernameOrEmail}
+                    onChange={(e) => setUsernameOrEmail(e.target.value)}
+                    placeholder="Masukkan username atau email"
+                    className="h-11 w-full rounded-xl border border-input bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-ring transition-colors"
+                  />
+                </div>
+              </m.div>
+
+              {/* 4. Field Password dengan Swap Ikon Halus */}
+              <m.div variants={fadeUpItem}>
+                <label
+                  htmlFor="password"
+                  className="mb-1.5 block text-xs font-medium text-foreground"
+                >
+                  Password
+                </label>
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+                    <Lock className="size-4" />
+                  </div>
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Masukkan password akun"
+                    className="h-11 w-full rounded-xl border border-input bg-background pl-9 pr-11 text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-ring transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex size-11 items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
+                  >
+                    <AnimatePresence mode="wait" initial={false}>
+                      {showPassword ? (
+                        <m.div
+                          key="eye-off"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          transition={{ duration: 0.15 }}
+                        >
+                          <EyeOff className="size-4" />
+                        </m.div>
+                      ) : (
+                        <m.div
+                          key="eye"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          transition={{ duration: 0.15 }}
+                        >
+                          <Eye className="size-4" />
+                        </m.div>
+                      )}
+                    </AnimatePresence>
+                  </button>
+                </div>
+              </m.div>
+
+              {/* 5. Tombol Submit */}
+              <m.div variants={fadeUpItem} className="pt-2">
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-11 text-sm font-semibold shadow-xs active:not-disabled:scale-[0.96] transition-[transform,background-color,border-color,opacity]"
+                >
+                  {isLoading ? "Memverifikasi..." : "Masuk ke Sistem"}
+                </Button>
+              </m.div>
+            </form>
+
+            <div className="mt-6 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+              <ShieldCheck className="size-3.5 text-emerald-500" />
+              <span>Sistem terlindungi autentikasi sesi berlapis</span>
             </div>
+          </m.div>
 
-            <div className="pt-2">
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full h-11 text-sm font-semibold shadow-xs"
-              >
-                {isLoading ? "Memverifikasi..." : "Masuk ke Sistem"}
-              </Button>
-            </div>
-          </form>
-
-          <div className="mt-6 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-            <ShieldCheck className="size-3.5 text-emerald-500" />
-            <span>Sistem terlindungi autentikasi sesi berlapis</span>
-          </div>
-        </div>
-
-        {/* Titik 1: Footer Versi Single Source of Truth */}
-        <div className="mt-6 text-center">
-          <span className="text-[11px] font-medium text-muted-foreground">
-            {formatVersionLabel(isNative)}
-          </span>
-        </div>
-      </div>
-    </main>
+          {/* 6. Footer Keterangan Versi */}
+          <m.div variants={fadeUpItem} className="mt-6 text-center">
+            <span className="text-[11px] font-medium text-muted-foreground">
+              {formatVersionLabel(isNative)}
+            </span>
+          </m.div>
+        </m.div>
+      </main>
+    </>
   );
 }

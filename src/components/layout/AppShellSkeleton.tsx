@@ -1,9 +1,18 @@
 import React from "react";
+import { Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function AppShellSkeleton() {
   return (
-    <div className="min-h-dvh bg-background text-foreground antialiased flex flex-col">
+    <div className="min-h-dvh bg-background text-foreground antialiased flex flex-col relative">
+      {/* Calm Status Pill */}
+      <div className="absolute top-2 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-card/90 px-3.5 py-1 text-[11px] font-medium text-foreground shadow-xs backdrop-blur-md">
+          <Loader2 className="size-3 animate-spin text-primary" />
+          <span>Memuat sesi Ksatria Graphx...</span>
+        </div>
+      </div>
+
       {/* Mobile Topbar Skeleton */}
       <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-card/80 px-4 backdrop-blur-md lg:hidden">
         <div className="flex items-center gap-2.5">

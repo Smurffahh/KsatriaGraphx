@@ -8,9 +8,9 @@ Sistem kasir POS, kalkulator harga percetakan, dan manajemen operasional berbasi
 
 [![Versi](https://img.shields.io/github/v/release/Smurffahh/KsatriaGraphx?style=flat-square&label=Versi&color=2563eb)](https://github.com/Smurffahh/KsatriaGraphx/releases/latest)
 [![Build APK](https://img.shields.io/github/actions/workflow/status/Smurffahh/KsatriaGraphx/android-apk.yml?style=flat-square&label=Build%20APK)](https://github.com/Smurffahh/KsatriaGraphx/actions/workflows/android-apk.yml)
-[![Next.js](https://img.shields.io/badge/Next.js-15.2-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15.5-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.0-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Drizzle ORM](https://img.shields.io/badge/Drizzle_ORM-0.45-C5F74F?style=flat-square&logo=drizzle&logoColor=black)](https://orm.drizzle.team/)
 [![Neon](https://img.shields.io/badge/Neon-PostgreSQL-00E599?style=flat-square&logo=postgresql&logoColor=white)](https://neon.tech/)
@@ -90,6 +90,7 @@ Seluruh dependensi yang digunakan pada repositori ini dicantumkan secara faktual
 | | `react`, `react-dom` | `19.0.0` | Pustaka antarmuka pengguna berbasis komponen. |
 | | `typescript` | `5.9.3` | Sistem tipe statis untuk keandalan kode end-to-end. |
 | **Desain & UI** | `tailwindcss`, `@tailwindcss/postcss` | `4.3.5` | Framework CSS utility-first generasi v4 berbasis CSS tokens `@theme`. |
+| | `motion` | `14.14.0` | Pustaka animasi GPU-accelerated untuk sistem splash screen, stagger login, layoutId indicators, dan micro-interactions adaptif. |
 | | `next-themes` | `0.4.6` | Manajemen tema Mode Terang dan Mode Gelap berbasis variabel CSS OKLCH. |
 | | `@radix-ui/react-dialog` | `1.3.1` | Primitif modal dialog yang dapat diakses penuh (WAI-ARIA). |
 | | `@radix-ui/react-slot` | `1.5.0` | Komposisi elemen polimorfik untuk tombol dan tautan. |

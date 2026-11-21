@@ -26,6 +26,9 @@ import { PosCheckoutModal } from "@/components/pos/PosCheckoutModal";
 import { PosSuccessModal } from "@/components/pos/PosSuccessModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
+import { m, AnimatePresence } from "motion/react";
+import { EASE_SMOOTH, EASE_EXIT } from "@/lib/motion";
 import {
   consumePendingCartItems,
   subscribePosAppendItem,
@@ -51,7 +54,9 @@ interface CurrentUser {
 
 function PosCatalogSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+    <div className="space-y-4">
+      <PageLoadingBanner message="Memuat katalog kasir POS..." />
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
@@ -68,6 +73,7 @@ function PosCatalogSkeleton() {
           </div>
         </div>
       ))}
+      </div>
     </div>
   );
 }
@@ -325,7 +331,7 @@ export default function PosPage() {
                 <div
                   key={p.id}
                   onClick={() => handleOpenProduct(p)}
-                  className="group bg-card border border-border hover:border-primary/50 rounded-2xl p-3 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+                  className="group bg-card border border-border hover:border-primary/50 rounded-2xl p-3 shadow-xs hover:shadow-md motion-safe:hover:-translate-y-0.5 active:scale-[0.98] transition-[transform,border-color,box-shadow] duration-150 cursor-pointer flex flex-col justify-between"
                 >
                   <div>
                     {/* Thumbnail Image */}
@@ -375,9 +381,15 @@ export default function PosPage() {
               <ShoppingCart className="size-4 text-primary" />
               <h2 className="text-sm font-bold text-foreground">Keranjang Nota</h2>
             </div>
-            <span className="text-xs text-muted-foreground tabular-nums">
+            <m.span
+              key={cart.length}
+              initial={{ scale: 1.15 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.2 }}
+              className="text-xs text-muted-foreground tabular-nums inline-block"
+            >
               {cart.length} item ({totalCartQty} pcs)
-            </span>
+            </m.span>
           </div>
 
           {/* Cart Item List */}
@@ -391,11 +403,16 @@ export default function PosPage() {
                 </p>
               </div>
             ) : (
-              cart.map((ci) => (
-                <div
-                  key={ci.cartItemId}
-                  className="p-3 rounded-xl bg-muted/30 border border-border/70 space-y-2 text-xs"
-                >
+              <AnimatePresence initial={false}>
+                {cart.map((ci) => (
+                  <m.div
+                    key={ci.cartItemId}
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, x: 20, transition: { duration: 0.15, ease: EASE_EXIT } }}
+                    transition={{ duration: 0.2, ease: EASE_SMOOTH }}
+                    className="p-3 rounded-xl bg-muted/30 border border-border/70 space-y-2 text-xs"
+                  >
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <span className="font-semibold text-foreground">{ci.product.name}</span>
@@ -461,10 +478,11 @@ export default function PosPage() {
                       Rp {ci.itemSubtotal.toLocaleString("id-ID")}
                     </span>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
+                </m.div>
+              ))}
+            </AnimatePresence>
+          )}
+        </div>
 
           {/* Cart Footer */}
           {cart.length > 0 && (

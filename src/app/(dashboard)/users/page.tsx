@@ -19,6 +19,7 @@ import {
 import { PlatformGate } from "@/components/layout/PlatformGate";
 import { apiClient } from "@/lib/api/client";
 import { toast } from "sonner";
+import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
 
 interface UserItem {
   id: string;
@@ -364,10 +365,12 @@ export default function UsersPage() {
         {/* Users Table / List */}
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-2xs">
           {isLoading ? (
-            <div className="flex min-h-64 items-center justify-center p-8">
-              <div className="flex flex-col items-center gap-2">
-                <div className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                <span className="text-xs text-muted-foreground">Memuat data pengguna...</span>
+            <div className="p-6 space-y-4">
+              <PageLoadingBanner message="Memuat daftar pengguna..." />
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-14 rounded-lg bg-muted/60 animate-pulse" />
+                ))}
               </div>
             </div>
           ) : filteredUsers.length === 0 ? (

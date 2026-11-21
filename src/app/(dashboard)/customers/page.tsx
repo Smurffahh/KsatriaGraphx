@@ -23,6 +23,7 @@ import {
   type CustomerData,
 } from "@/components/customers/CustomerFormModal";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
 import { Button } from "@/components/ui/button";
 
 interface CustomerListItem extends CustomerData {
@@ -51,6 +52,7 @@ interface CurrentUser {
 function CustomersSkeleton() {
   return (
     <div className="space-y-4">
+      <PageLoadingBanner message="Memuat data pelanggan..." />
       {/* Mobile Cards Skeleton */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 lg:hidden">
         {Array.from({ length: 4 }).map((_, i) => (
@@ -271,7 +273,7 @@ export default function CustomersPage() {
               setPage(1);
             }}
             placeholder="Cari berdasarkan nama atau no. WA..."
-            className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+            className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary transition-[border-color,box-shadow]"
           />
         </div>
       </div>

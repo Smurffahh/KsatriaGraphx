@@ -260,7 +260,7 @@ export function QuickCatalogPicker({
                 <div
                   key={p.id}
                   onClick={() => onSelectProduct(p)}
-                  className={`group relative flex items-start gap-2.5 rounded-lg border p-2.5 text-left transition-all cursor-pointer select-none ${
+                  className={`group relative flex items-start gap-2.5 rounded-lg border p-2.5 text-left motion-safe:hover:-translate-y-0.5 transition-[transform,background-color,border-color,box-shadow] duration-150 cursor-pointer select-none ${
                     isSelected
                       ? "border-primary bg-primary/10 ring-1 ring-primary/40 shadow-xs"
                       : "border-border bg-card hover:border-primary/40 hover:bg-muted/40 active:scale-[0.98]"

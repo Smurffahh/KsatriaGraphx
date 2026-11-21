@@ -16,6 +16,14 @@ function ThemeAwareToaster() {
       duration={3500}
       position="top-right"
       mobileOffset={{ top: "env(safe-area-inset-top, 16px)", left: "16px", right: "16px" }}
+      toastOptions={{
+        className: "font-sans border border-border shadow-md rounded-[var(--radius)]",
+        style: {
+          background: "var(--popover)",
+          color: "var(--popover-foreground)",
+          borderColor: "var(--border)",
+        },
+      }}
     />
   );
 }

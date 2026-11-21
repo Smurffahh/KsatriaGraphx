@@ -266,27 +266,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* ======================================================= */}
         {/* DESKTOP FIXED SIDEBAR (>= 1024px)                       */}
         {/* ======================================================= */}
-        <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-card lg:flex">
+        <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:shrink-0 lg:sticky lg:top-0 lg:h-dvh bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
           {/* Brand Header */}
-          <div className="flex h-14 items-center gap-2.5 border-b border-border px-5">
-            <div className="flex size-8 items-center justify-center rounded-xl bg-primary font-black text-xs text-primary-foreground shadow-xs">
+          <div className="flex h-14 items-center gap-2.5 border-b border-sidebar-border px-5 shrink-0">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary font-black text-xs text-sidebar-primary-foreground shadow-xs">
               KG
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-bold tracking-tight text-foreground leading-none">
+              <span className="text-sm font-bold tracking-tight text-sidebar-foreground leading-none">
                 Ksatria Graphx
               </span>
-              <span className="text-[10px] text-muted-foreground mt-0.5 font-medium">
+              <span className="text-[10px] text-sidebar-foreground/70 mt-0.5 font-medium">
                 POS & Percetakan
               </span>
             </div>
           </div>
 
           {/* Navigation Links */}
-          <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+          <div className="flex-1 overflow-y-auto px-3 py-3 space-y-6">
             {/* Navigasi Utama */}
             <div className="space-y-1">
-              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
+              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/60">
                 Menu Utama
               </span>
               <nav className="mt-1.5 space-y-0.5">
@@ -298,10 +298,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition-colors min-h-[38px] ${
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold transition-colors min-h-[38px] ${
                         isActive
-                          ? "bg-primary text-primary-foreground shadow-xs"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-xs"
+                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                       }`}
                     >
                       <Icon className="size-4 shrink-0" />
@@ -314,7 +314,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
             {/* Navigasi Manajemen */}
             <div className="space-y-1">
-              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
+              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/60">
                 Manajemen
               </span>
               <nav className="mt-1.5 space-y-0.5">
@@ -326,10 +326,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition-colors min-h-[38px] ${
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold transition-colors min-h-[38px] ${
                         isActive
-                          ? "bg-primary text-primary-foreground shadow-xs"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-xs"
+                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                       }`}
                     >
                       <Icon className="size-4 shrink-0" />
@@ -342,17 +342,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Sidebar Footer Profile & Version */}
-          <div className="border-t border-border p-3 space-y-3">
-            <div className="flex items-center justify-between gap-2 rounded-xl bg-muted/60 p-2.5">
+          <div className="shrink-0 border-t border-sidebar-border p-3 bg-sidebar space-y-3">
+            <div className="flex items-center justify-between gap-2 rounded-lg bg-sidebar-accent/50 p-2.5">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-card text-xs font-bold text-foreground border border-border shadow-xs">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar text-xs font-bold text-sidebar-foreground border border-sidebar-border shadow-xs">
                   {user?.name ? user.name.slice(0, 2).toUpperCase() : "KG"}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-bold text-foreground leading-tight">
+                  <p className="truncate text-xs font-bold text-sidebar-foreground leading-tight">
                     {user?.name}
                   </p>
-                  <p className="text-[10px] text-muted-foreground truncate uppercase font-semibold">
+                  <p className="text-[10px] text-sidebar-foreground/70 truncate uppercase font-semibold">
                     {user?.role}
                   </p>
                 </div>
@@ -361,7 +361,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setShowLogoutConfirm(true)}
-                className="flex size-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                className="flex size-7 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground/70 hover:bg-destructive/10 hover:text-destructive transition-colors"
                 title="Keluar Sesi"
                 aria-label="Keluar Sesi"
               >
@@ -371,19 +371,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
             {/* Titik 2: Badge Versi Single Source of Truth + Indikator Update */}
             <div className="flex items-center justify-between px-1">
-              <span className="text-[10px] font-medium text-muted-foreground/80">
+              <span className="text-[10px] font-medium text-sidebar-foreground/70">
                 {formatVersionBadge(isNative)}
               </span>
               {hasUpdate && (
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(true)}
-                  className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary hover:bg-primary/20 transition-colors"
+                  className="flex items-center gap-1 rounded-full bg-sidebar-primary/15 px-2 py-0.5 text-[10px] font-bold text-sidebar-primary hover:bg-sidebar-primary/25 transition-colors"
                   title={`Pembaruan v${latestVersion} tersedia`}
                 >
                   <span className="relative flex size-1.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
-                    <span className="relative inline-flex size-1.5 rounded-full bg-primary"></span>
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sidebar-primary opacity-75"></span>
+                    <span className="relative inline-flex size-1.5 rounded-full bg-sidebar-primary"></span>
                   </span>
                   <span>Update</span>
                 </button>
@@ -397,7 +397,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* ======================================================= */}
         <div className="flex flex-1 flex-col min-w-0">
           {/* Desktop Sticky Topbar (>= 1024px) */}
-          <header className="hidden h-14 items-center justify-between border-b border-border bg-card/80 px-6 backdrop-blur-md lg:flex sticky top-0 z-20">
+          <header className="hidden h-14 items-center justify-between border-b border-border bg-background/85 px-6 backdrop-blur-md lg:flex sticky top-0 z-30">
             <div>
               <p className="text-base font-bold text-foreground leading-tight">
                 {pageMeta.title}
@@ -424,7 +424,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               )}
               <ThemeToggle />
               <Link href="/pos">
-                <Button size="sm" className="gap-1.5 rounded-xl font-semibold shadow-xs">
+                <Button size="sm" className="gap-1.5 rounded-lg font-semibold shadow-xs">
                   <Plus className="size-4" />
                   <span>Transaksi Baru</span>
                 </Button>
@@ -432,9 +432,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </header>
 
-          {/* Main Content Body */}
-          <main className="flex-1 pb-24 lg:pb-8 min-w-0">
-            {children}
+          {/* Main Content Canvas */}
+          <main className="flex-1 min-w-0 bg-muted/40 dark:bg-background pb-24 lg:pb-8">
+            <div className="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
+              {children}
+            </div>
           </main>
         </div>
       </div>

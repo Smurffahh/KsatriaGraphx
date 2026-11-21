@@ -271,10 +271,10 @@ export default function UsersPage() {
         {/* Top Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 sm:text-2xl">
+            <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
               Manajemen Pengguna
             </h1>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-muted-foreground">
               Kelola akun kasir, pemilik usaha, hak akses, dan keamanan sesi operasional.
             </p>
           </div>
@@ -283,7 +283,7 @@ export default function UsersPage() {
             <button
               type="button"
               onClick={loadData}
-              className="flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="flex size-10 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               aria-label="Segarkan Data"
             >
               <RefreshCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} />
@@ -291,7 +291,7 @@ export default function UsersPage() {
             <button
               type="button"
               onClick={() => setIsAddModalOpen(true)}
-              className="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 active:scale-95 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200"
+              className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 transition-colors"
             >
               <UserPlus className="size-4" />
               <span>Tambah Pengguna</span>
@@ -303,22 +303,22 @@ export default function UsersPage() {
         {feedback && (
           <div
             role="alert"
-            className={`flex items-start gap-3 rounded-2xl p-4 text-xs ${
+            className={`flex items-start gap-3 rounded-xl p-4 text-xs ${
               feedback.type === "success"
                 ? "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:ring-emerald-800/40"
-                : "bg-rose-50 text-rose-800 ring-1 ring-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:ring-rose-800/40"
+                : "bg-destructive/10 text-destructive ring-1 ring-destructive/20"
             }`}
           >
             {feedback.type === "success" ? (
               <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
             ) : (
-              <AlertCircle className="size-4 shrink-0 text-rose-600 dark:text-rose-400" />
+              <AlertCircle className="size-4 shrink-0 text-destructive" />
             )}
             <div className="flex-1 font-medium">{feedback.message}</div>
             <button
               type="button"
               onClick={() => setFeedback(null)}
-              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              className="text-muted-foreground hover:text-foreground"
             >
               <X className="size-4" />
             </button>
@@ -326,15 +326,15 @@ export default function UsersPage() {
         )}
 
         {/* Filter & Search Bar */}
-        <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 sm:flex-row sm:items-center sm:justify-between shadow-2xs">
           <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari nama, username, atau email..."
-              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
+              className="h-10 w-full rounded-lg border border-input bg-card pl-9 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
             />
           </div>
 
@@ -342,7 +342,7 @@ export default function UsersPage() {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 focus:border-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              className="h-10 rounded-lg border border-input bg-card px-3 text-xs font-medium text-foreground focus:border-ring focus:outline-none"
             >
               <option value="ALL">Semua Role</option>
               <option value="OWNER">Owner</option>
@@ -352,7 +352,7 @@ export default function UsersPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 focus:border-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              className="h-10 rounded-lg border border-input bg-card px-3 text-xs font-medium text-foreground focus:border-ring focus:outline-none"
             >
               <option value="ALL">Semua Status</option>
               <option value="ACTIVE">Aktif</option>
@@ -362,23 +362,23 @@ export default function UsersPage() {
         </div>
 
         {/* Users Table / List */}
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-2xs">
           {isLoading ? (
             <div className="flex min-h-64 items-center justify-center p-8">
               <div className="flex flex-col items-center gap-2">
-                <div className="size-6 animate-spin rounded-full border-2 border-slate-900 border-t-transparent dark:border-slate-100" />
-                <span className="text-xs text-slate-500">Memuat data pengguna...</span>
+                <div className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                <span className="text-xs text-muted-foreground">Memuat data pengguna...</span>
               </div>
             </div>
           ) : filteredUsers.length === 0 ? (
             <div className="flex min-h-64 flex-col items-center justify-center p-8 text-center">
-              <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-800">
+              <div className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
                 <Search className="size-6" />
               </div>
-              <h3 className="mt-3 text-sm font-semibold text-slate-900 dark:text-slate-100">
+              <h3 className="mt-3 text-sm font-semibold text-foreground">
                 Tidak ada pengguna yang cocok
               </h3>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Coba sesuaikan kata kunci pencarian atau filter status yang dipilih.
               </p>
             </div>
@@ -387,7 +387,7 @@ export default function UsersPage() {
               {/* Desktop View Table */}
               <div className="hidden overflow-x-auto md:block">
                 <table className="w-full text-left text-xs">
-                  <thead className="border-b border-slate-200 bg-slate-50/75 text-[11px] font-semibold text-slate-500 uppercase tracking-wider dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400">
+                  <thead className="border-b border-border bg-muted/50 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                     <tr>
                       <th className="px-5 py-3.5">Pengguna</th>
                       <th className="px-4 py-3.5">Email</th>
@@ -397,41 +397,41 @@ export default function UsersPage() {
                       <th className="px-5 py-3.5 text-right">Aksi</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tbody className="divide-y divide-border">
                     {filteredUsers.map((item) => {
                       const isSelf = currentUser?.id === item.id;
                       const isLocked = item.lockedUntil && new Date(item.lockedUntil) > new Date();
 
                       return (
-                        <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                        <tr key={item.id} className="hover:bg-muted/40 transition-colors">
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="flex size-9 items-center justify-center rounded-xl bg-slate-100 font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                              <div className="flex size-9 items-center justify-center rounded-lg bg-muted font-bold text-foreground">
                                 {item.name.slice(0, 2).toUpperCase()}
                               </div>
                               <div>
-                                <div className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-100">
+                                <div className="flex items-center gap-1.5 font-semibold text-foreground">
                                   <span>{item.name}</span>
                                   {isSelf && (
-                                    <span className="rounded bg-slate-100 px-1.5 py-0.2 text-[10px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                                    <span className="rounded bg-muted px-1.5 py-0.2 text-[10px] font-medium text-muted-foreground">
                                       Anda
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-[11px] text-slate-500">@{item.username}</div>
+                                <div className="text-[11px] text-muted-foreground">@{item.username}</div>
                               </div>
                             </div>
                           </td>
 
-                          <td className="px-4 py-4 text-slate-600 dark:text-slate-400">
-                            {item.email || <span className="italic text-slate-400">Tanpa email</span>}
+                          <td className="px-4 py-4 text-muted-foreground">
+                            {item.email || <span className="italic text-muted-foreground/60">Tanpa email</span>}
                           </td>
 
                           <td className="px-4 py-4">
                             <span
                               className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-bold ${
                                 item.role === "OWNER"
-                                  ? "bg-blue-50 text-blue-700 ring-1 ring-blue-600/20 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-500/30"
+                                  ? "bg-primary/10 text-primary ring-1 ring-primary/20"
                                   : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-500/30"
                               }`}
                             >
@@ -446,7 +446,7 @@ export default function UsersPage() {
                                 Aktif
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400">
+                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
                                 <UserX className="size-3.5" />
                                 Nonaktif
                               </span>
@@ -455,7 +455,7 @@ export default function UsersPage() {
 
                           <td className="px-4 py-4">
                             {isLocked ? (
-                              <span className="inline-flex items-center gap-1 rounded bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+                              <span className="inline-flex items-center gap-1 rounded bg-destructive/10 px-2 py-0.5 text-[10px] font-semibold text-destructive">
                                 <Lock className="size-3" />
                                 Terkunci (5x Gagal)
                               </span>
@@ -464,7 +464,7 @@ export default function UsersPage() {
                                 {item.failedLoginAttempts}x percobaan gagal
                               </span>
                             ) : (
-                              <span className="text-[11px] text-slate-400">Normal</span>
+                              <span className="text-[11px] text-muted-foreground">Normal</span>
                             )}
                           </td>
 
@@ -473,7 +473,7 @@ export default function UsersPage() {
                               <button
                                 type="button"
                                 onClick={() => openEditModal(item)}
-                                className="flex size-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                                className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                                 title="Edit Pengguna"
                               >
                                 <Edit2 className="size-3.5" />
@@ -481,7 +481,7 @@ export default function UsersPage() {
                               <button
                                 type="button"
                                 onClick={() => setResetPasswordTarget(item)}
-                                className="flex size-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                                className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                                 title="Reset Password"
                               >
                                 <KeyRound className="size-3.5" />
@@ -489,7 +489,7 @@ export default function UsersPage() {
                               <button
                                 type="button"
                                 onClick={() => setRevokeSessionsTarget(item)}
-                                className="flex size-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30"
+                                className="flex size-8 items-center justify-center rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
                                 title="Putus Semua Sesi"
                               >
                                 <LogOut className="size-3.5" />
@@ -504,7 +504,7 @@ export default function UsersPage() {
               </div>
 
               {/* Mobile Card View */}
-              <div className="divide-y divide-slate-100 md:hidden dark:divide-slate-800">
+              <div className="divide-y divide-border md:hidden">
                 {filteredUsers.map((item) => {
                   const isSelf = currentUser?.id === item.id;
                   const isLocked = item.lockedUntil && new Date(item.lockedUntil) > new Date();
@@ -513,26 +513,26 @@ export default function UsersPage() {
                     <div key={item.id} className="p-4 space-y-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="flex size-10 items-center justify-center rounded-xl bg-slate-100 font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                          <div className="flex size-10 items-center justify-center rounded-lg bg-muted font-bold text-foreground">
                             {item.name.slice(0, 2).toUpperCase()}
                           </div>
                           <div>
-                            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-900 dark:text-slate-100">
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
                               <span>{item.name}</span>
                               {isSelf && (
-                                <span className="rounded bg-slate-100 px-1.5 py-0.2 text-[10px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                                <span className="rounded bg-muted px-1.5 py-0.2 text-[10px] font-medium text-muted-foreground">
                                   Anda
                                 </span>
                               )}
                             </div>
-                            <div className="text-[11px] text-slate-500">@{item.username}</div>
+                            <div className="text-[11px] text-muted-foreground">@{item.username}</div>
                           </div>
                         </div>
 
                         <span
                           className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold ${
                             item.role === "OWNER"
-                              ? "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
+                              ? "bg-primary/10 text-primary"
                               : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
                           }`}
                         >
@@ -540,29 +540,29 @@ export default function UsersPage() {
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400">
+                      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                         <div>{item.email || "Tanpa email"}</div>
                         <div>
                           {item.isActive ? (
                             <span className="text-emerald-600 dark:text-emerald-400 font-medium">Aktif</span>
                           ) : (
-                            <span className="text-slate-400 font-medium">Nonaktif</span>
+                            <span className="text-muted-foreground font-medium">Nonaktif</span>
                           )}
                         </div>
                       </div>
 
                       {isLocked && (
-                        <div className="flex items-center gap-1.5 rounded-lg bg-rose-50 p-2 text-[11px] text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+                        <div className="flex items-center gap-1.5 rounded-lg bg-destructive/10 p-2 text-[11px] text-destructive">
                           <Lock className="size-3" />
                           <span>Akun terkunci sementara karena 5 kali percobaan login gagal.</span>
                         </div>
                       )}
 
-                      <div className="flex items-center gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-2 pt-1 border-t border-border">
                         <button
                           type="button"
                           onClick={() => openEditModal(item)}
-                          className="flex-1 inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                          className="flex-1 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-card text-xs font-medium text-foreground hover:bg-muted transition-colors"
                         >
                           <Edit2 className="size-3.5" />
                           <span>Edit</span>
@@ -570,7 +570,7 @@ export default function UsersPage() {
                         <button
                           type="button"
                           onClick={() => setResetPasswordTarget(item)}
-                          className="flex-1 inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                          className="flex-1 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-card text-xs font-medium text-foreground hover:bg-muted transition-colors"
                         >
                           <KeyRound className="size-3.5" />
                           <span>Password</span>
@@ -578,7 +578,7 @@ export default function UsersPage() {
                         <button
                           type="button"
                           onClick={() => setRevokeSessionsTarget(item)}
-                          className="flex size-9 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-400"
+                          className="flex size-9 items-center justify-center rounded-lg border border-destructive/20 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
                           title="Putus Sesi"
                         >
                           <LogOut className="size-3.5" />
@@ -597,16 +597,16 @@ export default function UsersPage() {
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-background/80 backdrop-blur-xs"
             onClick={() => !isSubmittingAdd && setIsAddModalOpen(false)}
           />
-          <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
-              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Tambah Pengguna Baru</h2>
+          <div className="relative w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-border pb-4">
+              <h2 className="text-base font-bold text-foreground">Tambah Pengguna Baru</h2>
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X className="size-5" />
               </button>
@@ -614,7 +614,7 @@ export default function UsersPage() {
 
             <form onSubmit={handleAddUser} className="mt-4 space-y-4">
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                <label className="mb-1 block text-xs font-medium text-foreground">
                   Nama Lengkap
                 </label>
                 <input
@@ -623,12 +623,12 @@ export default function UsersPage() {
                   value={addForm.name}
                   onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
                   placeholder="Contoh: Danang Satria"
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs text-foreground focus:border-ring focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                <label className="mb-1 block text-xs font-medium text-foreground">
                   Username
                 </label>
                 <input
@@ -637,12 +637,12 @@ export default function UsersPage() {
                   value={addForm.username}
                   onChange={(e) => setAddForm({ ...addForm, username: e.target.value })}
                   placeholder="Hanya huruf, angka, dan garis bawah"
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs text-foreground focus:border-ring focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                <label className="mb-1 block text-xs font-medium text-foreground">
                   Email (Opsional)
                 </label>
                 <input
@@ -650,12 +650,12 @@ export default function UsersPage() {
                   value={addForm.email}
                   onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
                   placeholder="nama@email.com"
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs text-foreground focus:border-ring focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                <label className="mb-1 block text-xs font-medium text-foreground">
                   Password Awal
                 </label>
                 <input
@@ -664,37 +664,37 @@ export default function UsersPage() {
                   value={addForm.password}
                   onChange={(e) => setAddForm({ ...addForm, password: e.target.value })}
                   placeholder="Minimal 8 karakter (huruf & angka)"
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs text-foreground focus:border-ring focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                <label className="mb-1 block text-xs font-medium text-foreground">
                   Peran / Role
                 </label>
                 <select
                   value={addForm.role}
                   onChange={(e) => setAddForm({ ...addForm, role: e.target.value as "OWNER" | "KASIR" })}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs font-medium text-foreground focus:border-ring focus:outline-none"
                 >
                   <option value="KASIR">KASIR - Operasional POS, Pesanan & Cetak Nota</option>
                   <option value="OWNER">OWNER - Akses Penuh Termasuk Manajemen Pengguna</option>
                 </select>
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-border">
                 <button
                   type="button"
                   disabled={isSubmittingAdd}
                   onClick={() => setIsAddModalOpen(false)}
-                  className="h-10 rounded-xl px-4 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                  className="h-10 rounded-lg border border-border px-4 text-xs font-semibold text-foreground hover:bg-muted"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingAdd}
-                  className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-900 px-4 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 active:scale-95 disabled:opacity-50 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200"
+                  className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 disabled:opacity-50"
                 >
                   {isSubmittingAdd ? "Menyimpan..." : "Simpan Pengguna"}
                 </button>
@@ -708,18 +708,18 @@ export default function UsersPage() {
       {editingUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-background/80 backdrop-blur-xs"
             onClick={() => !isSubmittingEdit && setEditingUser(null)}
           />
-          <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
-              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+          <div className="relative w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-border pb-4">
+              <h2 className="text-base font-bold text-foreground">
                 Edit Pengguna: @{editingUser.username}
               </h2>
               <button
                 type="button"
                 onClick={() => setEditingUser(null)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X className="size-5" />
               </button>
@@ -727,7 +727,7 @@ export default function UsersPage() {
 
             <form onSubmit={handleUpdateUser} className="mt-4 space-y-4">
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                <label className="mb-1 block text-xs font-medium text-foreground">
                   Nama Lengkap
                 </label>
                 <input
@@ -735,12 +735,12 @@ export default function UsersPage() {
                   required
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs text-foreground focus:border-ring focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                <label className="mb-1 block text-xs font-medium text-foreground">
                   Username
                 </label>
                 <input
@@ -748,37 +748,37 @@ export default function UsersPage() {
                   required
                   value={editForm.username}
                   onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs text-foreground focus:border-ring focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                <label className="mb-1 block text-xs font-medium text-foreground">
                   Email (Opsional)
                 </label>
                 <input
                   type="email"
                   value={editForm.email}
                   onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs text-foreground focus:border-ring focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                <label className="mb-1 block text-xs font-medium text-foreground">
                   Peran / Role
                 </label>
                 <select
                   value={editForm.role}
                   disabled={currentUser?.id === editingUser.id}
                   onChange={(e) => setEditForm({ ...editForm, role: e.target.value as "OWNER" | "KASIR" })}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-900 disabled:bg-slate-100 disabled:text-slate-500 focus:border-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:disabled:bg-slate-800/50"
+                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs font-medium text-foreground disabled:opacity-50 focus:border-ring focus:outline-none"
                 >
                   <option value="KASIR">KASIR</option>
                   <option value="OWNER">OWNER</option>
                 </select>
                 {currentUser?.id === editingUser.id && (
-                  <p className="mt-1 text-[11px] text-slate-500">
+                  <p className="mt-1 text-[11px] text-muted-foreground">
                     Anda tidak dapat mengubah role akun Anda sendiri.
                   </p>
                 )}
@@ -791,32 +791,32 @@ export default function UsersPage() {
                     disabled={currentUser?.id === editingUser.id}
                     checked={editForm.isActive}
                     onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })}
-                    className="size-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 dark:border-slate-700 dark:bg-slate-800"
+                    className="size-4 rounded border-input text-primary focus:ring-ring"
                   />
-                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  <span className="text-xs font-medium text-foreground">
                     Akun Aktif (Dapat Login ke Sistem)
                   </span>
                 </label>
                 {currentUser?.id === editingUser.id && (
-                  <p className="mt-1 text-[11px] text-slate-500">
+                  <p className="mt-1 text-[11px] text-muted-foreground">
                     Anda tidak dapat menonaktifkan akun Anda sendiri.
                   </p>
                 )}
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-border">
                 <button
                   type="button"
                   disabled={isSubmittingEdit}
                   onClick={() => setEditingUser(null)}
-                  className="h-10 rounded-xl px-4 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                  className="h-10 rounded-lg border border-border px-4 text-xs font-semibold text-foreground hover:bg-muted"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingEdit}
-                  className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-900 px-4 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 active:scale-95 disabled:opacity-50 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200"
+                  className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 disabled:opacity-50"
                 >
                   {isSubmittingEdit ? "Menyimpan..." : "Simpan Perubahan"}
                 </button>
@@ -830,18 +830,18 @@ export default function UsersPage() {
       {resetPasswordTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-background/80 backdrop-blur-xs"
             onClick={() => !isSubmittingReset && setResetPasswordTarget(null)}
           />
-          <div className="relative w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
-              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+          <div className="relative w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-border pb-4">
+              <h2 className="text-base font-bold text-foreground">
                 Reset Password: @{resetPasswordTarget.username}
               </h2>
               <button
                 type="button"
                 onClick={() => setResetPasswordTarget(null)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X className="size-5" />
               </button>
@@ -849,7 +849,7 @@ export default function UsersPage() {
 
             <form onSubmit={handleResetPassword} className="mt-4 space-y-4">
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                <label className="mb-1 block text-xs font-medium text-foreground">
                   Password Baru
                 </label>
                 <input
@@ -858,28 +858,28 @@ export default function UsersPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Minimal 8 karakter kombinasi huruf & angka"
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs text-foreground focus:border-ring focus:outline-none"
                 />
               </div>
 
-              <div className="rounded-xl bg-amber-50 p-3 text-[11px] leading-relaxed text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+              <div className="rounded-lg bg-amber-500/10 p-3 text-[11px] leading-relaxed text-amber-600 dark:text-amber-400 border border-amber-500/20">
                 Setelah password direset, seluruh sesi login aktif pengguna ini di Web dan Android akan otomatis
                 diputus seketika.
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-border">
                 <button
                   type="button"
                   disabled={isSubmittingReset}
                   onClick={() => setResetPasswordTarget(null)}
-                  className="h-10 rounded-xl px-4 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                  className="h-10 rounded-lg border border-border px-4 text-xs font-semibold text-foreground hover:bg-muted"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingReset}
-                  className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-900 px-4 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 active:scale-95 disabled:opacity-50 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200"
+                  className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 disabled:opacity-50"
                 >
                   {isSubmittingReset ? "Mereset..." : "Reset Password"}
                 </button>
@@ -893,17 +893,17 @@ export default function UsersPage() {
       {revokeSessionsTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-background/80 backdrop-blur-xs"
             onClick={() => !isRevokingSessions && setRevokeSessionsTarget(null)}
           />
-          <div className="relative w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex size-11 items-center justify-center rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">
+          <div className="relative w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex size-11 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
               <ShieldAlert className="size-6" />
             </div>
-            <h3 className="mt-4 text-base font-bold text-slate-900 dark:text-slate-100">
+            <h3 className="mt-4 text-base font-bold text-foreground">
               Putus Sesi: @{revokeSessionsTarget.username}
             </h3>
-            <p className="mt-2 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
               Tindakan ini akan menaikkan versi token akun secara seketika dan mencabut seluruh sesi aktif
               pengguna di aplikasi Web maupun Android APK. Pengguna harus memasukkan password kembali untuk
               masuk.
@@ -914,7 +914,7 @@ export default function UsersPage() {
                 type="button"
                 disabled={isRevokingSessions}
                 onClick={() => setRevokeSessionsTarget(null)}
-                className="h-10 rounded-xl px-4 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="h-10 rounded-lg border border-border px-4 text-xs font-semibold text-foreground hover:bg-muted"
               >
                 Batal
               </button>
@@ -922,7 +922,7 @@ export default function UsersPage() {
                 type="button"
                 disabled={isRevokingSessions}
                 onClick={handleRevokeSessions}
-                className="inline-flex h-10 items-center justify-center rounded-xl bg-rose-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-rose-700 active:scale-95 disabled:opacity-50"
+                className="inline-flex h-10 items-center justify-center rounded-lg bg-destructive px-4 text-xs font-semibold text-destructive-foreground shadow-xs hover:bg-destructive/90 active:scale-95 disabled:opacity-50"
               >
                 {isRevokingSessions ? "Memutus..." : "Ya, Putus Sesi"}
               </button>

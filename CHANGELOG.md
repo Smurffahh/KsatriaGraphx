@@ -4,6 +4,55 @@ Semua pembaruan terstruktur untuk proyek **Ksatria Graphx** didokumentasikan dal
 
 ---
 
+## [v1.1.0] - 2026-11-21
+
+Rilis pembaruan minor utama untuk perombakan antarmuka pengguna (UI/UX Overhaul), implementasi sistem tema ganda (Mode Gelap & Mode Terang), navigasi responsif tunggal anti-double navbar, perombakan menyeluruh halaman Dashboard, transisi layar mulus (shaped skeletons anti-blank screen), serta sistem notifikasi pembaruan aplikasi langsung (In-App Updater).
+
+### Arsitektur UI/UX & Design System Baru
+- **Pondasi Design System shadcn/ui & Dual-Theme (Slate Light & Slate Dark)**:
+  - Mengintegrasikan fondasi komponen modular `shadcn/ui` berbasis primitif Radix UI (`dialog`, `sheet`, `dropdown-menu`, `tabs`, `switch`, `button`, `card`, `badge`, `skeleton`, `separator`, `table`) dan Tailwind CSS v4 CSS-first.
+  - Menerapkan sistem tema ganda **Slate Light & Slate Dark** melalui `next-themes` (`attribute="class"`, `defaultTheme="system"`, `enableSystem`) dengan semantic tokens CSS variables OKLCH/HSL, menghasilkan kontras tajam WCAG AA ($\ge 4.5:1$) dan bebas kedipan (*zero FOUC*).
+  - Menyediakan komponen `ThemeToggle` 1-klik di Desktop Top Bar, Mobile Top Bar, dan halaman Pengaturan Toko.
+  - Memadukan font Google **Inter** sebagai tipografi utama antarmuka dan **JetBrains Mono** untuk data teknis / nomor nota, ter-bundle otomatis di Web dan static export APK.
+  - Menetapkan kelas `tabular-nums` pada seluruh angka keuangan, nominal Rupiah, persentase margin, dan kuantitas inventaris.
+
+### Navigasi Responsif Tunggal (Anti-Double Navbar)
+- **Eliminasi Tombol Hamburger & Bottom Bar Ganda pada Mobile**:
+  - Menghapus tombol hamburger di topbar mobile, menggantikannya dengan arsitektur navigasi tunggal:
+    - **Desktop (`>= 1024px`)**: Fixed Left Sidebar (`240px`) + Sticky Top Bar ramping (`56px`).
+    - **Mobile & Android APK (`< 1024px`)**: Top Bar ultra-ringkas + Bottom Navigation Bar (5 tab) + Bottom Sheet "Menu" dari bawah.
+  - Bottom Sheet "Menu" mengelompokkan navigasi sekunder sesuai peran RBAC (`Pelanggan`, `Laporan Omzet`, `Pengaturan Toko` / `Printer Bluetooth` Kasir di APK, `Audit Log`, `Kelola Pengguna` [eksklusif Web + Owner], status versi terpasang, serta tombol Keluar Sesi).
+
+### Overhaul Total Halaman Dashboard
+- **Dashboard Ringkasan Toko Eksekutif Minimalis**:
+  - Filter rentang waktu cepat: Hari Ini (`1d`), 7 Hari (`7d`), dan 30 Hari (`30d`) dengan sinkronisasi API `/api/dashboard?range=...`.
+  - 4 Kartu KPI terstruktur berfont `tabular-nums` dan indikator delta persentase vs periode sebelumnya: Total Omzet Penjualan, Uang Masuk Aktual, Total Piutang (DP), dan Antrean Produksi.
+  - Grid analitik proporsional (desktop 2/3 : 1/3, mobile bertumpuk):
+    - **Kiri (2/3)**: Grafik Tren Omzet AreaChart (Recharts) responsif adaptif tema terang dan gelap.
+    - **Kanan (1/3)**: Panel Top 5 Produk Terlaris dengan visualisasi progres dan status antrean produksi.
+  - Tabel dan daftar Pesanan Terbaru yang responsif: tabel penuh di desktop dan kartu bertumpuk rapi di mobile dengan tautan langsung ke detail transaksi.
+
+### Konsistensi Visual Lintas Halaman & Transisi Halus (Smooth Loading)
+- **Shaped Skeletons Anti-Blank Screen (CLS = 0.00)**:
+  - Menggantikan pola `return null` saat verifikasi sesi dengan `AppShellSkeleton` menyeluruh.
+  - Menyediakan skeleton berproporsi presisi untuk seluruh halaman operasional: `DashboardSkeleton`, `PosCatalogSkeleton`, `OrdersSkeleton`, `OrderDetailSkeleton`, `CustomersSkeleton`, `CustomerDetailSkeleton`, `ReportsSkeleton`, dan `AuditLogsSkeleton`.
+  - Tuning TanStack Query: `staleTime: 30_000`, `gcTime: 300_000`, `refetchOnWindowFocus: false`, dan `placeholderData: keepPreviousData` untuk eliminasi kedipan saat berpindah tab atau memfilter tabel.
+  - Memutakhirkan seluruh halaman (`/pos`, `/orders`, `/orders/detail`, `/customers`, `/customers/detail`, `/reports`, `/settings`, `/users`, `/audit-logs`, `/login`) ke semantic tokens tema ganda.
+
+### Keterangan Versi Aplikasi & In-App Updater
+- **Single Source of Truth Keterangan Versi**:
+  - Keterangan versi terpasang di 4 titik strategis: Footer Login, Footer Sidebar Desktop, Footer Bottom Sheet Mobile, dan Kartu "Tentang Aplikasi & Pembaruan" di halaman Pengaturan.
+- **Sistem Notifikasi Pembaruan In-App**:
+  - Endpoint `GET /api/app/version` dengan in-memory server cache 5 menit (`s-maxage=300`) ke GitHub Releases API, resolusi CORS native APK (`https://localhost`), sanitasi domain anti open-redirect, dan offline fallback aman 200 OK.
+  - Hook `useAppUpdate` & komponen dialog `UpdateNoticeModal` dengan perbandingan semver presisi, parser changelog aman (0 `dangerouslySetInnerHTML`), tombol aksi platform (Unduh APK di Android / Muat Ulang di Web), dan opsi "Nanti Saja" dengan penyimpanan state dismissal lokal per versi.
+  - Tombol manual "Cek Pembaruan" pada Pengaturan Toko dengan feedback instan Sonner toast.
+
+### Integritas & Keamanan Sistem (Zero Regression)
+- Menjaga keutuhan 4-Layer Web-Only Guard di `/api/users/**` (tetap memblokir HTTP 403 untuk akses APK/Bearer).
+- Menjaga kontrak autentikasi native APK (`https://localhost`), upload private Vercel Blob, transaksi atomik ACID POS, dan printer thermal Bluetooth ESC/POS kasir.
+
+---
+
 ## [v1.0.3] - 2026-11-21
 
 Rilis pembaruan kritis untuk perbaikan pemrosesan upload foto produk pada private store Vercel Blob, pemulihan transaksi atomik database pada checkout POS, serta integrasi sistem notifikasi global Sonner toast pada Web dan Android APK.

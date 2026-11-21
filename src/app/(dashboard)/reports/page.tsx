@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 
 interface ReportSummary {
   totalOmzet: number;
@@ -68,14 +70,51 @@ function formatCurrency(amount: number): string {
   return `Rp ${amount.toLocaleString("id-ID")}`;
 }
 
+function ReportsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-3"
+          >
+            <div className="flex justify-between items-center">
+              <Skeleton className="h-4 w-28 rounded-md" />
+              <Skeleton className="size-8 rounded-lg" />
+            </div>
+            <Skeleton className="h-8 w-36 rounded-md" />
+            <Skeleton className="h-3 w-24 rounded-md" />
+          </div>
+        ))}
+      </div>
+
+      <div className="p-6 rounded-2xl bg-card border border-border shadow-xs space-y-4">
+        <Skeleton className="h-6 w-48 rounded-md" />
+        <div className="space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-10 w-full rounded-lg" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ReportsPage() {
-  const [currentUser, setCurrentUser] = useState<{ role: "OWNER" | "KASIR" } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{
+    role: "OWNER" | "KASIR";
+  } | null>(null);
   const [cashierList, setCashierList] = useState<UserListItem[]>([]);
-  const [selectedPreset, setSelectedPreset] = useState<"today" | "7d" | "month" | "custom">("today");
+  const [selectedPreset, setSelectedPreset] = useState<
+    "today" | "7d" | "month" | "custom"
+  >("today");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedCashier, setSelectedCashier] = useState("");
-  const [paymentStatus, setPaymentStatus] = useState<"ALL" | "PAID" | "PARTIAL" | "UNPAID">("ALL");
+  const [paymentStatus, setPaymentStatus] = useState<
+    "ALL" | "PAID" | "PARTIAL" | "UNPAID"
+  >("ALL");
   const [isExporting, setIsExporting] = useState(false);
 
   // Set default filter to today
@@ -107,130 +146,153 @@ export default function ReportsPage() {
       .catch(() => {});
   }, []);
 
-  // Handle Preset Changes
+  // Preset Date Handlers
   const handlePresetChange = (preset: "today" | "7d" | "month" | "custom") => {
     setSelectedPreset(preset);
     const now = new Date();
-    const todayStr = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Asia/Jakarta",
-    }).format(now);
+    const formatDate = (d: Date) =>
+      new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(d);
 
     if (preset === "today") {
-      setStartDate(todayStr);
-      setEndDate(todayStr);
+      const today = formatDate(now);
+      setStartDate(today);
+      setEndDate(today);
     } else if (preset === "7d") {
-      const past7 = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const past7Str = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "Asia/Jakarta",
-      }).format(past7);
-      setStartDate(past7Str);
-      setEndDate(todayStr);
+      const past7 = new Date();
+      past7.setDate(now.getDate() - 6);
+      setStartDate(formatDate(past7));
+      setEndDate(formatDate(now));
     } else if (preset === "month") {
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, "0");
       setStartDate(`${year}-${month}-01`);
-      setEndDate(todayStr);
+      setEndDate(formatDate(now));
     }
   };
 
-  const isOwner = currentUser?.role === "OWNER";
-
-  // TanStack Query for report data
-  const { data, isLoading, isError, refetch, isFetching } = useQuery<ReportResponse>({
-    queryKey: ["reports", startDate, endDate, selectedCashier, paymentStatus],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        format: "json",
+  // Fetch reports data via TanStack Query
+  const { data, isLoading, isError, refetch, isFetching } =
+    useQuery<ReportResponse>({
+      queryKey: [
+        "reports",
+        startDate,
+        endDate,
+        selectedCashier,
         paymentStatus,
-        ...(startDate ? { startDate } : {}),
-        ...(endDate ? { endDate } : {}),
-        ...(isOwner && selectedCashier ? { cashierId: selectedCashier } : {}),
-      });
+      ],
+      queryFn: async () => {
+        const params = new URLSearchParams();
+        if (startDate) params.set("startDate", startDate);
+        if (endDate) params.set("endDate", endDate);
+        if (selectedCashier) params.set("cashierId", selectedCashier);
+        if (paymentStatus !== "ALL")
+          params.set("paymentStatus", paymentStatus);
 
-      const res = await apiClient<ReportResponse>(`/api/reports?${params.toString()}`);
-      if (!res.success || !res.data) {
-        throw new Error(res.error || "Gagal memuat laporan");
-      }
-      return res.data;
-    },
-  });
+        const res = await apiClient.get<ReportResponse>(
+          `/api/reports?${params.toString()}`
+        );
+        if (!res.success || !res.data) {
+          throw new Error(res.error || "Gagal mengambil data laporan omzet");
+        }
+        return res.data;
+      },
+      enabled: Boolean(startDate && endDate),
+      staleTime: 60 * 1000,
+    });
 
-  // Handle Safe CSV Export
+  // Export to CSV Function
   const handleExportCsv = async () => {
-    setIsExporting(true);
+    if (!data || data.orders.length === 0) {
+      toast.error("Tidak ada data transaksi yang dapat diexport");
+      return;
+    }
+
     try {
-      const params = new URLSearchParams({
-        format: "csv",
-        paymentStatus,
-        ...(startDate ? { startDate } : {}),
-        ...(endDate ? { endDate } : {}),
-        ...(isOwner && selectedCashier ? { cashierId: selectedCashier } : {}),
+      setIsExporting(true);
+      const params = new URLSearchParams();
+      if (startDate) params.set("startDate", startDate);
+      if (endDate) params.set("endDate", endDate);
+      if (selectedCashier) params.set("cashierId", selectedCashier);
+      if (paymentStatus !== "ALL") params.set("paymentStatus", paymentStatus);
+
+      const endpoint = `/api/reports/export?${params.toString()}`;
+      const res = await fetch(endpoint, {
+        headers: { Accept: "text/csv" },
       });
 
-      const response = await fetch(`/api/reports?${params.toString()}`, {
-        method: "GET",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error("Gagal mengunduh CSV");
+      if (!res.ok) {
+        throw new Error("Gagal mengunduh file CSV dari server");
       }
 
-      const blob = await response.blob();
+      const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `laporan-penjualan-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `Laporan_Omzet_KsatriaGraphx_${startDate}_sd_${endDate}.csv`;
       document.body.appendChild(a);
       a.click();
-      a.remove();
       window.URL.revokeObjectURL(url);
-      toast.success("Laporan penjualan CSV berhasil diunduh");
-    } catch (err) {
-      console.error("Gagal export CSV:", err);
-      toast.error("Gagal mengekspor laporan CSV");
+      document.body.removeChild(a);
+
+      toast.success("Laporan penjualan berhasil diekspor ke CSV!");
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Terjadi kesalahan saat ekspor CSV";
+      toast.error(msg);
     } finally {
       setIsExporting(false);
     }
   };
 
+  const isOwner = currentUser?.role === "OWNER";
+
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6 pb-12">
-      {/* Top Header */}
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text">Laporan Penjualan</h1>
-          <p className="text-xs sm:text-sm text-text-muted mt-0.5">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Laporan Penjualan
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
             Analisis omzet percetakan, arus kas harian, dan unduh data transaksi
           </p>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
-          <button
+          <Button
             type="button"
             onClick={handleExportCsv}
-            disabled={isExporting || isLoading || (data?.orders.length ?? 0) === 0}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition-colors shadow-xs min-h-[44px] disabled:opacity-50"
+            disabled={
+              isExporting || isLoading || (data?.orders.length ?? 0) === 0
+            }
+            className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white min-h-[44px]"
           >
             <Download className="size-4" />
-            <span>{isExporting ? "Menyiapkan CSV..." : "Export CSV (Excel Safe)"}</span>
-          </button>
+            <span>
+              {isExporting ? "Menyiapkan CSV..." : "Export CSV (Excel Safe)"}
+            </span>
+          </Button>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="icon"
             onClick={() => refetch()}
             disabled={isFetching}
-            className="p-2 text-text-muted hover:text-text bg-surface border border-border rounded-xl hover:bg-surface-muted transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center disabled:opacity-50"
+            className="min-h-[44px] min-w-[44px]"
             aria-label="Segarkan laporan"
           >
-            <RotateCw className={`size-4 ${isFetching ? "animate-spin" : ""}`} />
-          </button>
+            <RotateCw
+              className={`size-4 ${isFetching ? "animate-spin" : ""}`}
+            />
+          </Button>
         </div>
       </div>
 
       {/* Filter Card */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-border shadow-xs space-y-4">
-        <div className="flex items-center gap-2 text-xs font-bold text-text-muted uppercase tracking-wider">
+      <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border shadow-xs space-y-4">
+        <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
           <Filter className="size-3.5" />
           <span>Filter Laporan</span>
         </div>
@@ -251,8 +313,8 @@ export default function ReportsPage() {
                 onClick={() => handlePresetChange(p)}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors min-h-[38px] ${
                   selectedPreset === p
-                    ? "bg-primary text-white border-primary shadow-xs"
-                    : "bg-surface-muted/60 text-text-muted border-border hover:bg-surface-muted hover:text-text"
+                    ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                    : "bg-muted/60 text-muted-foreground border-border hover:bg-muted hover:text-foreground"
                 }`}
               >
                 {labels[p]}
@@ -265,7 +327,7 @@ export default function ReportsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
           {/* Tanggal Mulai */}
           <div>
-            <label className="block text-[11px] font-medium text-text-muted mb-1">
+            <label className="block text-[11px] font-medium text-muted-foreground mb-1">
               Dari Tanggal
             </label>
             <input
@@ -275,13 +337,13 @@ export default function ReportsPage() {
                 setSelectedPreset("custom");
                 setStartDate(e.target.value);
               }}
-              className="w-full px-3 py-2 text-xs bg-surface-muted border border-border rounded-xl text-text focus:outline-hidden focus:ring-2 focus:ring-primary min-h-[44px]"
+              className="w-full px-3 py-2 text-xs bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary min-h-[44px]"
             />
           </div>
 
           {/* Tanggal Sampai */}
           <div>
-            <label className="block text-[11px] font-medium text-text-muted mb-1">
+            <label className="block text-[11px] font-medium text-muted-foreground mb-1">
               Sampai Tanggal
             </label>
             <input
@@ -291,19 +353,19 @@ export default function ReportsPage() {
                 setSelectedPreset("custom");
                 setEndDate(e.target.value);
               }}
-              className="w-full px-3 py-2 text-xs bg-surface-muted border border-border rounded-xl text-text focus:outline-hidden focus:ring-2 focus:ring-primary min-h-[44px]"
+              className="w-full px-3 py-2 text-xs bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary min-h-[44px]"
             />
           </div>
 
           {/* Filter Status Bayar */}
           <div>
-            <label className="block text-[11px] font-medium text-text-muted mb-1">
+            <label className="block text-[11px] font-medium text-muted-foreground mb-1">
               Status Pembayaran
             </label>
             <select
               value={paymentStatus}
               onChange={(e) => setPaymentStatus(e.target.value as any)}
-              className="w-full px-3 py-2 text-xs bg-surface-muted border border-border rounded-xl text-text focus:outline-hidden focus:ring-2 focus:ring-primary min-h-[44px]"
+              className="w-full px-3 py-2 text-xs bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary min-h-[44px]"
             >
               <option value="ALL">Semua Status</option>
               <option value="PAID">LUNAS (Paid)</option>
@@ -315,13 +377,13 @@ export default function ReportsPage() {
           {/* Filter Kasir (Eksklusif Owner) */}
           {isOwner && (
             <div>
-              <label className="block text-[11px] font-medium text-text-muted mb-1">
+              <label className="block text-[11px] font-medium text-muted-foreground mb-1">
                 Filter Kasir
               </label>
               <select
                 value={selectedCashier}
                 onChange={(e) => setSelectedCashier(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-surface-muted border border-border rounded-xl text-text focus:outline-hidden focus:ring-2 focus:ring-primary min-h-[44px]"
+                className="w-full px-3 py-2 text-xs bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary min-h-[44px]"
               >
                 <option value="">Semua Kasir Toko</option>
                 {cashierList.map((c) => (
@@ -336,26 +398,23 @@ export default function ReportsPage() {
       </div>
 
       {/* Loading Skeleton */}
-      {isLoading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-28 rounded-2xl bg-surface border border-border" />
-          ))}
-        </div>
-      )}
+      {isLoading && <ReportsSkeleton />}
 
       {/* Error Banner */}
       {isError && (
-        <div className="p-6 rounded-2xl bg-danger/10 border border-danger/20 text-center space-y-2">
-          <AlertCircle className="size-6 text-danger mx-auto" />
-          <p className="text-xs text-danger font-semibold">Gagal memuat data laporan</p>
-          <button
-            type="button"
+        <div className="p-6 rounded-2xl bg-destructive/10 border border-destructive/20 text-center space-y-2">
+          <AlertCircle className="size-6 text-destructive mx-auto" />
+          <p className="text-xs text-destructive font-semibold">
+            Gagal memuat data laporan
+          </p>
+          <Button
+            variant="destructive"
+            size="sm"
             onClick={() => refetch()}
-            className="px-3 py-1.5 bg-danger text-white text-xs font-semibold rounded-lg hover:bg-danger/90 min-h-[38px]"
+            className="min-h-[38px]"
           >
             Coba Lagi
-          </button>
+          </Button>
         </div>
       )}
 
@@ -365,24 +424,24 @@ export default function ReportsPage() {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Total Omzet */}
-            <div className="p-5 rounded-2xl bg-surface border border-border shadow-xs space-y-2">
-              <div className="flex items-center justify-between text-text-muted">
+            <div className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-2">
+              <div className="flex items-center justify-between text-muted-foreground">
                 <span className="text-xs font-medium">Total Omzet Penjualan</span>
                 <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                   <TrendingUp className="size-4" />
                 </div>
               </div>
-              <div className="text-2xl font-extrabold text-text tabular-nums">
+              <div className="text-2xl font-extrabold text-foreground tabular-nums">
                 {formatCurrency(data.summary.totalOmzet)}
               </div>
-              <div className="text-[11px] text-text-muted">
+              <div className="text-[11px] text-muted-foreground">
                 {data.summary.ordersCount} nota transaksi tercatat
               </div>
             </div>
 
             {/* Uang Masuk Aktual */}
-            <div className="p-5 rounded-2xl bg-surface border border-border shadow-xs space-y-2">
-              <div className="flex items-center justify-between text-text-muted">
+            <div className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-2">
+              <div className="flex items-center justify-between text-muted-foreground">
                 <span className="text-xs font-medium">Uang Masuk Aktual</span>
                 <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
                   <Banknote className="size-4" />
@@ -391,12 +450,14 @@ export default function ReportsPage() {
               <div className="text-2xl font-extrabold text-emerald-600 tabular-nums">
                 {formatCurrency(data.summary.cashFlow.totalCashReceived)}
               </div>
-              <div className="text-[11px] text-text-muted">Total penerimaan kas & transfer</div>
+              <div className="text-[11px] text-muted-foreground">
+                Total penerimaan kas & transfer
+              </div>
             </div>
 
             {/* Sisa Piutang */}
-            <div className="p-5 rounded-2xl bg-surface border border-border shadow-xs space-y-2">
-              <div className="flex items-center justify-between text-text-muted">
+            <div className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-2">
+              <div className="flex items-center justify-between text-muted-foreground">
                 <span className="text-xs font-medium">Sisa Piutang Berjalan</span>
                 <div className="size-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
                   <AlertCircle className="size-4" />
@@ -405,37 +466,41 @@ export default function ReportsPage() {
               <div className="text-2xl font-extrabold text-amber-600 tabular-nums">
                 {formatCurrency(data.summary.totalRemaining)}
               </div>
-              <div className="text-[11px] text-text-muted">Belum terlunasi atau uang muka</div>
+              <div className="text-[11px] text-muted-foreground">
+                Belum terlunasi atau uang muka
+              </div>
             </div>
 
             {/* Arus Kas Per Metode */}
-            <div className="p-5 rounded-2xl bg-surface border border-border shadow-xs space-y-2.5">
-              <span className="text-xs font-medium text-text-muted">Rincian Arus Kas Masuk</span>
+            <div className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
+              <span className="text-xs font-medium text-muted-foreground">
+                Rincian Arus Kas Masuk
+              </span>
               <div className="space-y-1.5 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-text-muted flex items-center gap-1.5">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
                     <DollarSign className="size-3.5 text-emerald-500" />
                     Tunai (Cash):
                   </span>
-                  <span className="font-semibold text-text tabular-nums">
+                  <span className="font-semibold text-foreground tabular-nums">
                     {formatCurrency(data.summary.cashFlow.byMethod.CASH)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-text-muted flex items-center gap-1.5">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
                     <CreditCard className="size-3.5 text-blue-500" />
                     Transfer Bank:
                   </span>
-                  <span className="font-semibold text-text tabular-nums">
+                  <span className="font-semibold text-foreground tabular-nums">
                     {formatCurrency(data.summary.cashFlow.byMethod.TRANSFER)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-text-muted flex items-center gap-1.5">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
                     <QrCode className="size-3.5 text-purple-500" />
                     QRIS:
                   </span>
-                  <span className="font-semibold text-text tabular-nums">
+                  <span className="font-semibold text-foreground tabular-nums">
                     {formatCurrency(data.summary.cashFlow.byMethod.QRIS)}
                   </span>
                 </div>
@@ -444,20 +509,25 @@ export default function ReportsPage() {
           </div>
 
           {/* Orders Table & Mobile Cards */}
-          <div className="p-5 sm:p-6 rounded-2xl bg-surface border border-border shadow-xs space-y-4">
+          <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-sm sm:text-base font-bold text-text">Daftar Nota Transaksi</h2>
-                <p className="text-xs text-text-muted mt-0.5">
+                <h2 className="text-sm sm:text-base font-bold text-foreground">
+                  Daftar Nota Transaksi
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Menampilkan {data.orders.length} nota pesanan sesuai filter
                 </p>
               </div>
             </div>
 
             {data.orders.length === 0 ? (
-              <div className="p-12 text-center text-xs text-text-muted space-y-2">
-                <Receipt className="size-8 mx-auto text-text-muted/60" />
-                <p>Tidak ada transaksi ditemukan pada periode atau filter yang dipilih.</p>
+              <div className="p-12 text-center text-xs text-muted-foreground space-y-2">
+                <Receipt className="size-8 mx-auto text-muted-foreground/60" />
+                <p>
+                  Tidak ada transaksi ditemukan pada periode atau filter yang
+                  dipilih.
+                </p>
               </div>
             ) : (
               <>
@@ -467,7 +537,7 @@ export default function ReportsPage() {
                     <Link
                       key={ord.id}
                       href={`/orders/detail?id=${ord.id}`}
-                      className="block p-4 rounded-xl bg-surface-muted/50 border border-border hover:bg-surface-muted transition-colors space-y-2.5"
+                      className="block p-4 rounded-xl bg-muted/40 border border-border hover:bg-muted transition-colors space-y-2.5"
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-xs text-primary tracking-wide">
@@ -479,21 +549,23 @@ export default function ReportsPage() {
                               ? "bg-emerald-500/10 text-emerald-600"
                               : ord.paymentStatus === "PARTIAL"
                               ? "bg-amber-500/10 text-amber-600"
-                              : "bg-danger/10 text-danger"
+                              : "bg-destructive/10 text-destructive"
                           }`}
                         >
                           {ord.paymentStatus}
                         </span>
                       </div>
 
-                      <div className="text-xs text-text flex items-center justify-between">
-                        <span className="font-medium truncate">{ord.customerNameSnapshot}</span>
+                      <div className="text-xs text-foreground flex items-center justify-between">
+                        <span className="font-medium truncate">
+                          {ord.customerNameSnapshot}
+                        </span>
                         <span className="font-bold tabular-nums">
                           {formatCurrency(ord.grandTotal)}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between text-[11px] text-text-muted pt-1 border-t border-border/40">
+                      <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/40">
                         <span>Kasir: {ord.cashierName || "-"}</span>
                         <span>
                           {new Date(ord.createdAt).toLocaleDateString("id-ID", {
@@ -512,52 +584,72 @@ export default function ReportsPage() {
                 <div className="hidden sm:block overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-border text-text-muted">
+                      <tr className="border-b border-border text-muted-foreground bg-muted/30">
                         <th className="py-3 px-3 font-semibold">Nota</th>
                         <th className="py-3 px-3 font-semibold">Tanggal</th>
                         <th className="py-3 px-3 font-semibold">Pelanggan</th>
                         <th className="py-3 px-3 font-semibold">Kasir</th>
-                        <th className="py-3 px-3 font-semibold text-right">Grand Total</th>
-                        <th className="py-3 px-3 font-semibold text-right">Dibayar</th>
-                        <th className="py-3 px-3 font-semibold text-right">Piutang</th>
-                        <th className="py-3 px-3 font-semibold text-center">Status</th>
-                        <th className="py-3 px-3 font-semibold text-right">Aksi</th>
+                        <th className="py-3 px-3 font-semibold text-right">
+                          Grand Total
+                        </th>
+                        <th className="py-3 px-3 font-semibold text-right">
+                          Dibayar
+                        </th>
+                        <th className="py-3 px-3 font-semibold text-right">
+                          Piutang
+                        </th>
+                        <th className="py-3 px-3 font-semibold text-center">
+                          Status
+                        </th>
+                        <th className="py-3 px-3 font-semibold text-right">
+                          Aksi
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/60">
                       {data.orders.map((ord) => (
-                        <tr key={ord.id} className="hover:bg-surface-muted/40 transition-colors">
+                        <tr
+                          key={ord.id}
+                          className="hover:bg-muted/20 transition-colors"
+                        >
                           <td className="py-3 px-3 font-bold text-primary font-mono">
                             {ord.invoiceNumber}
                           </td>
-                          <td className="py-3 px-3 text-text-muted">
-                            {new Date(ord.createdAt).toLocaleDateString("id-ID", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })}
+                          <td className="py-3 px-3 text-muted-foreground">
+                            {new Date(ord.createdAt).toLocaleDateString(
+                              "id-ID",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              }
+                            )}
                           </td>
-                          <td className="py-3 px-3 font-medium text-text">
+                          <td className="py-3 px-3 font-medium text-foreground">
                             {ord.customerNameSnapshot}
                           </td>
-                          <td className="py-3 px-3 text-text-muted">{ord.cashierName || "-"}</td>
-                          <td className="py-3 px-3 font-bold text-text tabular-nums text-right">
+                          <td className="py-3 px-3 text-muted-foreground">
+                            {ord.cashierName || "-"}
+                          </td>
+                          <td className="py-3 px-3 font-bold text-foreground tabular-nums text-right">
                             {formatCurrency(ord.grandTotal)}
                           </td>
                           <td className="py-3 px-3 text-emerald-600 font-semibold tabular-nums text-right">
                             {formatCurrency(ord.paidAmount)}
                           </td>
                           <td className="py-3 px-3 text-amber-600 font-semibold tabular-nums text-right">
-                            {ord.remainingAmount > 0 ? formatCurrency(ord.remainingAmount) : "-"}
+                            {ord.remainingAmount > 0
+                              ? formatCurrency(ord.remainingAmount)
+                              : "-"}
                           </td>
                           <td className="py-3 px-3 text-center">
                             <span
                               className={`px-2 py-0.5 text-[10px] font-bold rounded ${
                                 ord.paymentStatus === "PAID"
-                                ? "bg-emerald-500/10 text-emerald-600"
-                                : ord.paymentStatus === "PARTIAL"
-                                ? "bg-amber-500/10 text-amber-600"
-                                : "bg-danger/10 text-danger"
+                                  ? "bg-emerald-500/10 text-emerald-600"
+                                  : ord.paymentStatus === "PARTIAL"
+                                  ? "bg-amber-500/10 text-amber-600"
+                                  : "bg-destructive/10 text-destructive"
                               }`}
                             >
                               {ord.paymentStatus}
@@ -566,7 +658,7 @@ export default function ReportsPage() {
                           <td className="py-3 px-3 text-right">
                             <Link
                               href={`/orders/detail?id=${ord.id}`}
-                              className="text-primary hover:text-primary-hover font-semibold inline-flex items-center gap-1 min-h-[36px]"
+                              className="text-primary hover:underline font-semibold inline-flex items-center gap-1 min-h-[36px]"
                             >
                               <span>Detail</span>
                               <ArrowRight className="size-3.5" />

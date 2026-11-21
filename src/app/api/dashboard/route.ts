@@ -15,7 +15,7 @@ export async function OPTIONS(request: Request) {
 
 const dashboardQuerySchema = z
   .object({
-    range: z.enum(["7d", "30d"]).default("7d"),
+    range: z.enum(["1d", "7d", "30d"]).default("7d"),
   })
   .strict();
 
@@ -41,9 +41,14 @@ export async function GET(request: NextRequest) {
 
     const todayStartUtc = new Date(`${todayWibStr}T00:00:00+07:00`);
 
-    // Hitung tanggal awal periode range (7 hari atau 30 hari)
-    const daysRange = parsedQuery.range === "30d" ? 30 : 7;
-    const rangeStartDate = new Date(now.getTime() - daysRange * 24 * 60 * 60 * 1000);
+    // Hitung tanggal awal periode range (1 hari, 7 hari atau 30 hari)
+    const rangeStartDate =
+      parsedQuery.range === "1d"
+        ? todayStartUtc
+        : new Date(
+            now.getTime() -
+              (parsedQuery.range === "30d" ? 30 : 7) * 24 * 60 * 60 * 1000
+          );
 
     // Filter antrean produksi aktif (QUEUED, IN_PROGRESS, READY)
     const [queueResult] = await db

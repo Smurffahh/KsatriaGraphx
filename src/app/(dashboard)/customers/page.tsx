@@ -15,11 +15,15 @@ import {
   Receipt,
   AlertCircle,
   Eye,
-  Loader2,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { toast } from "sonner";
-import { CustomerFormModal, type CustomerData } from "@/components/customers/CustomerFormModal";
+import {
+  CustomerFormModal,
+  type CustomerData,
+} from "@/components/customers/CustomerFormModal";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 
 interface CustomerListItem extends CustomerData {
   createdAt: string;
@@ -44,6 +48,56 @@ interface CurrentUser {
   role: "OWNER" | "KASIR";
 }
 
+function CustomersSkeleton() {
+  return (
+    <div className="space-y-4">
+      {/* Mobile Cards Skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 lg:hidden">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="p-4 rounded-2xl bg-card border border-border shadow-xs space-y-3"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="space-y-1">
+                <Skeleton className="h-5 w-32 rounded-md" />
+                <Skeleton className="h-3 w-24 rounded-md" />
+              </div>
+              <Skeleton className="size-8 rounded-xl" />
+            </div>
+            <div className="pt-2 border-t border-border/50 flex items-center justify-between">
+              <Skeleton className="h-4 w-28 rounded-md" />
+              <Skeleton className="h-7 w-20 rounded-lg" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table Skeleton */}
+      <div className="hidden lg:block rounded-2xl bg-card border border-border shadow-xs overflow-hidden">
+        <div className="p-4 border-b border-border">
+          <Skeleton className="h-5 w-40 rounded-md" />
+        </div>
+        <div className="p-4 space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex items-center justify-between gap-4 py-2 border-b border-border/40 last:border-none"
+            >
+              <Skeleton className="h-4 w-36 rounded-md" />
+              <Skeleton className="h-4 w-28 rounded-md" />
+              <Skeleton className="h-4 w-48 rounded-md" />
+              <Skeleton className="h-4 w-16 rounded-md" />
+              <Skeleton className="h-4 w-24 rounded-md" />
+              <Skeleton className="h-7 w-24 rounded-lg" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<CustomerListItem[]>([]);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
@@ -54,7 +108,9 @@ export default function CustomersPage() {
   const [totalRecords, setTotalRecords] = useState(0);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(
+    null
+  );
 
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -83,7 +139,9 @@ export default function CustomersPage() {
         params.set("search", search.trim());
       }
 
-      const res = await apiClient.get<CustomersApiResponse>(`/api/customers?${params.toString()}`);
+      const res = await apiClient.get<CustomersApiResponse>(
+        `/api/customers?${params.toString()}`
+      );
       if (res.success && res.data) {
         setCustomers(res.data.data);
         setTotalPages(res.data.pagination.totalPages);
@@ -121,64 +179,73 @@ export default function CustomersPage() {
     setActionError("");
     try {
       const res = await apiClient.delete(`/api/customers/${id}`);
-      if (!res.success) {
-        throw new Error(res.error || "Gagal menghapus pelanggan");
+      if (res.success) {
+        toast.success("Data pelanggan berhasil dihapus");
+        setDeleteConfirmId(null);
+        fetchCustomers();
+      } else {
+        toast.error(res.error || "Gagal menghapus pelanggan");
+        setActionError(res.error || "Gagal menghapus pelanggan");
       }
-      toast.success("Pelanggan berhasil dihapus");
-      setDeleteConfirmId(null);
-      fetchCustomers();
     } catch (err: unknown) {
       const errorObj = err as { message?: string };
-      const msg = errorObj.message || "Gagal menghapus pelanggan";
-      setActionError(msg);
-      toast.error(msg);
+      toast.error(errorObj.message || "Terjadi kesalahan sistem");
+      setActionError(errorObj.message || "Terjadi kesalahan sistem");
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const totalPiutangSemua = customers.reduce((acc, curr) => acc + (curr.totalPiutang || 0), 0);
+  const totalPiutangSemua = customers.reduce(
+    (acc, curr) => acc + (curr.totalPiutang || 0),
+    0
+  );
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header & Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-5 max-w-7xl mx-auto">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text">Daftar Pelanggan</h1>
-          <p className="text-sm text-text-muted mt-1">
-            Kelola data kontak, riwayat nota, dan pantau piutang pelanggan
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <Users className="size-6 text-primary" />
+            <span>Data Pelanggan</span>
+          </h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Kelola kontak pelanggan, riwayat transaksi, dan catatan piutang nota
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleOpenAddModal}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-xl shadow-xs transition-colors min-h-[44px]"
-        >
+        <Button onClick={handleOpenAddModal} className="gap-2 min-h-[44px]">
           <Plus className="size-4" />
           <span>Tambah Pelanggan</span>
-        </button>
+        </Button>
       </div>
 
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl bg-surface border border-border shadow-xs flex items-center gap-3.5">
+        <div className="p-4 rounded-2xl bg-card border border-border shadow-xs flex items-center gap-3.5">
           <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
             <Users className="size-5" />
           </div>
           <div>
-            <div className="text-xs text-text-muted">Total Pelanggan Terdaftar</div>
-            <div className="text-xl font-bold text-text tabular-nums">{totalRecords}</div>
+            <div className="text-xs text-muted-foreground">
+              Total Pelanggan Terdaftar
+            </div>
+            <div className="text-xl font-bold text-foreground tabular-nums">
+              {totalRecords}
+            </div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-surface border border-border shadow-xs flex items-center gap-3.5">
+        <div className="p-4 rounded-2xl bg-card border border-border shadow-xs flex items-center gap-3.5">
           <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500">
             <Receipt className="size-5" />
           </div>
           <div>
-            <div className="text-xs text-text-muted">Total Piutang di Halaman Ini</div>
-            <div className="text-xl font-bold text-text tabular-nums">
+            <div className="text-xs text-muted-foreground">
+              Total Piutang di Halaman Ini
+            </div>
+            <div className="text-xl font-bold text-foreground tabular-nums">
               Rp {totalPiutangSemua.toLocaleString("id-ID")}
             </div>
           </div>
@@ -186,7 +253,7 @@ export default function CustomersPage() {
       </div>
 
       {actionError && (
-        <div className="p-4 rounded-xl bg-danger/10 border border-danger/20 text-danger text-sm flex items-center gap-2">
+        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-center gap-2">
           <AlertCircle className="size-5 shrink-0" />
           <span>{actionError}</span>
         </div>
@@ -195,7 +262,7 @@ export default function CustomersPage() {
       {/* Search Bar */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-text-muted" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <input
             type="text"
             value={search}
@@ -204,22 +271,21 @@ export default function CustomersPage() {
               setPage(1);
             }}
             placeholder="Cari berdasarkan nama atau no. WA..."
-            className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm bg-surface border border-border rounded-xl text-text placeholder:text-text-muted/60 focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+            className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
           />
         </div>
       </div>
 
       {/* Content: Mobile Cards + Desktop Table */}
       {isLoading ? (
-        <div className="p-12 text-center text-text-muted">
-          <Loader2 className="size-6 animate-spin mx-auto mb-2 text-primary" />
-          <span className="text-sm">Memuat data pelanggan...</span>
-        </div>
+        <CustomersSkeleton />
       ) : customers.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl bg-surface border border-border">
-          <Users className="size-10 mx-auto text-text-muted/40 mb-3" />
-          <h3 className="text-base font-semibold text-text">Belum ada pelanggan ditemukan</h3>
-          <p className="text-sm text-text-muted mt-1 max-w-md mx-auto">
+        <div className="p-12 text-center rounded-2xl bg-card border border-border">
+          <Users className="size-10 mx-auto text-muted-foreground/40 mb-3" />
+          <h3 className="text-base font-semibold text-foreground">
+            Belum ada pelanggan ditemukan
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
             {search
               ? "Tidak ada pelanggan yang cocok dengan kata kunci pencarian Anda."
               : "Mulai catat pelanggan agar nama dan nomor WhatsApp otomatis tersimpan saat transaksi POS."}
@@ -232,170 +298,178 @@ export default function CustomersPage() {
             {customers.map((c) => (
               <div
                 key={c.id}
-                className="p-4 rounded-2xl bg-surface border border-border shadow-xs space-y-3"
+                className="p-4 rounded-2xl bg-card border border-border shadow-xs space-y-3"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h3 className="font-semibold text-text text-base">{c.name}</h3>
+                    <h3 className="font-semibold text-foreground text-base">
+                      {c.name}
+                    </h3>
                     {c.phone ? (
-                      <div className="flex items-center gap-1.5 text-xs text-text-muted mt-0.5">
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
                         <Phone className="size-3.5 text-primary" />
                         <span className="tabular-nums">{c.phone}</span>
                       </div>
                     ) : (
-                      <span className="text-xs text-text-muted italic">Tidak ada nomor</span>
+                      <span className="text-xs text-muted-foreground italic">
+                        Tidak ada nomor
+                      </span>
                     )}
                   </div>
 
                   {c.phone && (
                     <a
-                      href={`https://wa.me/${c.phone}`}
+                      href={`https://wa.me/${c.phone.replace(/[^0-9]/g, "")}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-emerald-600 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition-colors min-h-[36px]"
+                      className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 transition-colors"
+                      title="Kirim pesan WhatsApp"
                     >
-                      <MessageCircle className="size-3.5" />
-                      <span>WA</span>
+                      <MessageCircle className="size-4" />
                     </a>
                   )}
                 </div>
 
                 {c.address && (
-                  <p className="text-xs text-text-muted line-clamp-2">{c.address}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {c.address}
+                  </p>
                 )}
 
-                <div className="flex items-center justify-between pt-2 border-t border-border/60 text-xs">
-                  <div>
-                    <span className="text-text-muted">Total Nota: </span>
-                    <span className="font-medium text-text tabular-nums">{c.totalOrders}</span>
-                  </div>
-                  <div>
-                    <span className="text-text-muted">Piutang: </span>
-                    <span
-                      className={`font-semibold tabular-nums ${
-                        c.totalPiutang > 0 ? "text-amber-500" : "text-emerald-500"
-                      }`}
-                    >
+                <div className="pt-2 border-t border-border/50 text-xs flex items-center justify-between">
+                  <span className="text-muted-foreground">Total Transaksi:</span>
+                  <span className="font-bold text-foreground tabular-nums">
+                    {c.totalOrders} nota
+                  </span>
+                </div>
+
+                {c.totalPiutang > 0 && (
+                  <div className="text-xs flex items-center justify-between text-amber-600 font-medium">
+                    <span>Sisa Piutang:</span>
+                    <span className="font-bold tabular-nums">
                       Rp {c.totalPiutang.toLocaleString("id-ID")}
                     </span>
                   </div>
-                </div>
+                )}
 
-                <div className="flex items-center justify-end gap-2 pt-1">
+                <div className="pt-2 border-t border-border/50 flex items-center justify-between gap-2">
                   <Link
                     href={`/customers/detail?id=${c.id}`}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors min-h-[44px]"
+                    className="inline-flex items-center gap-1 text-xs text-primary font-medium hover:underline"
                   >
                     <Eye className="size-3.5" />
-                    <span>Detail</span>
+                    <span>Lihat Riwayat</span>
                   </Link>
 
-                  <button
-                    type="button"
-                    onClick={() => handleOpenEditModal(c)}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-text-muted hover:text-text hover:bg-surface-muted rounded-lg transition-colors min-h-[44px]"
-                  >
-                    <Edit2 className="size-3.5" />
-                    <span>Ubah</span>
-                  </button>
-
-                  {currentUser?.role === "OWNER" && (
+                  <div className="flex items-center gap-1">
                     <button
                       type="button"
-                      onClick={() => setDeleteConfirmId(c.id)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 rounded-lg transition-colors min-h-[44px]"
+                      onClick={() => handleOpenEditModal(c)}
+                      className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      title="Ubah Data"
                     >
-                      <Trash2 className="size-3.5" />
-                      <span>Hapus</span>
+                      <Edit2 className="size-3.5" />
                     </button>
-                  )}
+                    {currentUser?.role === "OWNER" && (
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirmId(c.id!)}
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                        title="Hapus Pelanggan"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Desktop Table View (hidden on mobile) */}
-          <div className="hidden lg:block bg-surface border border-border rounded-2xl shadow-xs overflow-hidden">
+          {/* Desktop Table View (hidden on < lg) */}
+          <div className="hidden lg:block rounded-2xl bg-card border border-border shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-sm">
+              <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-border bg-surface-muted/40 text-text-muted text-xs">
-                    <th className="py-3.5 px-4 font-medium">Nama Pelanggan</th>
-                    <th className="py-3.5 px-4 font-medium">WhatsApp</th>
-                    <th className="py-3.5 px-4 font-medium">Alamat</th>
-                    <th className="py-3.5 px-4 font-medium text-center">Jumlah Nota</th>
-                    <th className="py-3.5 px-4 font-medium text-right">Total Piutang</th>
-                    <th className="py-3.5 px-4 font-medium text-right">Aksi</th>
+                  <tr className="border-b border-border bg-muted/40 font-semibold text-muted-foreground">
+                    <th className="py-3 px-4">Nama Pelanggan</th>
+                    <th className="py-3 px-4">No. WhatsApp</th>
+                    <th className="py-3 px-4">Alamat</th>
+                    <th className="py-3 px-4 text-center">Transaksi</th>
+                    <th className="py-3 px-4 text-right">Sisa Piutang</th>
+                    <th className="py-3 px-4 text-right">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60">
                   {customers.map((c) => (
-                    <tr key={c.id} className="hover:bg-surface-muted/20 transition-colors">
-                      <td className="py-3 px-4 font-medium text-text">
+                    <tr
+                      key={c.id}
+                      className="hover:bg-muted/20 transition-colors"
+                    >
+                      <td className="py-3 px-4 font-bold text-foreground">
                         <Link
                           href={`/customers/detail?id=${c.id}`}
-                          className="hover:text-primary transition-colors hover:underline"
+                          className="hover:text-primary transition-colors"
                         >
                           {c.name}
                         </Link>
-                        {c.notes && (
-                          <div className="text-[11px] text-text-muted line-clamp-1">{c.notes}</div>
-                        )}
                       </td>
                       <td className="py-3 px-4">
                         {c.phone ? (
-                          <div className="flex items-center gap-2">
-                            <span className="tabular-nums text-text">{c.phone}</span>
+                          <div className="flex items-center gap-1.5 tabular-nums text-foreground">
+                            <span>{c.phone}</span>
                             <a
-                              href={`https://wa.me/${c.phone}`}
+                              href={`https://wa.me/${c.phone.replace(/[^0-9]/g, "")}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="p-1 rounded-md text-emerald-600 hover:bg-emerald-500/10 transition-colors"
+                              className="text-emerald-600 hover:text-emerald-700 p-0.5 rounded"
                               title="Chat WhatsApp"
                             >
-                              <MessageCircle className="size-4" />
+                              <MessageCircle className="size-3.5" />
                             </a>
                           </div>
                         ) : (
-                          <span className="text-text-muted italic text-xs">-</span>
+                          <span className="text-muted-foreground italic">-</span>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-text-muted max-w-xs truncate">
+                      <td className="py-3 px-4 text-muted-foreground max-w-xs truncate">
                         {c.address || "-"}
                       </td>
-                      <td className="py-3 px-4 text-center tabular-nums text-text">
+                      <td className="py-3 px-4 text-center font-semibold text-foreground tabular-nums">
                         {c.totalOrders}
                       </td>
-                      <td className="py-3 px-4 text-right tabular-nums font-medium">
-                        <span
-                          className={c.totalPiutang > 0 ? "text-amber-500 font-semibold" : "text-emerald-600"}
-                        >
-                          Rp {c.totalPiutang.toLocaleString("id-ID")}
-                        </span>
+                      <td className="py-3 px-4 text-right tabular-nums">
+                        {c.totalPiutang > 0 ? (
+                          <span className="font-bold text-amber-600">
+                            Rp {c.totalPiutang.toLocaleString("id-ID")}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">Rp 0</span>
+                        )}
                       </td>
                       <td className="py-3 px-4 text-right">
-                        <div className="inline-flex items-center gap-1">
+                        <div className="flex items-center justify-end gap-1">
                           <Link
                             href={`/customers/detail?id=${c.id}`}
-                            className="p-2 text-text-muted hover:text-primary hover:bg-surface-muted rounded-lg transition-colors"
-                            title="Lihat Detail & Riwayat Nota"
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
+                            title="Rincian Nota"
                           >
                             <Eye className="size-4" />
                           </Link>
                           <button
                             type="button"
                             onClick={() => handleOpenEditModal(c)}
-                            className="p-2 text-text-muted hover:text-text hover:bg-surface-muted rounded-lg transition-colors"
-                            title="Ubah Data"
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                            title="Edit"
                           >
                             <Edit2 className="size-4" />
                           </button>
                           {currentUser?.role === "OWNER" && (
                             <button
                               type="button"
-                              onClick={() => setDeleteConfirmId(c.id)}
-                              className="p-2 text-danger/80 hover:text-danger hover:bg-danger/10 rounded-lg transition-colors"
-                              title="Hapus Pelanggan"
+                              onClick={() => setDeleteConfirmId(c.id!)}
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              title="Hapus"
                             >
                               <Trash2 className="size-4" />
                             </button>
@@ -412,80 +486,86 @@ export default function CustomersPage() {
           {/* Pagination Controls */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between pt-2">
-              <span className="text-xs text-text-muted">
-                Halaman <span className="font-semibold text-text tabular-nums">{page}</span> dari{" "}
-                <span className="font-semibold text-text tabular-nums">{totalPages}</span> (Total{" "}
-                {totalRecords} pelanggan)
+              <span className="text-xs text-muted-foreground">
+                Halaman{" "}
+                <span className="font-semibold text-foreground tabular-nums">
+                  {page}
+                </span>{" "}
+                dari{" "}
+                <span className="font-semibold text-foreground tabular-nums">
+                  {totalPages}
+                </span>{" "}
+                (Total {totalRecords} pelanggan)
               </span>
 
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page <= 1}
-                  className="inline-flex items-center gap-1 px-3 py-2 text-xs font-medium text-text bg-surface border border-border rounded-xl hover:bg-surface-muted disabled:opacity-40 transition-colors min-h-[44px]"
+                  className="gap-1 min-h-[44px]"
                 >
                   <ChevronLeft className="size-4" />
                   <span>Sebelumnya</span>
-                </button>
+                </Button>
 
-                <button
-                  type="button"
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  className="inline-flex items-center gap-1 px-3 py-2 text-xs font-medium text-text bg-surface border border-border rounded-xl hover:bg-surface-muted disabled:opacity-40 transition-colors min-h-[44px]"
+                  className="gap-1 min-h-[44px]"
                 >
                   <span>Berikutnya</span>
                   <ChevronRight className="size-4" />
-                </button>
+                </Button>
               </div>
             </div>
           )}
         </>
       )}
 
-      {/* Delete Confirmation Dialog */}
-      {deleteConfirmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="w-full max-w-sm bg-surface border border-border rounded-2xl p-5 shadow-2xl space-y-4">
-            <div className="flex items-center gap-3 text-danger">
-              <AlertCircle className="size-6" />
-              <h3 className="font-semibold text-base text-text">Hapus Data Pelanggan?</h3>
-            </div>
-            <p className="text-xs text-text-muted leading-relaxed">
-              Tindakan ini tidak dapat dibatalkan. Pelanggan tidak dapat dihapus jika masih
-              memiliki riwayat transaksi aktif.
-            </p>
-            <div className="flex items-center justify-end gap-2.5 pt-2">
-              <button
-                type="button"
-                onClick={() => setDeleteConfirmId(null)}
-                disabled={isDeleting}
-                className="px-4 py-2 text-xs font-medium text-text-muted hover:text-text rounded-xl hover:bg-surface-muted transition-colors min-h-[44px]"
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDelete(deleteConfirmId)}
-                disabled={isDeleting}
-                className="px-4 py-2 text-xs font-medium bg-danger hover:bg-danger/90 text-white rounded-xl shadow-xs transition-colors min-h-[44px] inline-flex items-center gap-1.5"
-              >
-                {isDeleting && <Loader2 className="size-3.5 animate-spin" />}
-                <span>Hapus Sekarang</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Form Modal */}
       <CustomerFormModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSuccess={() => fetchCustomers()}
         initialData={selectedCustomer}
+        onSuccess={fetchCustomers}
       />
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-2xl bg-card border border-border p-5 shadow-2xl space-y-4">
+            <h3 className="font-bold text-base text-foreground">
+              Hapus Data Pelanggan?
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Pelanggan hanya dapat dihapus bila belum memiliki riwayat nota
+              transaksi di dalam sistem.
+            </p>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDeleteConfirmId(null)}
+                disabled={isDeleting}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => handleDelete(deleteConfirmId)}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Menghapus..." : "Ya, Hapus"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

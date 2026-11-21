@@ -2,13 +2,22 @@ import { z } from "zod";
 
 export const createUserSchema = z
   .object({
-    name: z.string().min(2, "Nama minimal 2 karakter").max(100, "Nama maksimal 100 karakter"),
+    id: z.string().uuid().optional().nullable(),
+    name: z.string().trim().min(2, "Nama minimal 2 karakter").max(100, "Nama maksimal 100 karakter"),
     username: z
       .string()
+      .trim()
       .min(3, "Username minimal 3 karakter")
       .max(50, "Username maksimal 50 karakter")
       .regex(/^[a-zA-Z0-9_]+$/, "Username hanya boleh berisi huruf, angka, dan garis bawah (_)"),
-    email: z.string().email("Format email tidak valid").optional().or(z.literal("")),
+    email: z
+      .string()
+      .trim()
+      .email("Format email tidak valid")
+      .optional()
+      .nullable()
+      .or(z.literal(""))
+      .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
     password: z
       .string()
       .min(8, "Password minimal 8 karakter")
@@ -22,14 +31,23 @@ export const createUserSchema = z
 
 export const updateUserSchema = z
   .object({
-    name: z.string().min(2, "Nama minimal 2 karakter").max(100, "Nama maksimal 100 karakter").optional(),
+    id: z.string().uuid().optional().nullable(),
+    name: z.string().trim().min(2, "Nama minimal 2 karakter").max(100, "Nama maksimal 100 karakter").optional(),
     username: z
       .string()
+      .trim()
       .min(3, "Username minimal 3 karakter")
       .max(50, "Username maksimal 50 karakter")
       .regex(/^[a-zA-Z0-9_]+$/, "Username hanya boleh berisi huruf, angka, dan garis bawah (_)")
       .optional(),
-    email: z.string().email("Format email tidak valid").optional().or(z.literal("")).nullable(),
+    email: z
+      .string()
+      .trim()
+      .email("Format email tidak valid")
+      .optional()
+      .nullable()
+      .or(z.literal(""))
+      .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
     role: z
       .enum(["OWNER", "KASIR"], {
         error: "Role harus berupa OWNER atau KASIR",

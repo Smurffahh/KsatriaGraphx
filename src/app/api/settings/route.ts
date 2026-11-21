@@ -99,19 +99,41 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const payload = parseResult.data;
+    const {
+      storeName,
+      tagline,
+      address,
+      phone,
+      paymentInfo,
+      receiptFooter,
+      invoicePrefix,
+      defaultPaperWidth,
+      maxCashierDiscountPercent,
+    } = parseResult.data;
+
+    const settingsValues = {
+      storeName,
+      tagline,
+      address,
+      phone,
+      paymentInfo,
+      receiptFooter,
+      invoicePrefix,
+      defaultPaperWidth,
+      maxCashierDiscountPercent,
+    };
 
     const [updated] = await db
       .insert(storeSettings)
       .values({
         id: 1,
-        ...payload,
+        ...settingsValues,
         updatedAt: new Date(),
       })
       .onConflictDoUpdate({
         target: storeSettings.id,
         set: {
-          ...payload,
+          ...settingsValues,
           updatedAt: new Date(),
         },
       })
@@ -128,7 +150,7 @@ export async function PATCH(request: Request) {
       platform: session.platform,
       ipAddress,
       userAgent,
-      metadata: payload,
+      metadata: settingsValues,
     });
 
     return NextResponse.json(

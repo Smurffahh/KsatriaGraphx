@@ -170,4 +170,43 @@ describe("Fase 4: POS, Kalkulator, Keamanan & Anti-Fraud Suite", () => {
       expect(dateKey).toMatch(/^[0-9]{8}$/);
     });
   });
+
+  describe("5. Kontrak Database Driver Transaksi & Simpan Nota POS (v1.0.3)", () => {
+    it("skema createOrderSchema harus menerima transaksi walk-in tanpa customerId", () => {
+      const validWalkIn = createOrderSchema.safeParse({
+        customerId: null,
+        customerNameSnapshot: "Pelanggan Walk-In",
+        customerPhoneSnapshot: null,
+        items: [
+          {
+            productId: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            quantity: 2,
+            width: 2.0,
+            height: 1.0,
+            unit: "m",
+            finishings: [],
+          },
+        ],
+        designFee: 0,
+        discountType: "NONE",
+        discountValue: 0,
+        initialPayment: {
+          amount: 80000,
+          paymentMethod: "CASH",
+          cashReceived: 100000,
+        },
+      });
+
+      expect(validWalkIn.success).toBe(true);
+    });
+
+    it("skema createOrderSchema harus menolak nota tanpa item", () => {
+      const invalidNoItems = createOrderSchema.safeParse({
+        customerNameSnapshot: "Pelanggan Walk-In",
+        items: [],
+      });
+
+      expect(invalidNoItems.success).toBe(false);
+    });
+  });
 });

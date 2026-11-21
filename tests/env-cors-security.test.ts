@@ -253,41 +253,46 @@ describe("Validasi Konfigurasi Environment, CORS & 4-Layer Guard Produksi", () =
     });
   });
 
-  describe("6. Otomasi Ekstraksi Catatan Rilis CHANGELOG.md (v1.0.2)", () => {
+  describe("6. Otomasi Ekstraksi Catatan Rilis CHANGELOG.md (v1.0.3 & Riwayat)", () => {
     const changelogPath = path.join(process.cwd(), "CHANGELOG.md");
     const changelogContent = fs.readFileSync(changelogPath, "utf-8");
 
-    it("ekstraksi tag v1.0.2 dari CHANGELOG.md harus menghasilkan teks rilis yang tidak kosong", () => {
-      const notes = extractReleaseNotes(changelogContent, "v1.0.2");
+    it("ekstraksi tag v1.0.3 dari CHANGELOG.md harus menghasilkan teks rilis yang tidak kosong", () => {
+      const notes = extractReleaseNotes(changelogContent, "v1.0.3");
       expect(notes).toBeDefined();
       expect(notes.length).toBeGreaterThan(100);
-      expect(notes).toContain("Resolusi Jalur Login Android APK Produksi");
-      expect(notes).toContain("CORS Preflight & Kontrak Token APK");
-      expect(notes).toContain("Idempotent Seed & Pembaruan Kredensial Owner");
+      expect(notes).toContain("Perbaikan Upload Foto Produk Private Vercel Blob");
+      expect(notes).toContain("Pemulihan Transaksi Atomik Checkout POS");
+      expect(notes).toContain("Sistem Notifikasi Global (Toast) dengan Sonner");
     });
 
-    it("ekstraksi tag versi tanpa prefix v (1.0.2) harus menghasilkan teks yang identik", () => {
-      const notesWithV = extractReleaseNotes(changelogContent, "v1.0.2");
-      const notesWithoutV = extractReleaseNotes(changelogContent, "1.0.2");
+    it("ekstraksi tag versi tanpa prefix v (1.0.3) harus menghasilkan teks yang identik", () => {
+      const notesWithV = extractReleaseNotes(changelogContent, "v1.0.3");
+      const notesWithoutV = extractReleaseNotes(changelogContent, "1.0.3");
       expect(notesWithoutV).toBe(notesWithV);
     });
 
-    it("buildFullReleaseNotes harus menyertakan panduan instalasi dan blok SHA-256 untuk v1.0.2", () => {
+    it("buildFullReleaseNotes harus menyertakan panduan instalasi dan blok SHA-256 untuk v1.0.3", () => {
       const fullNotes = buildFullReleaseNotes(
         changelogContent,
-        "v1.0.2",
-        "samplehash1234567890 KsatriaGraphx-v1.0.2-release.apk"
+        "v1.0.3",
+        "samplehash1234567890 KsatriaGraphx-v1.0.3-release.apk"
       );
       expect(fullNotes).toContain("### Panduan Instalasi APK");
       expect(fullNotes).toContain("### Checksum Integritas SHA-256");
-      expect(fullNotes).toContain("samplehash1234567890 KsatriaGraphx-v1.0.2-release.apk");
+      expect(fullNotes).toContain("samplehash1234567890 KsatriaGraphx-v1.0.3-release.apk");
     });
 
-    it("ekstraksi tag versi sebelumnya (v1.0.1) tetap valid dan terpelihara", () => {
-      const notes = extractReleaseNotes(changelogContent, "v1.0.1");
-      expect(notes).toBeDefined();
-      expect(notes.length).toBeGreaterThan(100);
-      expect(notes).toContain("Resolusi Base URL Login Android APK");
+    it("ekstraksi tag versi sebelumnya (v1.0.2 dan v1.0.1) tetap valid dan terpelihara", () => {
+      const notesV102 = extractReleaseNotes(changelogContent, "v1.0.2");
+      expect(notesV102).toBeDefined();
+      expect(notesV102.length).toBeGreaterThan(100);
+      expect(notesV102).toContain("Resolusi Jalur Login Android APK Produksi");
+
+      const notesV101 = extractReleaseNotes(changelogContent, "v1.0.1");
+      expect(notesV101).toBeDefined();
+      expect(notesV101.length).toBeGreaterThan(100);
+      expect(notesV101).toContain("Resolusi Base URL Login Android APK");
     });
   });
 

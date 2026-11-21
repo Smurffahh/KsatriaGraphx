@@ -12,6 +12,7 @@ import {
   Printer,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { toast } from "sonner";
 import { ThermalPrinterPanel } from "@/components/settings/ThermalPrinterPanel";
 
 interface StoreSettingsData {
@@ -97,18 +98,22 @@ export default function SettingsPage() {
       });
 
       if (res.success) {
+        toast.success("Pengaturan toko dan format nota berhasil disimpan.");
         setStatusMessage({
           type: "success",
           text: "Pengaturan toko dan format nota berhasil disimpan.",
         });
       } else {
+        const errorText = res.error || "Gagal memperbarui pengaturan toko.";
+        toast.error(errorText);
         setStatusMessage({
           type: "error",
-          text: res.error || "Gagal memperbarui pengaturan toko.",
+          text: errorText,
         });
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Terjadi kesalahan";
+      toast.error(msg);
       setStatusMessage({ type: "error", text: msg });
     } finally {
       setIsSaving(false);

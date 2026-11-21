@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Upload, X, RefreshCw, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 import { apiClient } from "@/lib/api/client";
 
 interface ProductImageUploaderProps {
@@ -43,16 +44,18 @@ export function ProductImageUploader({
 
     // 1. Validasi tipe file di client
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      setErrorMessage("Format file tidak didukung. Pilih file JPG, PNG, atau WebP.");
+      const msg = "Format file tidak didukung. Pilih file JPG, PNG, atau WebP.";
+      setErrorMessage(msg);
+      toast.error(msg);
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
     // 2. Validasi ukuran file di client (Maks 2 MB)
     if (file.size > MAX_FILE_SIZE) {
-      setErrorMessage(
-        `Ukuran file (${(file.size / (1024 * 1024)).toFixed(2)} MB) melebihi batas maksimal 2 MB.`
-      );
+      const msg = `Ukuran file (${(file.size / (1024 * 1024)).toFixed(2)} MB) melebihi batas maksimal 2 MB.`;
+      setErrorMessage(msg);
+      toast.error(msg);
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -76,14 +79,19 @@ export function ProductImageUploader({
       );
 
       if (res.success && res.data) {
+        setPreviewUrl(res.data.imageUrl);
         onUploadSuccess(res.data);
+        toast.success("Foto produk berhasil diunggah");
       } else {
-        setErrorMessage(res.error || "Gagal mengunggah foto produk.");
+        const msg = res.error || "Gagal mengunggah foto produk.";
+        setErrorMessage(msg);
+        toast.error(msg);
         setPreviewUrl(null);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Terjadi kesalahan saat mengunggah foto.";
       setErrorMessage(msg);
+      toast.error(msg);
       setPreviewUrl(null);
     } finally {
       setIsUploading(false);

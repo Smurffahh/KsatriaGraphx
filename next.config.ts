@@ -26,9 +26,9 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://*.public.blob.vercel-storage.com",
+      "img-src 'self' data: blob: https://*.public.blob.vercel-storage.com https://*.private.blob.vercel-storage.com",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.public.blob.vercel-storage.com",
+      "connect-src 'self' https://*.public.blob.vercel-storage.com https://*.private.blob.vercel-storage.com",
       "frame-ancestors 'none'",
     ].join("; "),
   },
@@ -44,12 +44,17 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  serverExternalPackages: ["sharp"],
   images: {
     unoptimized: isMobileBuild,
     remotePatterns: [
       {
         protocol: "https",
         hostname: "*.public.blob.vercel-storage.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.private.blob.vercel-storage.com",
       },
     ],
   },

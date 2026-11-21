@@ -13,6 +13,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { toast } from "sonner";
 
 interface OrderStatusModalProps {
   isOpen: boolean;
@@ -78,11 +79,18 @@ export function OrderStatusModal({
         throw new Error(res.error || "Gagal memperbarui status nota");
       }
 
+      toast.success(
+        selectedStatus === "CANCELLED"
+          ? `Nota ${order.invoiceNumber} berhasil dibatalkan`
+          : `Status nota berhasil diperbarui`
+      );
       onSuccess();
       onClose();
     } catch (err: unknown) {
       const errorObj = err as { message?: string };
-      setErrorMessage(errorObj.message || "Gagal memperbarui status nota");
+      const msg = errorObj.message || "Gagal memperbarui status nota";
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }

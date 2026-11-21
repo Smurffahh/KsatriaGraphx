@@ -23,6 +23,7 @@ import {
 import { isNativeApp } from "@/lib/platform";
 import { apiClient } from "@/lib/api/client";
 import { secureStorage } from "@/lib/auth/secure-storage";
+import { toast } from "sonner";
 
 interface AuthUserData {
   id: string;
@@ -101,6 +102,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoggingOut(false);
       setShowLogoutConfirm(false);
+      toast.success("Berhasil keluar dari sesi.");
       router.replace("/login");
     }
   }

@@ -90,9 +90,11 @@ describe("Fase 3 — US-004B: Media Storage & Image Sanitization Tests", () => {
   });
 
   it("harus memvalidasi URL Vercel Blob dan menolak URL berbahaya / SSRF", () => {
-    // Valid URLs
+    // Valid URLs (public, private, proxy path)
     expect(isValidVercelBlobUrl("https://abc123xyz.public.blob.vercel-storage.com/products/test.webp")).toBe(true);
     expect(isValidVercelBlobUrl("https://my-store.public.blob.vercel-storage.com/products/banner.webp")).toBe(true);
+    expect(isValidVercelBlobUrl("https://cljdu6wbfxonq2bw.private.blob.vercel-storage.com/products/test.webp")).toBe(true);
+    expect(isValidVercelBlobUrl("/api/uploads/product-image?key=products%2Fsample.webp")).toBe(true);
 
     // Invalid URLs (SSRF, protocol non-https, domain palsu, XSS)
     expect(isValidVercelBlobUrl("http://abc123xyz.public.blob.vercel-storage.com/products/test.webp")).toBe(false);

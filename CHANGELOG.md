@@ -4,6 +4,36 @@ Semua pembaruan terstruktur untuk proyek **Ksatria Graphx** didokumentasikan dal
 
 ---
 
+## [v1.0.3] - 2026-11-21
+
+Rilis pembaruan kritis untuk perbaikan pemrosesan upload foto produk pada private store Vercel Blob, pemulihan transaksi atomik database pada checkout POS, serta integrasi sistem notifikasi global Sonner toast pada Web dan Android APK.
+
+### Perbaikan Kritis & Stabilitas Sistem
+- **Perbaikan Upload Foto Produk Private Vercel Blob**:
+  - Mengimplementasikan fallback otomatis ke mode `access: "private"` pada `src/lib/storage/blob.ts` saat store Vercel Blob dikonfigurasi sebagai private store, guna mencegah error penolakan `Cannot use public access on a private store`.
+  - Menyediakan proxy streaming aman via handler `GET /api/uploads/product-image?key=...` menggunakan method `get()` dari `@vercel/blob` dengan caching browser jangka panjang (`Cache-Control: public, max-age=31536000, immutable`) dan resolusi MIME otomatis.
+  - Memperbarui skema validator `src/lib/validators/product.ts` dan konfigurasi CSP di `next.config.ts` untuk mengizinkan domain `*.private.blob.vercel-storage.com` serta path proxy lokal.
+  - Mendaftarkan paket `sharp` pada `serverExternalPackages` di `next.config.ts` dan menyematkan `export const runtime = "nodejs"` pada route upload gambar untuk memastikan pemrosesan WebP berjalan tanpa kendala di Node.js runtime.
+  - Memperbaiki komponen `src/components/products/ProductImageUploader.tsx` agar langsung menampilkan preview gambar yang diunggah dan mereset error state saat memilih file baru.
+- **Pemulihan Transaksi Atomik Checkout POS**:
+  - Merefaktor koneksi database di `src/db/index.ts` dari driver stateless `drizzle-orm/neon-http` ke `Pool` dari `@neondatabase/serverless` dengan `drizzle-orm/neon-serverless`.
+  - Mengatasi error fatal `No transactions support in neon-http driver` saat pemanggilan `db.transaction()` pada simpan nota kasir (`POST /api/orders`) dan pencatatan pembayaran (`POST /api/orders/[id]/payments`).
+  - Menjamin integritas ACID transaksi simpan nota: nomor invoice unik berurutan, snapshot produk, snapshot finishing, dan pembayaran awal tersimpan secara atomik.
+
+### Peningkatan Pengalaman Pengguna (UX)
+- **Sistem Notifikasi Global (Toast) dengan Sonner**:
+  - Menginstal dependensi `sonner` dan menyematkan komponen `<Toaster richColors closeButton duration={3500} />` pada `src/components/providers/QueryProvider.tsx` dengan posisi adaptif (`top-right` pada desktop, `top-center` dengan safe-area inset pada mobile).
+  - Mengintegrasikan notifikasi toast feedback sukses, info, peringatan, dan error pada seluruh alur pengguna utama:
+    - **Autentikasi**: Login dan Logout di Web & Android APK.
+    - **POS & Kasir**: Tambah/hapus/edit item keranjang, checkout nota sukses, serta error validasi simpan nota.
+    - **Katalog Produk & Finishing**: Tambah produk, edit produk, hapus produk, upload foto, kategori, dan opsi finishing.
+    - **Manajemen Transaksi & Pembayaran**: Update status pengerjaan, pelunasan sisa tagihan/DP nota.
+    - **Manajemen Pelanggan & Pengguna**: Tambah dan perbarui data pelanggan serta manajemen akun pengguna.
+    - **Pengaturan & Printer Kasir**: Simpan konfigurasi toko, koneksi bluetooth printer thermal ESC/POS, dan cetak struk nota.
+    - **Laporan Penjualan**: Filter rentang tanggal dan export rekapitulasi CSV.
+
+---
+
 ## [v1.0.2] - 2026-11-21
 
 Rilis pembaruan produksi resmi untuk pemulihan menyeluruh autentikasi Android APK, sinkronisasi kredensial database Neon live, pengerasan ProGuard, dan otomasi rilis GitHub Actions.

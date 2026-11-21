@@ -1,9 +1,13 @@
 import { z } from "zod";
 
 /**
- * Memvalidasi apakah URL mengarah ke domain resmi Vercel Blob publik.
+ * Memvalidasi apakah URL mengarah ke domain resmi Vercel Blob (public/private) atau endpoint proxy lokal.
  */
 export function isValidVercelBlobUrl(urlString: string): boolean {
+  if (!urlString) return false;
+  if (urlString.startsWith("/api/uploads/product-image")) {
+    return true;
+  }
   try {
     const parsed = new URL(urlString);
     if (parsed.protocol !== "https:") {
@@ -11,6 +15,7 @@ export function isValidVercelBlobUrl(urlString: string): boolean {
     }
     return (
       parsed.hostname.endsWith(".public.blob.vercel-storage.com") ||
+      parsed.hostname.endsWith(".private.blob.vercel-storage.com") ||
       parsed.hostname === "blob.vercel-storage.com"
     );
   } catch {

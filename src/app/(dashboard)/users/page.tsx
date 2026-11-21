@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { PlatformGate } from "@/components/layout/PlatformGate";
 import { apiClient } from "@/lib/api/client";
+import { toast } from "sonner";
 
 interface UserItem {
   id: string;
@@ -111,6 +112,7 @@ export default function UsersPage() {
   }, []);
 
   function showSuccess(msg: string) {
+    toast.success(msg);
     setFeedback({ type: "success", message: msg });
     setTimeout(() => {
       setFeedback((prev) => (prev?.message === msg ? null : prev));
@@ -118,6 +120,7 @@ export default function UsersPage() {
   }
 
   function showError(msg: string) {
+    toast.error(msg);
     setFeedback({ type: "error", message: msg });
   }
 

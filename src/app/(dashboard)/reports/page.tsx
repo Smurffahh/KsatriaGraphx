@@ -17,6 +17,7 @@ import {
   DollarSign,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { toast } from "sonner";
 
 interface ReportSummary {
   totalOmzet: number;
@@ -184,8 +185,10 @@ export default function ReportsPage() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      toast.success("Laporan penjualan CSV berhasil diunduh");
     } catch (err) {
       console.error("Gagal export CSV:", err);
+      toast.error("Gagal mengekspor laporan CSV");
     } finally {
       setIsExporting(false);
     }

@@ -27,7 +27,8 @@ export function extractReleaseNotes(changelogContent, tag) {
     }
   }
 
-  return capturedLines.join("\n").trim();
+  const result = capturedLines.join("\n").trim();
+  return result.replace(/(?:\r?\n)\s*---\s*$/g, "").trim();
 }
 
 export function buildFullReleaseNotes(changelogContent, tag, sha256Content = "") {

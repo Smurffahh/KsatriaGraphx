@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Image from "next/image";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Package,
   Plus,
@@ -50,6 +51,7 @@ interface UserProfile {
 }
 
 export default function ProductsPage() {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"products" | "categories" | "finishings">("products");
   const [user, setUser] = useState<UserProfile | null>(null);
 
@@ -190,6 +192,7 @@ export default function ProductsPage() {
       }
 
       await loadInitialData();
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       setIsProductModalOpen(false);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Terjadi kesalahan saat menyimpan produk";
@@ -217,6 +220,7 @@ export default function ProductsPage() {
 
       toast.success(`Produk "${deleteProductTarget.name}" berhasil dihapus`);
       await loadInitialData();
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       setDeleteProductTarget(null);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus";

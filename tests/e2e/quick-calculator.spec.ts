@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("E2E: Quick Calculator & Material Comparison", () => {
-  test("1. Desktop: Buka Kalkulator Cepat dari Top Bar, hitung estimasi, salin teks WA, dan kirim ke POS", async ({ page, isMobile }) => {
+  test("1. Desktop: Buka Kalkulator Cepat dari Top Bar, ganti produk via Katalog Picker visual, salin teks WA, dan kirim ke POS", async ({ page, isMobile }) => {
     test.skip(isMobile, "Desktop top bar hanya aktif di viewport desktop (>= 1024px)");
 
     await page.goto("/dashboard");
@@ -16,9 +16,25 @@ test.describe("E2E: Quick Calculator & Material Comparison", () => {
     const sheetTitle = page.getByText(/Kalkulator Cepat & Perbandingan/i);
     await expect(sheetTitle).toBeVisible({ timeout: 10000 });
 
-    // Tunggu dropdown produk termuat
-    const selectProductA = page.locator("select").first();
-    await expect(selectProductA).toBeVisible({ timeout: 10000 });
+    // Verifikasi Kartu Visual Bahan Utama (Opsi A) atau Katalog Picker tampil
+    const changeProductBtn = page.getByRole("button", { name: /Ganti/i }).first();
+    await expect(changeProductBtn).toBeVisible({ timeout: 10000 });
+
+    // Buka Katalog Picker visual dengan menekan tombol Ganti
+    await changeProductBtn.click();
+
+    // Pastikan kolom pencarian katalog muncul
+    const searchInput = page.getByPlaceholder(/Cari bahan atau produk/i);
+    await expect(searchInput).toBeVisible({ timeout: 5000 });
+
+    // Ketik pencarian untuk memfilter katalog
+    await searchInput.fill("Banner");
+
+    // Klik salah satu kartu produk dari hasil katalog
+    const catalogCards = page.locator('button:has-text("Rp")');
+    if (await catalogCards.count() > 0) {
+      await catalogCards.first().click();
+    }
 
     // Pastikan tombol Salin dan Lanjut ke POS aktif
     const copyBtn = page.getByRole("button", { name: /Salin Estimasi/i });
@@ -36,7 +52,7 @@ test.describe("E2E: Quick Calculator & Material Comparison", () => {
     await expect(cartSummary).toBeVisible({ timeout: 10000 });
   });
 
-  test("2. Shortcut Alt+K: Toggle kalkulator cepat & komparasi 2 bahan", async ({ page, isMobile }) => {
+  test("2. Shortcut Alt+K: Toggle kalkulator cepat & komparasi 2 bahan dengan katalog visual", async ({ page, isMobile }) => {
     test.skip(isMobile, "Shortcut Alt+K desktop testing");
 
     await page.goto("/orders");
@@ -54,7 +70,7 @@ test.describe("E2E: Quick Calculator & Material Comparison", () => {
     await compareSwitch.click();
 
     // Verifikasi slot Bahan Pembanding (Opsi B) muncul
-    const labelB = page.getByText(/Bahan Pembanding \(Opsi B\)/i);
+    const labelB = page.getByText("Bahan Pembanding (Opsi B)", { exact: true }).first();
     await expect(labelB).toBeVisible();
 
     // Tekan Alt+K lagi untuk menutup

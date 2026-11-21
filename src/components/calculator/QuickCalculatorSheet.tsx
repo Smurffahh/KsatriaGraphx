@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -14,6 +15,8 @@ import {
   Plus,
   Minus,
   Sparkles,
+  Package,
+  ChevronDown,
 } from "lucide-react";
 import {
   Sheet,
@@ -27,6 +30,11 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiClient } from "@/lib/api/client";
+import {
+  QuickCatalogPicker,
+  resolveProductImageUrl,
+  type CatalogPickerCategory,
+} from "@/components/calculator/QuickCatalogPicker";
 import {
   calculateOrderItem,
   type PricingType,
@@ -47,13 +55,20 @@ import type { CartItem } from "@/components/pos/PosItemCalculator";
 export interface QuickCalcProduct {
   id: string;
   name: string;
+  sku?: string | null;
+  categoryId?: string | null;
+  categoryName?: string | null;
+  categorySlug?: string | null;
+  description?: string | null;
   imageUrl?: string | null;
+  imageKey?: string | null;
   pricingType: PricingType;
   unitLabel: string;
   basePrice: number;
   minArea?: string | number | null;
   areaRounding: AreaRounding;
   tiers?: PriceTier[];
+  priceTiers?: PriceTier[];
   isActive: boolean;
 }
 
@@ -89,17 +104,27 @@ export function QuickCalculatorSheet({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Fetch Master Data
+  // Fetch Master Data Produk (Gunakan queryKey ["products", "active"] untuk sinkronisasi)
   const {
     data: products = [],
     isLoading: isLoadingProducts,
     isError: isErrorProducts,
     refetch: refetchProducts,
   } = useQuery<QuickCalcProduct[]>({
-    queryKey: ["quick-calc-products"],
+    queryKey: ["products", "active"],
     queryFn: async () => {
-      const res = await apiClient<QuickCalcProduct[]>("/api/products");
+      const res = await apiClient<QuickCalcProduct[]>("/api/products?includeInactive=false");
       return (res.data || []).filter((p) => p.isActive);
+    },
+    staleTime: 60 * 1000,
+  });
+
+  // Fetch Kategori untuk filter di QuickCatalogPicker
+  const { data: categories = [] } = useQuery<CatalogPickerCategory[]>({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const res = await apiClient<CatalogPickerCategory[]>("/api/categories");
+      return res.data || [];
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -125,10 +150,19 @@ export function QuickCalculatorSheet({
     staleTime: 10 * 60 * 1000,
   });
 
-  // State Pilihan Produk
+  // State Pilihan Produk & Dialog Picker
   const [productAId, setProductAId] = useState<string>("");
   const [productBId, setProductBId] = useState<string>("");
+  const [isPickerAOpen, setIsPickerAOpen] = useState(false);
+  const [isPickerBOpen, setIsPickerBOpen] = useState(false);
   const [isComparisonMode, setIsComparisonMode] = useState(false);
+
+  // Selalu segarkan data produk saat panel dibuka
+  useEffect(() => {
+    if (isOpen) {
+      refetchProducts();
+    }
+  }, [isOpen, refetchProducts]);
 
   // Parameter Ukuran & Jumlah
   const [width, setWidth] = useState<number | "">(2);
@@ -411,20 +445,20 @@ export function QuickCalculatorSheet({
         } flex flex-col gap-0 overflow-hidden bg-card text-card-foreground border-border`}
       >
         {/* Header Panel */}
-        <SheetHeader className="pb-4 border-b border-border space-y-1 text-left shrink-0">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <SheetHeader className="pb-4 border-b border-border space-y-1 text-left shrink-0 pr-9 sm:pr-10">
+          <div className="flex items-center justify-between gap-3 min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
                 <Calculator className="size-5" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <SheetTitle className="text-base font-bold tracking-tight text-foreground flex items-center gap-2">
-                  <span>Kalkulator Cepat & Perbandingan</span>
-                  <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0">
+                  <span className="truncate">Kalkulator Cepat & Perbandingan</span>
+                  <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0 shrink-0">
                     Instan
                   </Badge>
                 </SheetTitle>
-                <SheetDescription className="text-xs text-muted-foreground">
+                <SheetDescription className="text-xs text-muted-foreground truncate">
                   Cek harga percetakan, bandingkan 2 bahan, dan salin ke WhatsApp
                 </SheetDescription>
               </div>
@@ -479,18 +513,75 @@ export function QuickCalculatorSheet({
                   )}
                 </div>
 
-                <select
-                  value={productAId}
-                  onChange={(e) => setProductAId(e.target.value)}
-                  className="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-base sm:text-sm text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20 font-medium"
-                >
-                  {products.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} — {formatRupiah(p.basePrice)}
-                      {p.pricingType === "AREA" ? "/m²" : `/${p.unitLabel || "pcs"}`}
-                    </option>
-                  ))}
-                </select>
+                {isPickerAOpen || !productA ? (
+                  <QuickCatalogPicker
+                    products={products}
+                    categories={categories}
+                    selectedProductId={productA?.id || ""}
+                    onSelectProduct={(p) => {
+                      setProductAId(p.id);
+                      setIsPickerAOpen(false);
+                    }}
+                    title="Katalog Bahan Utama (Opsi A)"
+                    onClose={productA ? () => setIsPickerAOpen(false) : undefined}
+                  />
+                ) : (
+                  <div className="group relative flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 shadow-2xs hover:border-primary/50 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="relative size-12 shrink-0 overflow-hidden rounded-lg border border-border/80 bg-muted/60">
+                        {resolveProductImageUrl(productA.imageUrl) ? (
+                          <Image
+                            src={resolveProductImageUrl(productA.imageUrl)!}
+                            alt={productA.name}
+                            fill
+                            sizes="48px"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-muted-foreground/60">
+                            <Package className="size-6" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="text-sm font-semibold text-foreground truncate" title={productA.name}>
+                            {productA.name}
+                          </p>
+                          {productA.categoryName && (
+                            <span className="text-[10px] font-medium text-muted-foreground">
+                              • {productA.categoryName}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="font-mono text-xs font-bold text-primary tabular-nums">
+                            {formatRupiah(productA.basePrice)}
+                            <span className="text-[11px] font-normal text-muted-foreground">
+                              {productA.pricingType === "AREA" ? "/m²" : `/${productA.unitLabel || "pcs"}`}
+                            </span>
+                          </span>
+                          {(productA.tiers?.length || 0) > 0 && (
+                            <Badge variant="outline" className="text-[9px] px-1 py-0 text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+                              Grosir
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsPickerAOpen(true)}
+                      className="h-8 shrink-0 text-xs gap-1 border-primary/30 hover:bg-primary/5 hover:text-primary"
+                    >
+                      <span>Ganti</span>
+                      <ChevronDown className="size-3.5 opacity-70" />
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* Seksi 2: Toggle Bandingkan 2 Bahan */}
@@ -514,30 +605,89 @@ export function QuickCalculatorSheet({
               {/* Seksi 3: Pemilihan Bahan Pembanding (Opsi B) jika Toggle Aktif */}
               {isComparisonMode && (
                 <div className="space-y-2 rounded-xl border border-primary/20 bg-primary/5 p-3.5">
-                  <label className="text-xs font-bold text-primary uppercase tracking-wider flex items-center justify-between">
-                    <span>Bahan Pembanding (Opsi B)</span>
-                    <span className="text-[10px] lowercase font-normal">
-                      tipe {productA?.pricingType === "AREA" ? "meteran" : "satuan"}
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-primary uppercase tracking-wider">
+                      Bahan Pembanding (Opsi B)
+                    </label>
+                    <span className="text-[10px] lowercase font-normal text-muted-foreground">
+                      tipe {productA?.pricingType === "AREA" ? "meteran (m²)" : "satuan (pcs)"}
                     </span>
-                  </label>
+                  </div>
 
                   {availableProductsB.length === 0 ? (
                     <p className="text-xs text-muted-foreground italic">
                       Tidak ada produk lain dengan tipe perhitungan yang sama untuk dibandingkan.
                     </p>
+                  ) : isPickerBOpen || !productB ? (
+                    <QuickCatalogPicker
+                      products={products}
+                      categories={categories}
+                      selectedProductId={productB?.id || ""}
+                      allowedPricingType={productA?.pricingType}
+                      excludeProductId={productA?.id}
+                      onSelectProduct={(p) => {
+                        setProductBId(p.id);
+                        setIsPickerBOpen(false);
+                      }}
+                      title="Katalog Bahan Pembanding (Opsi B)"
+                      onClose={productB ? () => setIsPickerBOpen(false) : undefined}
+                    />
                   ) : (
-                    <select
-                      value={productBId}
-                      onChange={(e) => setProductBId(e.target.value)}
-                      className="w-full rounded-lg border border-primary/30 bg-background px-3.5 py-2.5 text-base sm:text-sm text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20 font-medium"
-                    >
-                      {availableProductsB.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} — {formatRupiah(p.basePrice)}
-                          {p.pricingType === "AREA" ? "/m²" : `/${p.unitLabel || "pcs"}`}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="group relative flex items-center justify-between gap-3 rounded-xl border border-primary/30 bg-background p-3 shadow-2xs hover:border-primary transition-colors">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="relative size-12 shrink-0 overflow-hidden rounded-lg border border-border/80 bg-muted/60">
+                          {resolveProductImageUrl(productB.imageUrl) ? (
+                            <Image
+                              src={resolveProductImageUrl(productB.imageUrl)!}
+                              alt={productB.name}
+                              fill
+                              sizes="48px"
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-muted-foreground/60">
+                              <Package className="size-6" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="text-sm font-semibold text-foreground truncate" title={productB.name}>
+                              {productB.name}
+                            </p>
+                            {productB.categoryName && (
+                              <span className="text-[10px] font-medium text-muted-foreground">
+                                • {productB.categoryName}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="font-mono text-xs font-bold text-primary tabular-nums">
+                              {formatRupiah(productB.basePrice)}
+                              <span className="text-[11px] font-normal text-muted-foreground">
+                                {productB.pricingType === "AREA" ? "/m²" : `/${productB.unitLabel || "pcs"}`}
+                              </span>
+                            </span>
+                            {(productB.tiers?.length || 0) > 0 && (
+                              <Badge variant="outline" className="text-[9px] px-1 py-0 text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+                                Grosir
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsPickerBOpen(true)}
+                        className="h-8 shrink-0 text-xs gap-1 border-primary/30 hover:bg-primary/5 hover:text-primary"
+                      >
+                        <span>Ganti</span>
+                        <ChevronDown className="size-3.5 opacity-70" />
+                      </Button>
+                    </div>
                   )}
                 </div>
               )}

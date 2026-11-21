@@ -87,12 +87,18 @@ export async function runCatalogSeed(): Promise<SeedCatalogResult> {
     }
 
     const existing = await db
-      .select({ id: products.id })
+      .select({ id: products.id, isActive: products.isActive })
       .from(products)
       .where(or(...conditions))
       .limit(1);
 
     if (existing.length > 0) {
+      if (!existing[0].isActive) {
+        await db
+          .update(products)
+          .set({ isActive: true })
+          .where(eq(products.id, existing[0].id));
+      }
       result.productsSkipped++;
       continue;
     }

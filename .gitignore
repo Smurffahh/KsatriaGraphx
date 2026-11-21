@@ -26,15 +26,17 @@ playwright/.auth/
 *.key
 ! .env.example
 
-# Local PRD and planning tasks (Kept safely on local disk, never pushed to git)
+# Local PRD, planning tasks & temporary release artifacts
 tasks/
 Tasks/
 prd/
 PRD/
+skill/
 *.prd.md
 *.PRD.md
 progress-*.md
 Progress-*.md
+release-notes.md
 
 # TypeScript cache & generated types
 *.tsbuildinfo
@@ -62,12 +64,15 @@ Thumbs.db
 
 # AI tool configs & local assistant caches
 .antigravity/
+.agent/
+.agents/
+.gemini/
 .cursor/
 .claude/
 skills/
 skills-lock.json
 
-# Android & Capacitor artifacts
+# Android & Capacitor artifacts & packages
 android/app/build/
 android/app/src/main/assets/public/
 android/.gradle/
@@ -77,3 +82,7 @@ android/local.properties
 *.aab
 *.keystore
 *.jks
+*.zip
+
+# Preserve critical Android Gradle wrapper jar
+!android/gradle/wrapper/gradle-wrapper.jar

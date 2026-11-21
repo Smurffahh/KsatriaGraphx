@@ -93,7 +93,6 @@ export function QuickCalculatorSheet({
   const router = useRouter();
   const pathname = usePathname();
 
-  // Deteksi responsive untuk side Sheet (Desktop: right, Mobile: bottom)
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const checkMobile = () => {
@@ -104,7 +103,6 @@ export function QuickCalculatorSheet({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Fetch Master Data Produk (Gunakan queryKey ["products", "active"] untuk sinkronisasi)
   const {
     data: products = [],
     isLoading: isLoadingProducts,
@@ -119,7 +117,6 @@ export function QuickCalculatorSheet({
     staleTime: 60 * 1000,
   });
 
-  // Fetch Kategori untuk filter di QuickCatalogPicker
   const { data: categories = [] } = useQuery<CatalogPickerCategory[]>({
     queryKey: ["categories"],
     queryFn: async () => {
@@ -150,30 +147,25 @@ export function QuickCalculatorSheet({
     staleTime: 10 * 60 * 1000,
   });
 
-  // State Pilihan Produk & Dialog Picker
   const [productAId, setProductAId] = useState<string>("");
   const [productBId, setProductBId] = useState<string>("");
   const [isPickerAOpen, setIsPickerAOpen] = useState(false);
   const [isPickerBOpen, setIsPickerBOpen] = useState(false);
   const [isComparisonMode, setIsComparisonMode] = useState(false);
 
-  // Selalu segarkan data produk saat panel dibuka
   useEffect(() => {
     if (isOpen) {
       refetchProducts();
     }
   }, [isOpen, refetchProducts]);
 
-  // Parameter Ukuran & Jumlah
   const [width, setWidth] = useState<number | "">(2);
   const [height, setHeight] = useState<number | "">(1);
   const [dimensionUnit, setDimensionUnit] = useState<AreaDimensionUnit>("m");
   const [quantity, setQuantity] = useState<number>(1);
 
-  // Finishing Terpilih
   const [selectedFinishingIds, setSelectedFinishingIds] = useState<string[]>([]);
 
-  // Set default product saat data termuat
   useEffect(() => {
     if (products.length > 0 && !productAId) {
       setProductAId(products[0].id);
@@ -184,7 +176,6 @@ export function QuickCalculatorSheet({
     return products.find((p) => p.id === productAId) || products[0] || null;
   }, [products, productAId]);
 
-  // Daftar produk pembanding B (hanya bertipe sama & bukan produk A)
   const availableProductsB = useMemo(() => {
     if (!productA) return [];
     return products.filter(
@@ -192,7 +183,6 @@ export function QuickCalculatorSheet({
     );
   }, [products, productA]);
 
-  // Set default product B saat mode perbandingan diaktifkan
   useEffect(() => {
     if (isComparisonMode && availableProductsB.length > 0) {
       if (!productBId || !availableProductsB.some((p) => p.id === productBId)) {
@@ -206,7 +196,6 @@ export function QuickCalculatorSheet({
     return availableProductsB.find((p) => p.id === productBId) || null;
   }, [isComparisonMode, availableProductsB, productBId]);
 
-  // Toggle Finishing
   const handleToggleFinishing = (finishingId: string) => {
     setSelectedFinishingIds((prev) =>
       prev.includes(finishingId)
@@ -215,14 +204,12 @@ export function QuickCalculatorSheet({
     );
   };
 
-  // Preset Cepat Ukuran Banner
   const handleApplyPreset = (w: number, h: number) => {
     setWidth(w);
     setHeight(h);
     setDimensionUnit("m");
   };
 
-  // Reset Input
   const handleReset = () => {
     setWidth(2);
     setHeight(1);
@@ -233,7 +220,6 @@ export function QuickCalculatorSheet({
     toast.info("Input kalkulator telah direset ke default.");
   };
 
-  // Siapkan objek finishing untuk pricing calculator
   const calcFinishingInputs = useMemo<FinishingItemCalculation[]>(() => {
     return selectedFinishingIds
       .map((id) => {
@@ -250,7 +236,6 @@ export function QuickCalculatorSheet({
       .filter(Boolean) as FinishingItemCalculation[];
   }, [selectedFinishingIds, finishings]);
 
-  // Hitung Hasil Produk A
   const calcResultA = useMemo<CalculateItemResult | null>(() => {
     if (!productA) return null;
     const safeQty = Math.max(1, Number(quantity) || 1);
@@ -268,7 +253,6 @@ export function QuickCalculatorSheet({
     });
   }, [productA, quantity, width, height, dimensionUnit, calcFinishingInputs]);
 
-  // Hitung Hasil Produk B (Mode Perbandingan)
   const calcResultB = useMemo<CalculateItemResult | null>(() => {
     if (!productB || !isComparisonMode) return null;
     const safeQty = Math.max(1, Number(quantity) || 1);
@@ -286,7 +270,6 @@ export function QuickCalculatorSheet({
     });
   }, [productB, isComparisonMode, quantity, width, height, dimensionUnit, calcFinishingInputs]);
 
-  // Helper Salin ke Clipboard (Aman di Browser & WebView Android)
   const handleCopyEstimate = async () => {
     if (!productA || !calcResultA) return;
 
@@ -355,7 +338,7 @@ export function QuickCalculatorSheet({
         success = true;
       }
     } catch {
-      // Fallback untuk WebView
+      // Fallback for WebView contexts lacking navigator.clipboard
     }
 
     if (!success) {
@@ -384,7 +367,6 @@ export function QuickCalculatorSheet({
     }
   };
 
-  // Helper Melempar Item ke Keranjang POS
   const handleHandoffToPos = (
     targetProduct: QuickCalcProduct,
     calcResult: CalculateItemResult

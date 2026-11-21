@@ -15,6 +15,9 @@ import { getServerEnv } from "@/lib/env";
 import { middleware } from "@/middleware";
 import { NextRequest } from "next/server";
 import { isNativeApp } from "@/lib/platform";
+import { extractReleaseNotes, buildFullReleaseNotes } from "../scripts/extract-changelog.mjs";
+import fs from "fs";
+import path from "path";
 
 describe("Validasi Konfigurasi Environment, CORS & 4-Layer Guard Produksi", () => {
   const originalEnv = { ...process.env };
@@ -247,6 +250,53 @@ describe("Validasi Konfigurasi Environment, CORS & 4-Layer Guard Produksi", () =
         Capacitor: undefined,
       });
       expect(isNativeApp()).toBe(false);
+    });
+  });
+
+  describe("6. Otomasi Ekstraksi Catatan Rilis CHANGELOG.md (v1.0.1)", () => {
+    const changelogPath = path.join(process.cwd(), "CHANGELOG.md");
+    const changelogContent = fs.readFileSync(changelogPath, "utf-8");
+
+    it("ekstraksi tag v1.0.1 dari CHANGELOG.md harus menghasilkan teks rilis yang tidak kosong", () => {
+      const notes = extractReleaseNotes(changelogContent, "v1.0.1");
+      expect(notes).toBeDefined();
+      expect(notes.length).toBeGreaterThan(100);
+      expect(notes).toContain("Resolusi Base URL Login Android APK");
+      expect(notes).toContain("Peningkatan Diagnosa Error Login");
+      expect(notes).toContain("CORS Preflight Global & Edge-Safe");
+    });
+
+    it("ekstraksi tag versi tanpa prefix v (1.0.1) harus menghasilkan teks yang identik", () => {
+      const notesWithV = extractReleaseNotes(changelogContent, "v1.0.1");
+      const notesWithoutV = extractReleaseNotes(changelogContent, "1.0.1");
+      expect(notesWithoutV).toBe(notesWithV);
+    });
+
+    it("buildFullReleaseNotes harus menyertakan panduan instalasi dan blok SHA-256", () => {
+      const fullNotes = buildFullReleaseNotes(
+        changelogContent,
+        "v1.0.1",
+        "samplehash1234567890 KsatriaGraphx-v1.0.1-release.apk"
+      );
+      expect(fullNotes).toContain("### Panduan Instalasi APK");
+      expect(fullNotes).toContain("### Checksum Integritas SHA-256");
+      expect(fullNotes).toContain("samplehash1234567890 KsatriaGraphx-v1.0.1-release.apk");
+    });
+  });
+
+  describe("7. Integritas 4-Layer Guard vs APK Platform", () => {
+    it("request dari origin https://localhost atau Bearer token ke route admin Web-Only harus ditolak 403", () => {
+      const capacitorOriginError = handleGuardError(new Error("FORBIDDEN_CAPACITOR_ORIGIN"));
+      expect(capacitorOriginError.status).toBe(403);
+      expect(capacitorOriginError.code).toBe("FORBIDDEN_CAPACITOR_ORIGIN");
+
+      const bearerError = handleGuardError(new Error("FORBIDDEN_BEARER_NOT_ALLOWED"));
+      expect(bearerError.status).toBe(403);
+      expect(bearerError.code).toBe("FORBIDDEN_BEARER_NOT_ALLOWED");
+
+      const platformError = handleGuardError(new Error("FORBIDDEN_PLATFORM_NOT_WEB"));
+      expect(platformError.status).toBe(403);
+      expect(platformError.code).toBe("FORBIDDEN_PLATFORM_NOT_WEB");
     });
   });
 });

@@ -198,11 +198,19 @@ jobs:
           path: dist-apk/
           retention-days: 30
 
-      - name: 13F. Publish to GitHub Releases (Tag Push Only)
+      - name: 13F. Generate Release Notes from CHANGELOG.md
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        run: |
+          node scripts/extract-changelog.mjs "${{ github.ref_name }}" "${{ runner.temp }}/release-notes.md" "dist-apk/SHA256SUMS.txt"
+          echo "Pratinjau Catatan Rilis:"
+          cat "${{ runner.temp }}/release-notes.md"
+
+      - name: 13G. Publish to GitHub Releases (Tag Push Only)
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           name: "Ksatria Graphx Release ${{ github.ref_name }}"
+          body_path: ${{ runner.temp }}/release-notes.md
           files: |
             dist-apk/KsatriaGraphx-*-release.apk
             dist-apk/SHA256SUMS.txt

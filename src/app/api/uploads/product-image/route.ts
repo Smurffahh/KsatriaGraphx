@@ -11,7 +11,11 @@ import {
   ImageValidationError,
   MAX_IMAGE_SIZE_BYTES,
 } from "@/lib/security/image-validator";
-import { uploadProductImage } from "@/lib/storage/blob";
+import {
+  uploadProductImage,
+  MissingBlobTokenError,
+  PrivateBlobStoreError,
+} from "@/lib/storage/blob";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -216,6 +220,29 @@ export async function POST(request: Request) {
       );
     }
 
+    if (error instanceof MissingBlobTokenError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "BLOB_READ_WRITE_TOKEN belum terpasang di environment server",
+          code: "BLOB_TOKEN_MISSING",
+        },
+        { status: 503, headers: corsHeaders }
+      );
+    }
+
+    if (error instanceof PrivateBlobStoreError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Vercel Blob Store masih bertipe Private. Ubah atau hubungkan Blob Store bertipe Public di Dashboard Vercel",
+          code: "BLOB_STORE_PRIVATE",
+        },
+        { status: 503, headers: corsHeaders }
+      );
+    }
+
     if (error instanceof Error) {
       if (error.message === "UNAUTHORIZED") {
         return NextResponse.json(
@@ -235,6 +262,29 @@ export async function POST(request: Request) {
             code: "FORBIDDEN",
           },
           { status: 403, headers: corsHeaders }
+        );
+      }
+
+      const msg = error.message.toLowerCase();
+      if (msg.includes("sharp") || msg.includes("unsupported image format") || msg.includes("input buffer")) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Gagal memproses file gambar. Pastikan file JPG, PNG, atau WebP tidak rusak",
+            code: "IMAGE_PROCESSING_FAILED",
+          },
+          { status: 422, headers: corsHeaders }
+        );
+      }
+
+      if (msg.includes("access denied") || msg.includes("forbidden") || msg.includes("invalid token")) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Akses penyimpanan foto ditolak. Periksa keabsahan token Vercel Blob",
+            code: "BLOB_ACCESS_DENIED",
+          },
+          { status: 503, headers: corsHeaders }
         );
       }
     }

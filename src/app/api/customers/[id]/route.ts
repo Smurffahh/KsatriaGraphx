@@ -98,7 +98,10 @@ export async function PATCH(
     const [updated] = await db
       .update(customers)
       .set({
-        ...validated,
+        name: validated.name,
+        phone: validated.phone,
+        address: validated.address,
+        notes: validated.notes,
         updatedAt: new Date(),
       })
       .where(eq(customers.id, id))

@@ -61,11 +61,21 @@ export function errorResponse(
 
 export function handleApiError(err: unknown) {
   if (err instanceof ZodError) {
+    const flat = err.flatten();
+    let firstMsg: string | undefined = flat.formErrors?.[0];
+    if (!firstMsg) {
+      const fieldErrors = flat.fieldErrors as Record<string, string[] | undefined>;
+      const fieldKeys = Object.keys(fieldErrors);
+      if (fieldKeys.length > 0) {
+        firstMsg = fieldErrors[fieldKeys[0]]?.[0];
+      }
+    }
+    const message = firstMsg ? `Validasi gagal: ${firstMsg}` : "Validasi data gagal";
     return NextResponse.json(
       {
         success: false,
-        error: "Validasi data gagal",
-        details: err.flatten().fieldErrors,
+        error: message,
+        details: flat.fieldErrors,
       },
       { status: 400 }
     );

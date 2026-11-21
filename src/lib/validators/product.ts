@@ -101,46 +101,105 @@ export function validatePriceTiers(tiers: PriceTierInput[]): { isValid: boolean;
   return { isValid: true };
 }
 
-const safeImageUrlSchema = z
+/**
+ * Format ringkas dan ramah manusia dari ZodError untuk diteruskan ke toast / alert UI.
+ */
+export function formatZodError(error: z.ZodError): string {
+  const flat = error.flatten();
+  if (flat.formErrors && flat.formErrors.length > 0) {
+    return flat.formErrors[0];
+  }
+  const fieldErrors = flat.fieldErrors as Record<string, string[] | undefined>;
+  const fieldKeys = Object.keys(fieldErrors);
+  if (fieldKeys.length > 0) {
+    const firstField = fieldKeys[0];
+    const messages = fieldErrors[firstField];
+    if (messages && messages.length > 0 && messages[0]) {
+      return messages[0];
+    }
+  }
+  return "Format data tidak valid";
+}
+
+export const safeImageUrlSchema = z
   .string()
   .trim()
+  .optional()
+  .nullable()
+  .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
   .refine(
     (url) => !url || isValidVercelBlobUrl(url),
-    "URL foto produk harus berasal dari CDN resmi Vercel Blob (*.public.blob.vercel-storage.com)"
-  )
-  .optional()
-  .nullable();
+    "URL foto produk harus berasal dari CDN resmi Vercel Blob (*.public.blob.vercel-storage.com atau proxy lokal)"
+  );
 
 export const createProductSchema = z
   .object({
+    id: z.string().uuid("ID produk harus berupa UUID valid").optional().nullable(),
     categoryId: z.string().uuid("ID Kategori harus berupa UUID yang valid"),
     name: z.string().trim().min(1, "Nama produk wajib diisi").max(150, "Maksimal 150 karakter"),
-    sku: z.string().trim().max(50).optional().nullable(),
-    description: z.string().trim().max(1000).optional().nullable(),
+    sku: z
+      .string()
+      .trim()
+      .max(50, "SKU maksimal 50 karakter")
+      .optional()
+      .nullable()
+      .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
+    description: z
+      .string()
+      .trim()
+      .max(1000, "Deskripsi maksimal 1000 karakter")
+      .optional()
+      .nullable()
+      .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
     imageUrl: safeImageUrlSchema,
-    imageKey: z.string().trim().max(255).optional().nullable(),
+    imageKey: z
+      .string()
+      .trim()
+      .max(255)
+      .optional()
+      .nullable()
+      .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
     pricingType: pricingTypeEnum,
     unitLabel: z.string().trim().min(1, "Label satuan wajib diisi (misal: m², pcs, lembar)").max(30),
-    basePrice: z.number().int("Harga dasar harus bilangan bulat").min(0, "Harga dasar minimal 0"),
-    minArea: z.number().min(0.01, "Minimal luas harus lebih dari 0").default(1.0),
+    basePrice: z.coerce.number().int("Harga dasar harus bilangan bulat").min(0, "Harga dasar minimal 0"),
+    minArea: z.coerce.number().min(0.01, "Minimal luas harus lebih dari 0").default(1.0),
     areaRounding: areaRoundingEnum.default("EXACT"),
     isActive: z.boolean().default(true),
-    tiers: z.array(priceTierSchema).optional(),
+    tiers: z.array(priceTierSchema).optional().default([]),
   })
   .strict();
 
 export const updateProductSchema = z
   .object({
+    id: z.string().uuid("ID produk harus berupa UUID valid").optional().nullable(),
     categoryId: z.string().uuid("ID Kategori harus berupa UUID yang valid").optional(),
     name: z.string().trim().min(1, "Nama produk wajib diisi").max(150, "Maksimal 150 karakter").optional(),
-    sku: z.string().trim().max(50).optional().nullable(),
-    description: z.string().trim().max(1000).optional().nullable(),
+    sku: z
+      .string()
+      .trim()
+      .max(50, "SKU maksimal 50 karakter")
+      .optional()
+      .nullable()
+      .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
+    description: z
+      .string()
+      .trim()
+      .max(1000, "Deskripsi maksimal 1000 karakter")
+      .optional()
+      .nullable()
+      .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
     imageUrl: safeImageUrlSchema,
-    imageKey: z.string().trim().max(255).optional().nullable(),
+    imageKey: z
+      .string()
+      .trim()
+      .max(255)
+      .optional()
+      .nullable()
+      .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
     pricingType: pricingTypeEnum.optional(),
     unitLabel: z.string().trim().min(1, "Label satuan wajib diisi").max(30).optional(),
-    basePrice: z.number().int("Harga dasar harus bilangan bulat").min(0, "Harga dasar minimal 0").optional(),
-    minArea: z.number().min(0.01, "Minimal luas harus lebih dari 0").optional(),
+    basePrice: z.coerce.number().int("Harga dasar harus bilangan bulat").min(0, "Harga dasar minimal 0").optional(),
+    minArea: z.coerce.number().min(0.01, "Minimal luas harus lebih dari 0").optional(),
     areaRounding: areaRoundingEnum.optional(),
     isActive: z.boolean().optional(),
     tiers: z.array(priceTierSchema).optional(),

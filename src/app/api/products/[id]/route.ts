@@ -10,6 +10,7 @@ import { getCorsHeaders, handleCorsPreflight } from "@/lib/api/cors";
 import {
   updateProductSchema,
   validatePriceTiers,
+  formatZodError,
 } from "@/lib/validators/product";
 import { deleteProductImage } from "@/lib/storage/blob";
 
@@ -115,10 +116,11 @@ export async function PATCH(
     const parseResult = updateProductSchema.safeParse(rawBody);
 
     if (!parseResult.success) {
+      const errorMsg = formatZodError(parseResult.error);
       return NextResponse.json(
         {
           success: false,
-          error: "Validasi data produk gagal",
+          error: `Validasi gagal: ${errorMsg}`,
           details: parseResult.error.flatten().fieldErrors,
         },
         { status: 400, headers: corsHeaders }

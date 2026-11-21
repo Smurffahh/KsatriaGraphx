@@ -10,6 +10,7 @@ import { getCorsHeaders, handleCorsPreflight } from "@/lib/api/cors";
 import {
   createProductSchema,
   validatePriceTiers,
+  formatZodError,
 } from "@/lib/validators/product";
 
 export const dynamic = "force-dynamic";
@@ -152,10 +153,11 @@ export async function POST(request: Request) {
     const parseResult = createProductSchema.safeParse(rawBody);
 
     if (!parseResult.success) {
+      const errorMsg = formatZodError(parseResult.error);
       return NextResponse.json(
         {
           success: false,
-          error: "Validasi data produk gagal",
+          error: `Validasi gagal: ${errorMsg}`,
           details: parseResult.error.flatten().fieldErrors,
         },
         { status: 400, headers: corsHeaders }

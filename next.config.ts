@@ -5,7 +5,7 @@ import path from "path";
 const isMobileBuild = process.env.BUILD_TARGET === "mobile";
 const isProduction = process.env.NODE_ENV === "production";
 
-let appVersion = "1.1.1";
+let appVersion = "1.1.2";
 try {
   const pkgPath = path.join(process.cwd(), "package.json");
   const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));

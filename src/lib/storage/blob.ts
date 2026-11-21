@@ -9,12 +9,29 @@ export interface UploadResult {
   imageKey: string;
 }
 
+export class MissingBlobTokenError extends Error {
+  readonly code = "BLOB_TOKEN_MISSING";
+  constructor() {
+    super("BLOB_READ_WRITE_TOKEN belum terpasang di environment server");
+    this.name = "MissingBlobTokenError";
+  }
+}
+
+export class PrivateBlobStoreError extends Error {
+  readonly code = "BLOB_STORE_PRIVATE";
+  constructor(message?: string) {
+    super(
+      message ||
+        "Vercel Blob Store masih bertipe Private. Ubah atau hubungkan Blob Store bertipe Public di Dashboard Vercel"
+    );
+    this.name = "PrivateBlobStoreError";
+  }
+}
+
 function getBlobToken(): string {
   const token = process.env.BLOB_READ_WRITE_TOKEN;
   if (!token) {
-    throw new Error(
-      "BLOB_READ_WRITE_TOKEN belum dikonfigurasi di environment variables"
-    );
+    throw new MissingBlobTokenError();
   }
   return token;
 }
@@ -39,17 +56,23 @@ export async function uploadProductImage(webpBuffer: Buffer): Promise<UploadResu
       token,
     });
   } catch (error: any) {
+    const errorMsg = String(error?.message || "");
     if (
-      error?.message?.includes("Cannot use public access on a private store") ||
-      error?.message?.includes("private store")
+      errorMsg.includes("Cannot use public access on a private store") ||
+      errorMsg.includes("private store") ||
+      errorMsg.includes("private access")
     ) {
       isPrivate = true;
-      blob = await put(fileKey, webpBuffer, {
-        access: "private",
-        contentType: "image/webp",
-        addRandomSuffix: false,
-        token,
-      });
+      try {
+        blob = await put(fileKey, webpBuffer, {
+          access: "private",
+          contentType: "image/webp",
+          addRandomSuffix: false,
+          token,
+        });
+      } catch (privErr: any) {
+        throw new PrivateBlobStoreError(privErr?.message);
+      }
     } else {
       throw error;
     }

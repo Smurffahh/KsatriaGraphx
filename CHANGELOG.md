@@ -4,6 +4,41 @@ Semua pembaruan terstruktur untuk proyek **Ksatria Graphx** didokumentasikan dal
 
 ---
 
+## [v1.1.2] - 2026-11-21
+
+Pembaruan stabilitas dan audit menyeluruh operasi CRUD: perbaikan upload foto produk pada store Vercel Blob privat, perbaikan skema validasi tambah dan edit produk, normalisasi input pada 6 modul inti, serta penambahan rangkaian uji regresi otomatis di Web dan Android APK.
+
+### Perbaikan Upload Foto Produk & Vercel Blob
+- **Dukungan Private Blob Store & Penanganan Error Transparan**:
+  - Memperbaiki pengunggahan foto di `src/lib/storage/blob.ts` untuk menangani token Blob bertipe Private Store (`Cannot use public access on a private store`).
+  - Menambahkan kelas error terarah `MissingBlobTokenError` (`BLOB_TOKEN_MISSING`) dan `PrivateBlobStoreError` (`BLOB_STORE_PRIVATE`) dengan URL proxy unduh fallback `/api/uploads/product-image?key=...`.
+  - Memetakan respon error di `src/app/api/uploads/product-image/route.ts` secara akurat: status `503` saat token belum disetel atau store privat, `422` saat gagal proses Sharp, serta `401`/`403` saat autentikasi tidak memadai.
+
+### Perbaikan Validasi Produk & Normalisasi Data
+- **Penanganan Properti `id` & Data Parsial**:
+  - Mengizinkan field `id` opsional/nullable pada `createProductSchema` dan `updateProductSchema` (`src/lib/validators/product.ts`) agar form tambah dan edit tidak lagi ditolak oleh aturan Zod `.strict()`.
+  - Normalisasi otomatis string kosong `""` menjadi `null` untuk `sku`, `description`, `imageUrl`, dan `imageKey`.
+  - Mengonversi nilai numerik menggunakan `z.coerce.number()` pada field harga dan luas minimal.
+  - Memformat pesan validasi Zod menjadi kalimat Bahasa Indonesia yang jelas dan spesifik per field alih-alih pesan generik.
+  - Memperbarui komponen `ProductFormModal.tsx` agar menyaring payload sebelum pengiriman ke API.
+
+### Audit Validasi & Penyelarasan Kontrak 6 Modul Lain
+- **Konsistensi Operasi CRUD Lintas Fitur**:
+  - **Kategori**: Normalisasi slug otomatis dari nama dan penanganan string kosong pada `src/lib/validators/category.ts`.
+  - **Finishing**: Konversi tipe angka otomatis pada `defaultPrice` dan toleransi properti `id`.
+  - **Pelanggan**: Normalisasi format nomor WhatsApp, konversi string kosong menjadi `null`, dan pemisahan field pada query update Drizzle.
+  - **Pesanan / POS**: Normalisasi nomor telepon pemesan, perkiraan waktu siap, dan catatan transaksi.
+  - **Pengaturan Toko**: Sanitasi payload update agar tidak meneruskan field `id` ke Drizzle `.set()`.
+  - **Manajemen Pengguna**: Normalisasi email kosong menjadi `null` dan toleransi properti `id`.
+
+### Penjaminan Kualitas & Pengujian Otomatis
+- **Uji Integrasi & E2E Komprehensif**:
+  - Menambahkan suite pengujian integrasi Vitest `tests/crud-full-audit.test.ts` (190 test case lulus 100%).
+  - Menambahkan suite pengujian E2E Playwright `tests/e2e/products-and-crud.spec.ts` yang menguji siklus lengkap Tambah -> Edit -> Verifikasi -> Hapus pada viewport Desktop Chrome (1280x800) dan Mobile Chrome (375x812).
+  - Seluruh 25 pengujian E2E Playwright dan validasi build statis untuk aset APK Capacitor lulus tanpa celah.
+
+---
+
 ## [v1.1.1] - 2026-11-21
 
 Rilis pembaruan antarmuka dan kestabilan sistem: penyempurnaan sistem tema OKLCH (Mode Terang & Mode Gelap), penyeragaman lebar kontainer seluruh halaman, perbaikan posisi sticky footer sidebar desktop, serta penyelarasan gaya notifikasi toast.

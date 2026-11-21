@@ -21,7 +21,13 @@ export const orderItemInputSchema = z
       .min(0, "Harga override tidak boleh negatif")
       .optional()
       .nullable(),
-    itemNotes: z.string().trim().max(500, "Catatan item maksimal 500 karakter").optional().nullable(),
+    itemNotes: z
+      .string()
+      .trim()
+      .max(500, "Catatan item maksimal 500 karakter")
+      .optional()
+      .nullable()
+      .transform((val) => (val && val.trim().length > 0 ? val.trim() : null)),
     finishings: z.array(orderItemFinishingInputSchema).optional().default([]),
   })
   .strict();
@@ -55,7 +61,7 @@ export const createOrderSchema = z
       .trim()
       .optional()
       .nullable()
-      .transform((val) => (val ? normalizeIndonesianPhone(val) ?? val : null)),
+      .transform((val) => (val && val.trim().length > 0 ? normalizeIndonesianPhone(val) ?? val.trim() : null)),
     items: z.array(orderItemInputSchema).min(1, "Minimal pilih 1 produk untuk membuat nota"),
     designFee: z
       .number()
@@ -70,13 +76,21 @@ export const createOrderSchema = z
       .default(0),
     estimatedReadyAt: z
       .string()
+      .trim()
       .optional()
       .nullable()
+      .transform((val) => (val && val.trim().length > 0 ? val.trim() : null))
       .refine(
         (val) => !val || !isNaN(Date.parse(val)),
         "Format estimasi tanggal tidak valid"
       ),
-    notes: z.string().trim().max(1000, "Catatan nota maksimal 1000 karakter").optional().nullable(),
+    notes: z
+      .string()
+      .trim()
+      .max(1000, "Catatan nota maksimal 1000 karakter")
+      .optional()
+      .nullable()
+      .transform((val) => (val && val.trim().length > 0 ? val.trim() : null)),
     initialPayment: initialPaymentInputSchema.optional().nullable(),
   })
   .strict();

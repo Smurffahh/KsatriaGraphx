@@ -146,7 +146,24 @@ export function ProductFormModal({
     }
 
     try {
-      await onSubmit(formData);
+      const cleanPayload: ProductFormData = {
+        ...(formData.id ? { id: formData.id } : {}),
+        categoryId: formData.categoryId,
+        name: formData.name.trim(),
+        sku: formData.sku?.trim() || "",
+        description: formData.description?.trim() || "",
+        imageUrl: formData.imageUrl?.trim() || null,
+        imageKey: formData.imageKey?.trim() || null,
+        pricingType: formData.pricingType,
+        unitLabel: formData.unitLabel.trim() || (formData.pricingType === "AREA" ? "m²" : "pcs"),
+        basePrice: Number(formData.basePrice) || 0,
+        minArea: formData.pricingType === "AREA" ? Number(formData.minArea) || 1.0 : 1.0,
+        areaRounding: formData.pricingType === "AREA" ? formData.areaRounding : "EXACT",
+        isActive: Boolean(formData.isActive),
+        tiers: formData.pricingType === "UNIT" ? formData.tiers : [],
+      };
+
+      await onSubmit(cleanPayload);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Gagal menyimpan data produk.";
       setFormError(msg);

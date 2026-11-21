@@ -154,6 +154,18 @@ async function baseApiClient<T = any>(
 
   try {
     const data = await response.json();
+    if (data && !data.success && data.details && typeof data.details === "object") {
+      const fieldKeys = Object.keys(data.details);
+      if (fieldKeys.length > 0) {
+        const firstField = fieldKeys[0];
+        const msgs = data.details[firstField];
+        if (Array.isArray(msgs) && msgs.length > 0 && msgs[0]) {
+          if (!data.error || data.error.includes("gagal") || data.error.includes("tidak valid")) {
+            data.error = `Validasi gagal: ${msgs[0]}`;
+          }
+        }
+      }
+    }
     return data;
   } catch {
     return {

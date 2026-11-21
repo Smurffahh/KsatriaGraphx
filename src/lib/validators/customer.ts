@@ -28,6 +28,7 @@ export function normalizeIndonesianPhone(phone: unknown): string | null {
 
 export const createCustomerSchema = z
   .object({
+    id: z.string().uuid().optional().nullable(),
     name: z
       .string({ error: "Nama pelanggan wajib diisi" })
       .trim()
@@ -38,12 +39,32 @@ export const createCustomerSchema = z
       .trim()
       .optional()
       .nullable()
-      .transform((val) => (val ? normalizeIndonesianPhone(val) : null))
-      .refine((val) => val === null || val !== undefined, {
-        message: "Format nomor WhatsApp tidak valid. Gunakan format Indonesia yang benar (contoh: 08123456789)",
-      }),
-    address: z.string().trim().max(300, "Alamat maksimal 300 karakter").optional().nullable(),
-    notes: z.string().trim().max(500, "Catatan maksimal 500 karakter").optional().nullable(),
+      .transform((val) => (val && val.trim().length > 0 ? val.trim() : null))
+      .refine(
+        (val) => {
+          if (!val) return true;
+          return normalizeIndonesianPhone(val) !== null;
+        },
+        {
+          message:
+            "Format nomor WhatsApp tidak valid. Gunakan format Indonesia yang benar (contoh: 08123456789)",
+        }
+      )
+      .transform((val) => (val ? normalizeIndonesianPhone(val) : null)),
+    address: z
+      .string()
+      .trim()
+      .max(300, "Alamat maksimal 300 karakter")
+      .optional()
+      .nullable()
+      .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
+    notes: z
+      .string()
+      .trim()
+      .max(500, "Catatan maksimal 500 karakter")
+      .optional()
+      .nullable()
+      .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
   })
   .strict();
 

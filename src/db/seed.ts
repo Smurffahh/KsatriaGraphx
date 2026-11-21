@@ -50,28 +50,29 @@ export async function runSeed() {
     });
   } else {
     const currentOwner = existingOwner[0];
-    const isPasswordMatch = await bcrypt.compare(ownerPassword, currentOwner.passwordHash);
-    if (!isPasswordMatch) {
-      const salt = await bcrypt.genSalt(12);
-      const newHash = await bcrypt.hash(ownerPassword, salt);
-      const nextVersion = (currentOwner.tokenVersion || 1) + 1;
+    const salt = await bcrypt.genSalt(12);
+    const passwordHash = await bcrypt.hash(ownerPassword, salt);
+    const nextVersion = (currentOwner.tokenVersion || 1) + 1;
 
-      await db
-        .update(users)
-        .set({
-          passwordHash: newHash,
-          tokenVersion: nextVersion,
-          failedLoginAttempts: 0,
-          lockedUntil: null,
-          updatedAt: new Date(),
-        })
-        .where(eq(users.id, currentOwner.id));
+    await db
+      .update(users)
+      .set({
+        name: ownerName,
+        email: ownerEmail,
+        passwordHash,
+        role: "OWNER",
+        isActive: true,
+        tokenVersion: nextVersion,
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, currentOwner.id));
 
-      await db
-        .update(userSessions)
-        .set({ revokedAt: new Date() })
-        .where(eq(userSessions.userId, currentOwner.id));
-    }
+    await db
+      .update(userSessions)
+      .set({ revokedAt: new Date() })
+      .where(eq(userSessions.userId, currentOwner.id));
   }
 
   const existingSettings = await db

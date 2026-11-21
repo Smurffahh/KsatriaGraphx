@@ -36,6 +36,7 @@ export default function LoginPage() {
           "Content-Type": "application/json",
           "x-client-platform": isNative ? "apk" : "web",
         },
+        credentials: isNative ? "omit" : "include",
         body: JSON.stringify({
           usernameOrEmail: usernameOrEmail.trim(),
           password,
@@ -46,23 +47,39 @@ export default function LoginPage() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok || !data.success) {
-        setErrorMessage(
-          data.error || "Gagal masuk ke sistem. Silakan periksa kembali username dan password Anda."
-        );
+        if (response.status === 401) {
+          setErrorMessage("Username atau password salah.");
+        } else if (response.status === 429) {
+          setErrorMessage("Terlalu banyak percobaan login. Silakan tunggu beberapa menit.");
+        } else if (response.status === 403) {
+          setErrorMessage("Akses ditolak oleh kebijakan keamanan server (kode 403).");
+        } else {
+          setErrorMessage(
+            data.error || `Terjadi kesalahan saat masuk ke sistem (kode ${response.status}).`
+          );
+        }
         setIsLoading(false);
         return;
       }
 
       if (isNative && data.data?.accessToken && data.data?.refreshToken) {
-        await secureStorage.saveTokens({
-          accessToken: data.data.accessToken,
-          refreshToken: data.data.refreshToken,
-        });
+        try {
+          await secureStorage.saveTokens({
+            accessToken: data.data.accessToken,
+            refreshToken: data.data.refreshToken,
+          });
+        } catch {
+          setErrorMessage("Gagal menyimpan sesi terenkripsi di perangkat (kode STORAGE).");
+          setIsLoading(false);
+          return;
+        }
       }
 
       router.replace("/pos");
     } catch {
-      setErrorMessage("Tidak dapat terhubung ke server. Periksa koneksi internet Anda.");
+      setErrorMessage(
+        "Tidak dapat terhubung ke server. Periksa koneksi internet atau konfigurasi server (kode NET)."
+      );
       setIsLoading(false);
     }
   }

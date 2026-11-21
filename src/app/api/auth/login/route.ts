@@ -49,8 +49,10 @@ export async function POST(request: Request) {
     const ipAddress = getClientIp(request);
     const userAgent = request.headers.get("user-agent");
 
-    const clientPlatformHeader = request.headers.get("x-client-platform");
-    const platform: ClientPlatform = clientPlatformHeader === "apk" ? "APK" : "WEB";
+    const clientPlatformHeader =
+      request.headers.get("x-client-platform") || request.headers.get("X-Client-Platform");
+    const platform: ClientPlatform =
+      clientPlatformHeader?.toLowerCase() === "apk" ? "APK" : "WEB";
 
     const rateLimitKey = `login:${ipAddress}:${usernameOrEmail.toLowerCase().trim()}`;
     const rateLimit = await checkRateLimit(rateLimitKey, 5, 900);

@@ -4,6 +4,28 @@ Semua pembaruan terstruktur untuk proyek **Ksatria Graphx** didokumentasikan dal
 
 ---
 
+## [v1.0.1] - 2026-11-21
+
+Rilis pembaruan pemeliharaan dan penguatan arsitektur autentikasi Android APK, penanganan CORS preflight menyeluruh, pemisahan diagnostik login, serta otomasi rilis GitHub Actions.
+
+### Perbaikan Penting
+- **Resolusi Base URL Login Android APK**: Memperbaiki pemanggilan endpoint autentikasi pada `src/app/(auth)/login/page.tsx` menggunakan `resolveApiUrl("/api/auth/login", isNative)` sehingga aplikasi Android APK yang berjalan di WebView Capacitor (`https://localhost`) mengarahkan request secara tepat ke backend produksi (`NEXT_PUBLIC_API_BASE_URL`), bukan meminta aset statis lokal yang tidak tersedia.
+- **Peningkatan Diagnosa Error Login**: Membedakan kode error status HTTP secara spesifik pada antarmuka kasir/pengguna (HTTP 401: Username/password salah; HTTP 429: Rate-limit lockout; HTTP 403: Kebijakan keamanan; kode `NET`: Masalah koneksi/CORS; kode `STORAGE`: Kegagalan penyimpanan token lokal di Keystore).
+- **Penanganan Kredensial Request APK**: Mengatur mode `credentials: "omit"` pada request native APK di `src/lib/api/client.ts` dan halaman login untuk mencegah pemblokiran kebijakan cross-origin cookie WebView Android, serta murni memanfaatkan otorisasi Bearer token.
+- **CORS Preflight Global & Edge-Safe**: Mengimplementasikan `src/middleware.ts` untuk menangani seluruh preflight `OPTIONS` di `/api/:path*` dengan respon instan `204 No Content` beserta header CORS lengkap (`Access-Control-Allow-Origin: https://localhost`, `Access-Control-Max-Age: 86400`, dll.), serta menyematkan header `OPTIONS` sekunder di seluruh route handler API sebagai pertahanan berlapis.
+- **Isolasi Middleware pada Script Build Mobile**: Memperbarui `scripts/build-mobile.mjs` agar memindahkan sementara `src/middleware.ts` saat Next.js mengeksekusi static export (`output: 'export'`), dan memulihkannya kembali utuh 100% pada blok `finally` dengan mekanisme fallback penonaktifan file route individual yang tangguh di sistem operasi Windows.
+
+### Fitur Baru & Peningkatan
+- **Otomasi Catatan Rilis GitHub Actions**: Menambahkan step ekstraksi otomatis bagian versi terkait dari `CHANGELOG.md` pada workflow `.github/workflows/android-apk.yml` sehingga halaman GitHub Releases langsung menampilkan daftar fitur, panduan instalasi APK, dan tabel checksum integritas SHA-256.
+- **Sinkronisasi Konfigurasi Environment**: Menyediakan pemisahan file konfigurasi yang rapi antara `.env.local` (lingkungan penuh untuk komputer lokal) dan `.env.vercel` (khusus upload Vercel Dashboard bebas konflik variabel injeksi otomatis Neon dan Vercel Blob).
+
+### Catatan Keamanan
+- **Hardening ProGuard/R8 Release APK**: Menambahkan aturan eksplisit pada `android/app/proguard-rules.pro` untuk mempertahankan kelas `com.aparajita.capacitor.securestorage.**` dan `id.ksatriagraphx.app.ThermalPrinterPlugin`.
+- **Integritas 4-Layer Web-Only Guard**: Memastikan proteksi ketat pada `/api/users/**` tetap menolak `Authorization: Bearer`, origin `https://localhost`, dan `capacitor://localhost` dengan respon `403 Forbidden`.
+- **Zero Secret Leak Gate**: Memastikan seluruh kunci token rahasia (`DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, dan token Blob) terproteksi penuh dari pencatatan log maupun bundle publik client `.next/static/` dan `out/`.
+
+---
+
 ## [v1.0.0] — 2026-11-20
 
 Rilis resmi perdana (*Production General Availability*) **Ksatria Graphx**, sistem Point of Sale (POS) dan manajemen percetakan digital *dual-platform* (Web & Android APK Hardened).

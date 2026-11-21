@@ -61,7 +61,7 @@ async function baseApiClient<T = any>(
   const fetchOptions: RequestInit = {
     ...options,
     headers,
-    credentials: isNative ? "same-origin" : "include",
+    credentials: isNative ? "omit" : "include",
   };
 
   const url = resolveApiUrl(endpoint, isNative);
@@ -91,7 +91,7 @@ async function baseApiClient<T = any>(
           method: "POST",
           headers: refreshHeaders,
           body: refreshBody,
-          credentials: isNative ? "same-origin" : "include",
+          credentials: isNative ? "omit" : "include",
         });
 
         if (refreshRes.ok) {
@@ -115,7 +115,7 @@ async function baseApiClient<T = any>(
           response = await fetch(url, {
             ...options,
             headers,
-            credentials: isNative ? "same-origin" : "include",
+            credentials: isNative ? "omit" : "include",
           });
         } else {
           onRefreshed(null);
@@ -140,7 +140,7 @@ async function baseApiClient<T = any>(
         response = await fetch(url, {
           ...options,
           headers,
-          credentials: isNative ? "same-origin" : "include",
+          credentials: "omit",
         });
       } else if (!isNative) {
         response = await fetch(url, {

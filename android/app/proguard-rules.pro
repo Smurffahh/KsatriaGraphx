@@ -16,6 +16,7 @@
 # Preserve Official & Third-Party Capacitor Plugins
 -keep class com.capacitorjs.plugins.** { *; }
 -keep class com.aparajita.capacitor.** { *; }
+-keep class com.aparajita.capacitor.securestorage.** { *; }
 
 # Preserve Secure Storage & Crypto classes
 -keep class javax.crypto.** { *; }
@@ -24,3 +25,4 @@
 
 # Preserve Application & Custom Native Plugins
 -keep class id.ksatriagraphx.app.** { *; }
+-keep class id.ksatriagraphx.app.ThermalPrinterPlugin { *; }

@@ -44,11 +44,17 @@ export async function POST(request: Request) {
       );
     }
 
+    const clientPlatformHeader =
+      request.headers.get("x-client-platform") || request.headers.get("X-Client-Platform");
+    const isApkClient = clientPlatformHeader?.toLowerCase() === "apk";
+
     const cookieStore = await cookies();
-    const cookieRefreshToken = cookieStore.get("kgx_refresh_token")?.value;
+    const cookieRefreshToken = !isApkClient
+      ? cookieStore.get("kgx_refresh_token")?.value
+      : undefined;
 
     let incomingRefreshToken = cookieRefreshToken;
-    let platform: ClientPlatform = "WEB";
+    let platform: ClientPlatform = isApkClient ? "APK" : "WEB";
 
     if (!incomingRefreshToken) {
       const contentType = request.headers.get("content-type") || "";

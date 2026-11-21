@@ -26,6 +26,7 @@ import { secureStorage } from "@/lib/auth/secure-storage";
 import { formatVersionBadge, formatVersionLabel } from "@/lib/version";
 import { useAppUpdate } from "@/hooks/useAppUpdate";
 import { UpdateNoticeModal } from "./UpdateNoticeModal";
+import { QuickCalculatorSheet } from "@/components/calculator/QuickCalculatorSheet";
 import { toast } from "sonner";
 import { ThemeToggle } from "./ThemeToggle";
 import { AppShellSkeleton } from "./AppShellSkeleton";
@@ -88,6 +89,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isNative, setIsNative] = useState(false);
   const [isMenuSheetOpen, setIsMenuSheetOpen] = useState(false);
+  const [isQuickCalcOpen, setIsQuickCalcOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -125,6 +127,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [checkForUpdate]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && (e.key === "k" || e.key === "K")) {
+        e.preventDefault();
+        setIsQuickCalcOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   useEffect(() => {
     setIsNative(isNativeApp());
@@ -440,6 +453,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <span>Pembaruan v{latestVersion}</span>
                 </Button>
               )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsQuickCalcOpen(true)}
+                className="gap-1.5 rounded-lg text-xs font-semibold shadow-xs hover:bg-accent"
+                title="Buka Kalkulator Cepat (Alt+K)"
+              >
+                <Calculator className="size-3.5 text-primary" />
+                <span>Cek Harga</span>
+                <kbd className="pointer-events-none ml-1 hidden rounded border border-border bg-muted/80 px-1.5 font-mono text-[10px] font-medium text-muted-foreground lg:inline-block">
+                  Alt+K
+                </kbd>
+              </Button>
               <ThemeToggle />
               <Link href="/pos">
                 <Button size="sm" className="gap-1.5 rounded-lg font-semibold shadow-xs">
@@ -532,6 +559,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <span className="text-[10px] tracking-tight">Menu</span>
         </button>
       </nav>
+
+      {/* ========================================================= */}
+      {/* MOBILE FLOATING ACTION BUTTON (FAB) KALKULATOR CEPAT     */}
+      {/* ========================================================= */}
+      {!isQuickCalcOpen && (
+        <button
+          type="button"
+          onClick={() => setIsQuickCalcOpen(true)}
+          aria-label="Buka Kalkulator Cepat"
+          title="Buka Kalkulator Cepat"
+          className={`fixed right-4 z-40 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/20 active:scale-95 transition-all lg:hidden ${
+            pathname === "/pos"
+              ? "bottom-[calc(8.75rem+env(safe-area-inset-bottom))]"
+              : "bottom-[calc(4.75rem+env(safe-area-inset-bottom))]"
+          }`}
+        >
+          <Calculator className="size-5.5" />
+        </button>
+      )}
 
       {/* ========================================================= */}
       {/* BOTTOM SHEET "MENU LAINNYA" (MOBILE ONLY)                 */}
@@ -724,6 +770,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         onDismiss={() => dismissUpdate()}
         versionData={versionData}
         currentVersion={currentVersion}
+      />
+
+      {/* Kalkulator Cepat (Cek Harga & Komparasi Bahan) */}
+      <QuickCalculatorSheet
+        isOpen={isQuickCalcOpen}
+        onClose={() => setIsQuickCalcOpen(false)}
       />
     </div>
   );

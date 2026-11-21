@@ -29,6 +29,11 @@ export function getDb(): Database {
   }
 
   cachedPool = new Pool({ connectionString });
+  cachedPool.on("error", () => {
+    // Reset cache pool agar query berikutnya membuat koneksi baru saat koneksi lama idle/closed
+    cachedPool = null;
+    cachedDb = null;
+  });
   cachedDb = drizzle({ client: cachedPool, schema });
   return cachedDb;
 }

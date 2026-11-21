@@ -86,20 +86,20 @@ Seluruh dependensi yang digunakan pada repositori ini dicantumkan secara faktual
 
 | Kategori | Paket / Teknologi | Versi | Peran dalam Sistem |
 | :--- | :--- | :--- | :--- |
-| **Kerangka Utama** | `next` | `15.2.0` | Kerangka full-stack App Router, SSR, Server Components, dan API Route Handlers. |
+| **Kerangka Utama** | `next` | `15.5.29` | Kerangka full-stack App Router, SSR, Server Components, dan API Route Handlers. |
 | | `react`, `react-dom` | `19.0.0` | Pustaka antarmuka pengguna berbasis komponen. |
-| | `typescript` | `5.8.2` | Sistem tipe statis untuk keandalan kode end-to-end. |
-| **Desain & UI** | `tailwindcss`, `@tailwindcss/postcss` | `4.0.9` | Framework CSS utility-first generasi v4 berbasis CSS tokens `@theme`. |
+| | `typescript` | `5.9.3` | Sistem tipe statis untuk keandalan kode end-to-end. |
+| **Desain & UI** | `tailwindcss`, `@tailwindcss/postcss` | `4.3.5` | Framework CSS utility-first generasi v4 berbasis CSS tokens `@theme`. |
 | | `next-themes` | `0.4.6` | Manajemen tema Mode Terang dan Mode Gelap berbasis variabel CSS OKLCH. |
 | | `@radix-ui/react-dialog` | `1.3.1` | Primitif modal dialog yang dapat diakses penuh (WAI-ARIA). |
 | | `@radix-ui/react-slot` | `1.5.0` | Komposisi elemen polimorfik untuk tombol dan tautan. |
 | | `@radix-ui/react-switch` | `1.4.1` | Komponen tombol toggle untuk mode perbandingan bahan. |
-| | `@tanstack/react-query` | `5.67.1` | Manajemen state server, caching, dan sinkronisasi data katalog kasir. |
-| | `lucide-react` | `1.16.0` | Kumpulan ikon SVG konsisten untuk seluruh antarmuka. |
-| | `recharts` | `2.15.1` | Grafik visualisasi tren penjualan dan pendapatan pada Dashboard. |
+| | `@tanstack/react-query` | `5.108.2` | Manajemen state server, caching, dan sinkronisasi data katalog kasir. |
+| | `lucide-react` | `1.77.0` | Kumpulan ikon SVG konsisten untuk seluruh antarmuka. |
+| | `recharts` | `2.15.4` | Grafik visualisasi tren penjualan dan pendapatan pada Dashboard. |
 | | `sonner` | `2.0.8` | Notifikasi toast responsif dengan aksi cepat. |
 | | `class-variance-authority`, `clsx`, `tailwind-merge` | Terpasang | Manajemen variasi kelas CSS Tailwind dinamis tanpa konflik. |
-| **Backend & Basis Data** | `@neondatabase/serverless` | `0.10.4` | Driver koneksi PostgreSQL serverless via WebSocket connection pooling. |
+| **Backend & Basis Data** | `@neondatabase/serverless` | `1.2.1` | Driver koneksi PostgreSQL serverless via WebSocket connection pooling. |
 | | `drizzle-orm`, `drizzle-kit` | `0.45.4` / `0.31.11` | TypeScript ORM tipe-aman, skema database, dan alat migrasi. |
 | | `jose` | `6.0.8` | Pustaka kriptografi untuk signing dan verifikasi JWT token (Access & Refresh). |
 | | `bcryptjs` | `3.0.2` | Hashing kata sandi satu arah dengan cost factor 12. |
@@ -110,7 +110,7 @@ Seluruh dependensi yang digunakan pada repositori ini dicantumkan secara faktual
 | **Mobile Native (Android)** | `@capacitor/core`, `@capacitor/android` | `8.6.2` | Runtime jembatan native Android untuk aplikasi web Next.js. |
 | | `@capacitor/filesystem`, `@capacitor/share` | `8.1.5` / `8.0.3` | Penyimpanan berkas sementara nota dan integrasi berbagi ke aplikasi WhatsApp. |
 | | `@aparajita/capacitor-secure-storage` | `8.0.1` | Penyimpanan token terenkripsi berbasis Android Keystore hardware. |
-| **Pengujian Mutu** | `vitest` | `3.0.7` | Runner pengujian unit, penetrasi keamanan, dan logika perhitungan harga. |
+| **Pengujian Mutu** | `vitest` | `3.2.7` | Runner pengujian unit, penetrasi keamanan, dan logika perhitungan harga. |
 | | `@playwright/test` | `1.65.1` | Pengujian end-to-end multi-viewport (Desktop 1280x800 & Mobile 375x812). |
 
 ---

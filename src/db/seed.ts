@@ -21,17 +21,19 @@ export async function runSeed() {
   const ownerName = process.env.DEFAULT_OWNER_NAME || "Owner Ksatria Graphx";
   const ownerEmail = process.env.DEFAULT_OWNER_EMAIL || "owner@ksatriagraphx.com";
 
-  const existingOwner = await db
+  // Strict Single-Owner: Cek keberadaan akun role OWNER terlebih dahulu
+  const [existingOwner] = await db
     .select({
       id: users.id,
+      username: users.username,
       passwordHash: users.passwordHash,
       tokenVersion: users.tokenVersion,
     })
     .from(users)
-    .where(eq(users.username, ownerUsername))
+    .where(eq(users.role, "OWNER"))
     .limit(1);
 
-  if (existingOwner.length === 0) {
+  if (!existingOwner) {
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(ownerPassword, salt);
 
@@ -46,10 +48,10 @@ export async function runSeed() {
       failedLoginAttempts: 0,
     });
   } else {
-    const currentOwner = existingOwner[0];
+    // Jika akun OWNER sudah ada, perbarui kredensial akun OWNER tersebut tanpa membuat akun kedua
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(ownerPassword, salt);
-    const nextVersion = (currentOwner.tokenVersion || 1) + 1;
+    const nextVersion = (existingOwner.tokenVersion || 1) + 1;
 
     await db
       .update(users)
@@ -64,12 +66,12 @@ export async function runSeed() {
         lockedUntil: null,
         updatedAt: new Date(),
       })
-      .where(eq(users.id, currentOwner.id));
+      .where(eq(users.id, existingOwner.id));
 
     await db
       .update(userSessions)
       .set({ revokedAt: new Date() })
-      .where(eq(userSessions.userId, currentOwner.id));
+      .where(eq(userSessions.userId, existingOwner.id));
   }
 
   const existingSettings = await db

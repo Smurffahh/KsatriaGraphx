@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import {
   UserPlus,
   Search,
@@ -41,6 +42,7 @@ interface CurrentUser {
 }
 
 export default function UsersPage() {
+  const router = useRouter();
   const [users, setUsers] = useState<UserItem[]>([]);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,15 +89,17 @@ export default function UsersPage() {
   async function loadData() {
     setIsLoading(true);
     try {
-      const [meRes, usersRes] = await Promise.all([
-        apiClient<{ user: CurrentUser }>("/api/auth/me"),
-        apiClient<{ users: UserItem[] }>("/api/users"),
-      ]);
-
+      const meRes = await apiClient<{ user: CurrentUser }>("/api/auth/me");
       if (meRes.success && meRes.data?.user) {
+        if (meRes.data.user.role === "KASIR") {
+          toast.error("Akses ditolak: Halaman Kelola Pengguna hanya untuk Pemilik Usaha (Owner).");
+          router.replace("/dashboard");
+          return;
+        }
         setCurrentUser(meRes.data.user);
       }
 
+      const usersRes = await apiClient<{ users: UserItem[] }>("/api/users");
       if (usersRes.success && usersRes.data?.users) {
         setUsers(usersRes.data.users);
       } else if (usersRes.error) {
@@ -675,14 +679,14 @@ export default function UsersPage() {
                 <label className="mb-1 block text-xs font-medium text-foreground">
                   Peran / Role
                 </label>
-                <select
-                  value={addForm.role}
-                  onChange={(e) => setAddForm({ ...addForm, role: e.target.value as "OWNER" | "KASIR" })}
-                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs font-medium text-foreground focus:border-ring focus:outline-none"
-                >
-                  <option value="KASIR">KASIR - Operasional POS, Pesanan & Cetak Nota</option>
-                  <option value="OWNER">OWNER - Akses Penuh Termasuk Manajemen Pengguna</option>
-                </select>
+                <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/40 px-3 py-2.5">
+                  <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+                    KASIR
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    Akun baru otomatis ditetapkan sebagai Kasir (kebijakan 1 Owner tunggal).
+                  </span>
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-border">
@@ -771,27 +775,36 @@ export default function UsersPage() {
                 <label className="mb-1 block text-xs font-medium text-foreground">
                   Peran / Role
                 </label>
-                <select
-                  value={editForm.role}
-                  disabled={currentUser?.id === editingUser.id}
-                  onChange={(e) => setEditForm({ ...editForm, role: e.target.value as "OWNER" | "KASIR" })}
-                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs font-medium text-foreground disabled:opacity-50 focus:border-ring focus:outline-none"
-                >
-                  <option value="KASIR">KASIR</option>
-                  <option value="OWNER">OWNER</option>
-                </select>
-                {currentUser?.id === editingUser.id && (
-                  <p className="mt-1 text-[11px] text-muted-foreground">
-                    Anda tidak dapat mengubah role akun Anda sendiri.
-                  </p>
+                {editingUser.role === "OWNER" ? (
+                  <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/40 px-3 py-2.5">
+                    <span className="inline-flex items-center rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-600 dark:text-amber-400">
+                      OWNER
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">
+                      Akun Owner tunggal tidak dapat diubah perannya.
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/40 px-3 py-2.5">
+                    <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+                      KASIR
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">
+                      Sistem menerapkan kebijakan 1 Owner tunggal. Akun tidak dapat dipromosikan.
+                    </span>
+                  </div>
                 )}
               </div>
 
               <div className="pt-2">
-                <label className="flex items-center gap-2.5 cursor-pointer">
+                <label
+                  className={`flex items-center gap-2.5 ${
+                    editingUser.role === "OWNER" ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+                  }`}
+                >
                   <input
                     type="checkbox"
-                    disabled={currentUser?.id === editingUser.id}
+                    disabled={editingUser.role === "OWNER" || currentUser?.id === editingUser.id}
                     checked={editForm.isActive}
                     onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })}
                     className="size-4 rounded border-input text-primary focus:ring-ring"
@@ -800,11 +813,15 @@ export default function UsersPage() {
                     Akun Aktif (Dapat Login ke Sistem)
                   </span>
                 </label>
-                {currentUser?.id === editingUser.id && (
+                {editingUser.role === "OWNER" ? (
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Akun Owner tunggal tidak dapat dinonaktifkan.
+                  </p>
+                ) : currentUser?.id === editingUser.id ? (
                   <p className="mt-1 text-[11px] text-muted-foreground">
                     Anda tidak dapat menonaktifkan akun Anda sendiri.
                   </p>
-                )}
+                ) : null}
               </div>
 
               <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-border">

@@ -9,23 +9,31 @@ import {
   index,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { roleEnum, platformEnum } from "./enums";
 
-export const users = pgTable("users", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  name: text("name").notNull(),
-  username: text("username").notNull().unique(),
-  email: text("email").unique(),
-  passwordHash: text("password_hash").notNull(),
-  role: roleEnum("role").default("KASIR").notNull(),
-  isActive: boolean("is_active").default(true).notNull(),
-  tokenVersion: integer("token_version").default(1).notNull(),
-  failedLoginAttempts: integer("failed_login_attempts").default(0).notNull(),
-  lockedUntil: timestamp("locked_until", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const users = pgTable(
+  "users",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    username: text("username").notNull().unique(),
+    email: text("email").unique(),
+    passwordHash: text("password_hash").notNull(),
+    role: roleEnum("role").default("KASIR").notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    tokenVersion: integer("token_version").default(1).notNull(),
+    failedLoginAttempts: integer("failed_login_attempts").default(0).notNull(),
+    lockedUntil: timestamp("locked_until", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("users_single_owner_idx")
+      .on(table.role)
+      .where(sql`${table.role} = 'OWNER'`),
+  ]
+);
 
 export const userSessions = pgTable(
   "user_sessions",

@@ -23,9 +23,15 @@ export const createUserSchema = z
       .min(8, "Password minimal 8 karakter")
       .max(100, "Password maksimal 100 karakter")
       .regex(/^(?=.*[A-Za-z])(?=.*\d).+$/, "Password wajib mengandung kombinasi huruf dan angka"),
-    role: z.enum(["OWNER", "KASIR"], {
-      error: "Role harus berupa OWNER atau KASIR",
-    }),
+    role: z
+      .enum(["KASIR", "OWNER"], {
+        error: "Role harus berupa KASIR",
+      })
+      .default("KASIR")
+      .refine((val) => val === "KASIR", {
+        message:
+          "Sistem hanya mengizinkan satu akun Owner. Akun baru hanya dapat dibuat dengan peran Kasir.",
+      }),
   })
   .strict();
 
@@ -49,10 +55,14 @@ export const updateUserSchema = z
       .or(z.literal(""))
       .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
     role: z
-      .enum(["OWNER", "KASIR"], {
-        error: "Role harus berupa OWNER atau KASIR",
+      .enum(["KASIR", "OWNER"], {
+        error: "Role harus berupa KASIR",
       })
-      .optional(),
+      .optional()
+      .refine((val) => val === undefined || val === "KASIR", {
+        message:
+          "Sistem hanya mengizinkan satu akun Owner. Tidak dapat mempromosikan akun menjadi Owner.",
+      }),
     isActive: z.boolean().optional(),
   })
   .strict();

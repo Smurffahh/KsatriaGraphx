@@ -178,19 +178,33 @@ describe("Zod Strict Validation & Anti-Tampering Tests", () => {
     expect(createUserSchema.safeParse(validUsername).success).toBe(true);
   });
 
-  it("harus memvalidasi skema update user dengan ketat", () => {
+  it("harus memvalidasi skema update user dengan ketat dan menolak promosi ke OWNER", () => {
     const invalidUpdate = {
       name: "Nama Baru",
       unexpectedParam: "injected",
     };
     expect(updateUserSchema.safeParse(invalidUpdate).success).toBe(false);
 
+    // Update dengan role KASIR sah
     const validUpdate = {
       name: "Nama Diperbarui",
-      role: "OWNER" as const,
+      role: "KASIR" as const,
       isActive: false,
     };
     expect(updateUserSchema.safeParse(validUpdate).success).toBe(true);
+
+    // Update mencoba promosi ke role OWNER harus ditolak (Single-Owner Enforcement)
+    const maliciousPromotion = {
+      name: "Nama Diperbarui",
+      role: "OWNER" as const,
+    };
+    const promotionResult = updateUserSchema.safeParse(maliciousPromotion);
+    expect(promotionResult.success).toBe(false);
+    if (!promotionResult.success) {
+      expect(promotionResult.error.issues[0]?.message).toContain(
+        "Sistem hanya mengizinkan satu akun Owner"
+      );
+    }
   });
 
   it("harus memvalidasi skema reset password", () => {

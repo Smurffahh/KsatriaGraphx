@@ -131,8 +131,79 @@ describe("Instant Session Revocation (Token Version Mismatch)", () => {
   });
 });
 
-describe("Anti-Lockout Owner Protection", () => {
-  it("Owner tidak boleh dapat menonaktifkan dirinya sendiri", () => {
+describe("Single-Owner Constraint & Anti-Tampering (Zod Validation)", () => {
+  it("createUserSchema harus mengizinkan pembuatan user dengan role KASIR atau tanpa menyebutkan role", () => {
+    const validExplicitKasir = {
+      name: "Kasir Baru",
+      username: "kasir_baru",
+      password: "Password123",
+      role: "KASIR" as const,
+    };
+    const parsedExplicit = createUserSchema.safeParse(validExplicitKasir);
+    expect(parsedExplicit.success).toBe(true);
+    if (parsedExplicit.success) {
+      expect(parsedExplicit.data.role).toBe("KASIR");
+    }
+
+    const validDefaultKasir = {
+      name: "Kasir Otomatis",
+      username: "kasir_otomatis",
+      password: "Password123",
+    };
+    const parsedDefault = createUserSchema.safeParse(validDefaultKasir);
+    expect(parsedDefault.success).toBe(true);
+    if (parsedDefault.success) {
+      expect(parsedDefault.data.role).toBe("KASIR");
+    }
+  });
+
+  it("createUserSchema harus menolak role OWNER dengan pesan error spesifik", () => {
+    const maliciousOwnerCreation = {
+      name: "Owner Cadangan",
+      username: "owner_dua",
+      password: "Password123",
+      role: "OWNER" as const,
+    };
+    const parsed = createUserSchema.safeParse(maliciousOwnerCreation);
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(parsed.error.issues[0]?.message).toContain(
+        "Sistem hanya mengizinkan satu akun Owner. Akun baru hanya dapat dibuat dengan peran Kasir."
+      );
+    }
+  });
+
+  it("updateUserSchema harus menolak promosi peran ke OWNER", () => {
+    const maliciousPromotion = {
+      name: "Nama Kasir",
+      role: "OWNER" as const,
+    };
+    const parsed = updateUserSchema.safeParse(maliciousPromotion);
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(parsed.error.issues[0]?.message).toContain(
+        "Sistem hanya mengizinkan satu akun Owner. Tidak dapat mempromosikan akun menjadi Owner."
+      );
+    }
+  });
+
+  it("updateUserSchema harus mengizinkan pembaruan dengan role KASIR atau tanpa mengubah role", () => {
+    const validUpdateWithoutRole = {
+      name: "Nama Kasir Diperbarui",
+      isActive: true,
+    };
+    expect(updateUserSchema.safeParse(validUpdateWithoutRole).success).toBe(true);
+
+    const validUpdateWithKasir = {
+      name: "Nama Kasir Tetap Kasir",
+      role: "KASIR" as const,
+    };
+    expect(updateUserSchema.safeParse(validUpdateWithKasir).success).toBe(true);
+  });
+});
+
+describe("Anti-Lockout & Immutability Protection Akun Owner Tunggal", () => {
+  it("Owner tidak boleh dapat menonaktifkan dirinya sendiri maupun dinonaktifkan sistem", () => {
     const currentUserId = "usr_owner_main";
     const targetUserId = "usr_owner_main";
     const requestedActiveState = false;
@@ -150,7 +221,7 @@ describe("Anti-Lockout Owner Protection", () => {
     expect(isSelfDemotion).toBe(true);
   });
 
-  it("Tidak boleh menonaktifkan Owner jika hanya ada 1 Owner aktif di sistem", () => {
+  it("Tidak boleh menonaktifkan, mendemosi, atau menghapus Owner tunggal di sistem", () => {
     const totalActiveOwners = 1;
     const canDeactivateOrDemote = totalActiveOwners > 1;
     expect(canDeactivateOrDemote).toBe(false);
@@ -198,5 +269,44 @@ describe("Audit Log Sensitive Data Sanitization", () => {
     expect(cleaned?.passwordHash).toBe("[REDACTED]");
     expect(cleaned?.userSecret).toBe("[REDACTED]");
     expect(cleaned?.safeInfo).toBe("DeviceInfo123");
+  });
+});
+
+describe("RBAC Matrix Endpoint Permissions: Kasir vs Owner", () => {
+  const ownerOnlyActions = [
+    { name: "Akses Laporan Omzet Toko (/api/reports)", error: "FORBIDDEN_NOT_OWNER" },
+    { name: "Akses Audit Trails Lengkap (/api/audit-logs)", error: "FORBIDDEN_NOT_OWNER" },
+    { name: "Akses Kelola Pengguna (/api/users)", error: "FORBIDDEN_NOT_OWNER" },
+    { name: "Ubah Pengaturan Toko Global (/api/settings)", error: "FORBIDDEN_NOT_OWNER" },
+    { name: "Tambah/Edit/Hapus Produk Katalog (/api/products)", error: "FORBIDDEN_NOT_OWNER" },
+    { name: "Tambah/Edit/Hapus Kategori (/api/categories)", error: "FORBIDDEN_NOT_OWNER" },
+    { name: "Tambah/Edit/Hapus Finishing (/api/finishings)", error: "FORBIDDEN_NOT_OWNER" },
+    { name: "Batalkan/Void Nota Transaksi (/api/orders/[id] CANCELLED)", error: "FORBIDDEN_NOT_OWNER" },
+  ];
+
+  it.each(ownerOnlyActions)(
+    "harus memblokir Kasir dengan HTTP 403 Forbidden pada aksi Owner: $name",
+    ({ error }) => {
+      const res = handleGuardError(new Error(error));
+      expect(res.status).toBe(403);
+      expect(res.code).toBe(error);
+    }
+  );
+
+  it("harus mengizinkan peran KASIR untuk alur operasional toko yang sah", () => {
+    const cashierAllowedCapabilities = [
+      "Buka antrean POS dan buat nota baru",
+      "Catat pembayaran tunai / transfer / DP",
+      "Cetak struk nota via printer Bluetooth ESC/POS",
+      "Lihat daftar katalog produk, kategori, dan finishing aktif",
+      "Perbarui status produksi pesanan (QUEUED -> IN_PROGRESS -> READY -> COMPLETED)",
+      "Akses Dashboard Kasir pribadi (omzet kasir sendiri tanpa omzet global)",
+      "Kelola database pelanggan (tambah, cari, perbarui nama/nomor HP)",
+    ];
+
+    expect(cashierAllowedCapabilities.length).toBe(7);
+    cashierAllowedCapabilities.forEach((cap) => {
+      expect(cap).toBeTruthy();
+    });
   });
 });

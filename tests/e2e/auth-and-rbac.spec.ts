@@ -30,7 +30,7 @@ test.describe("E2E: Autentikasi, RBAC & 4-Layer Guard", () => {
       await expect(page).toHaveURL(/\/dashboard/);
     });
 
-    test("3. Halaman Manajemen User (/users) dapat diakses oleh Owner di Web", async ({ page }) => {
+    test("3. Halaman Manajemen User (/users) dapat diakses oleh Owner di Web dan menegakkan Single-Owner di UI", async ({ page }) => {
       await page.goto("/users");
       await page.waitForLoadState("domcontentloaded");
 
@@ -39,6 +39,25 @@ test.describe("E2E: Autentikasi, RBAC & 4-Layer Guard", () => {
 
       const addUserBtn = page.getByRole("button", { name: /Tambah Pengguna/i });
       await expect(addUserBtn).toBeVisible();
+
+      // Buka modal Tambah Pengguna
+      await addUserBtn.click();
+      const modalHeading = page.getByRole("heading", { name: /Tambah Pengguna Baru/i });
+      await expect(modalHeading).toBeVisible();
+
+      // Verifikasi penegakan Single-Owner: peran dikunci sebagai KASIR tanpa opsi dropdown OWNER
+      const addForm = page.locator("form");
+      const cashierBadge = addForm.locator("span", { hasText: /^KASIR$/ });
+      await expect(cashierBadge).toBeVisible();
+      await expect(addForm.locator("text=kebijakan 1 Owner tunggal")).toBeVisible();
+
+      // Dropdown role tidak boleh ada
+      const roleSelect = addForm.locator("select[name='role']");
+      await expect(roleSelect).toHaveCount(0);
+
+      // Tutup modal
+      await page.getByRole("button", { name: /Batal/i }).click();
+      await expect(modalHeading).not.toBeVisible();
     });
   });
 });

@@ -3,7 +3,7 @@ import { eq, and, ne, gte, lte, inArray, desc } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { orders, payments, users } from "@/db/schema";
-import { requireAuth } from "@/lib/auth/guard";
+import { requireOwner } from "@/lib/auth/guard";
 import { jsonResponse, handleApiError } from "@/lib/api/response";
 import { buildSafeCsv } from "@/lib/security/csv-sanitize";
 import { recordAuditLog } from "@/lib/security/audit";
@@ -28,7 +28,7 @@ const reportsQuerySchema = z
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireAuth(request);
+    const session = await requireOwner(request);
     const { searchParams } = new URL(request.url);
 
     const parsedQuery = reportsQuerySchema.parse({

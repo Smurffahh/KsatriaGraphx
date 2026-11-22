@@ -8,7 +8,7 @@ import {
 } from "../src/lib/printer/share";
 import { sanitizeMetadata } from "../src/lib/security/audit";
 
-describe("Fase 5: Nota Digital, Dashboard, Laporan & Audit Log Suite", () => {
+describe("Nota Digital, Dashboard, Laporan & Audit Log Suite", () => {
   describe("1. CSV Formula Injection Sanitization (US-014 & RFC 4180)", () => {
     it("harus menyematkan prefix tanda kutip tunggal pada karakter formula berbahaya (=, +, -, @, \\t, \\r)", () => {
       expect(sanitizeCsvCell("=SUM(A1:A10)")).toBe("\"'=SUM(A1:A10)\"");

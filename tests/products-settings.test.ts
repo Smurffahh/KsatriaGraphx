@@ -16,7 +16,7 @@ import { createFinishingSchema } from "../src/lib/validators/finishing";
 import { updateStoreSettingsSchema } from "../src/lib/validators/settings";
 import sharp from "sharp";
 
-describe("Fase 3 — US-004B: Media Storage & Image Sanitization Tests", () => {
+describe("Media Storage & Image Sanitization Tests (US-004B)", () => {
   it("harus mendeteksi Magic Bytes JPEG, PNG, dan WebP dengan akurat", () => {
     // 1. JPEG Magic Bytes: FF D8 FF
     const jpegBuffer = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01]);
@@ -105,7 +105,7 @@ describe("Fase 3 — US-004B: Media Storage & Image Sanitization Tests", () => {
   });
 });
 
-describe("Fase 3 — US-005: Wholesale Price Tiers Anti-Overlap & Validations", () => {
+describe("Wholesale Price Tiers Anti-Overlap & Validations (US-005)", () => {
   it("harus meloloskan rentang tier grosir yang valid dan berurutan", () => {
     const validTiers = [
       { minQty: 1, maxQty: 11, unitPrice: 50000 },
@@ -156,7 +156,7 @@ describe("Fase 3 — US-005: Wholesale Price Tiers Anti-Overlap & Validations", 
   });
 });
 
-describe("Fase 3 — Zod Strict Schemas & Input Boundary Tests", () => {
+describe("Zod Strict Schemas & Input Boundary Tests", () => {
   it("harus menolak payload produk yang menyuntikkan properti asing via Zod strict", () => {
     const maliciousPayload = {
       categoryId: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",

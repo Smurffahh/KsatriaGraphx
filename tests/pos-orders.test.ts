@@ -15,7 +15,7 @@ import {
 } from "../src/lib/calculator/pricing";
 import { getWibDateKey } from "../src/lib/orders/invoice";
 
-describe("Fase 4: POS, Kalkulator, Keamanan & Anti-Fraud Suite", () => {
+describe("POS, Kalkulator, Keamanan & Anti-Fraud Suite", () => {
   describe("1. Customer Validation & Phone Normalization (US-015)", () => {
     it("harus menormalisasi format nomor telepon Indonesia menjadi 628...", () => {
       expect(normalizeIndonesianPhone("08123456789")).toBe("628123456789");

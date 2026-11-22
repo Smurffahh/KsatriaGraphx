@@ -142,7 +142,7 @@ describe("Validasi Konfigurasi Environment, CORS & 4-Layer Guard Produksi", () =
     });
 
     it("harus menolak DATABASE_URL jika tidak menyertakan sslmode=require", () => {
-      process.env.DATABASE_URL = "postgresql://user:pass@host/db?sslmode=disable";
+      process.env.DATABASE_URL = "postgresql://dummy_user:dummy_pass@dummy-host.example.com/dummydb?sslmode=disable";
       expect(() => getServerEnv()).toThrowError(/sslmode=require/);
     });
   });

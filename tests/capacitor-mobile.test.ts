@@ -4,7 +4,7 @@ import { getCorsHeaders } from "../src/lib/api/cors";
 import { resolveApiUrl } from "../src/lib/api/client";
 import { secureStorage } from "../src/lib/auth/secure-storage";
 
-describe("Fase 6: Capacitor Android Shell, Secure Storage & Bluetooth Suite (US-012, US-016)", () => {
+describe("Capacitor Android Shell, Secure Storage & Bluetooth Suite (US-012, US-016)", () => {
   describe("1. Static Check: Android Manifest Hardening & Capacitor Config", () => {
     it("AndroidManifest.xml harus mengandung proteksi allowBackup=false dan usesCleartextTraffic=false", () => {
       const manifestPath = "android/app/src/main/AndroidManifest.xml";

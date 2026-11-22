@@ -511,7 +511,7 @@ export default function SettingsPage() {
                     onClick={() =>
                       setFormData({ ...formData, defaultPaperWidth: "MM_58" })
                     }
-                    className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-semibold transition-all ${
+                    className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-semibold transition-[color,background-color,border-color,box-shadow] ${
                       formData.defaultPaperWidth === "MM_58"
                         ? "border-primary bg-primary/10 text-primary ring-2 ring-primary/20"
                         : "border-border bg-card text-foreground hover:bg-muted"
@@ -525,7 +525,7 @@ export default function SettingsPage() {
                     onClick={() =>
                       setFormData({ ...formData, defaultPaperWidth: "MM_80" })
                     }
-                    className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-semibold transition-all ${
+                    className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-semibold transition-[color,background-color,border-color,box-shadow] ${
                       formData.defaultPaperWidth === "MM_80"
                         ? "border-primary bg-primary/10 text-primary ring-2 ring-primary/20"
                         : "border-border bg-card text-foreground hover:bg-muted"
@@ -597,7 +597,7 @@ export default function SettingsPage() {
             {/* Struk Thermal Mockup */}
             <div className="mx-auto flex justify-center">
               <div
-                className={`rounded-2xl border border-border bg-card p-5 text-foreground shadow-lg font-mono text-xs transition-all ${
+                className={`rounded-2xl border border-border bg-card p-5 text-foreground shadow-lg font-mono text-xs transition-[width,border-color,box-shadow] ${
                   formData.defaultPaperWidth === "MM_58"
                     ? "w-[280px]"
                     : "w-[360px]"

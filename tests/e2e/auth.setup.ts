@@ -1,6 +1,9 @@
 import { test as setup, expect } from "@playwright/test";
 import fs from "fs";
 import path from "path";
+import { db } from "@/db";
+import { rateLimitBuckets } from "@/db/schema";
+import { like } from "drizzle-orm";
 
 const authFile = "playwright/.auth/owner.json";
 const OWNER_USERNAME =
@@ -15,6 +18,12 @@ if (!OWNER_PASSWORD) {
 }
 
 setup("Authenticate Owner", async ({ page }) => {
+  try {
+    await db.delete(rateLimitBuckets).where(like(rateLimitBuckets.key, "login:%"));
+  } catch {
+    // Ignore if DB busy
+  }
+
   // Pastikan direktori playwright/.auth ada
   const dir = path.dirname(authFile);
   if (!fs.existsSync(dir)) {
@@ -24,7 +33,10 @@ setup("Authenticate Owner", async ({ page }) => {
   await page.goto("/login");
   await page.waitForLoadState("domcontentloaded");
 
-  await page.fill("#usernameOrEmail", OWNER_USERNAME);
+  const userInput = page.locator("#usernameOrEmail");
+  await expect(userInput).toBeVisible({ timeout: 15000 });
+
+  await userInput.fill(OWNER_USERNAME);
   await page.fill("#password", OWNER_PASSWORD);
   await page.click('button[type="submit"]');
 

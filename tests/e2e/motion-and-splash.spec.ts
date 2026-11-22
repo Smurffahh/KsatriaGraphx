@@ -27,17 +27,37 @@ test.describe("E2E: Motion, Splash Screens, Login Stagger & Dashboard Interactio
     });
 
     test("1.1 Pre-login splash tampil pada sesi baru dan menyingkap form login yang interaktif", async ({ page }) => {
+      // Pastikan sessionStorage bersih di awal tes agar splash selalu terpicu
+      await page.addInitScript(() => {
+        try {
+          window.sessionStorage.clear();
+        } catch {}
+      });
+
+      const startTime = Date.now();
       await page.goto("/login");
       await page.waitForLoadState("domcontentloaded");
 
-      // Verifikasi elemen form login muncul dan siap menerima input
+      // Verifikasi overlay splash screen aktif dan tampil dengan teks brand
+      const splashOverlay = page.locator('div[aria-label*="Memuat aplikasi Ksatria Graphx"]');
+      await expect(splashOverlay).toBeVisible({ timeout: 5000 });
+      await expect(splashOverlay.getByText("Ksatria Graphx")).toBeVisible();
+
+      // Menunggu splash overlay selesai berjalan tenang dan memudar (~2.5 detik)
+      await expect(splashOverlay).toBeHidden({ timeout: 10000 });
+
+      // Memastikan durasi tampil tenang minimal ~1.8 detik sebelum memudar
+      const elapsed = Date.now() - startTime;
+      expect(elapsed).toBeGreaterThanOrEqual(1800);
+
+      // Verifikasi elemen form login muncul dan siap menerima input setelah splash selesai
       const userInput = page.locator("#usernameOrEmail");
       const passInput = page.locator("#password");
       const submitBtn = page.locator('button[type="submit"]');
 
-      await expect(userInput).toBeVisible({ timeout: 10000 });
-      await expect(passInput).toBeVisible({ timeout: 10000 });
-      await expect(submitBtn).toBeVisible({ timeout: 10000 });
+      await expect(userInput).toBeVisible({ timeout: 5000 });
+      await expect(passInput).toBeVisible({ timeout: 5000 });
+      await expect(submitBtn).toBeVisible({ timeout: 5000 });
 
       // Verifikasi tombol toggle visibilitas password
       const togglePasswordBtn = page.locator('button[aria-label*="Lihat password"], button[aria-label*="Sembunyikan password"]');
@@ -110,6 +130,63 @@ test.describe("E2E: Motion, Splash Screens, Login Stagger & Dashboard Interactio
       await expect(page.locator("main").getByText(/Total Omzet|Omzet/i).first()).toBeVisible({ timeout: 15000 });
 
       await reducedContext.close();
+    });
+  });
+
+  test.describe("3. Layout Drawer Mobile & Verifikasi 0px Overlap Tombol Tutup", () => {
+    test("3.1 Mobile Drawer: Tombol silang X dan badge OWNER memiliki jarak aman dan 0px overlap", async ({ page, isMobile }) => {
+      test.skip(!isMobile, "Pengujian khusus viewport mobile (< 1024px)");
+
+      await page.goto("/dashboard");
+      await page.waitForLoadState("domcontentloaded");
+
+      // Buka bottom sheet 'Menu Lainnya' via tab navigasi bawah mobile
+      const menuButton = page.locator('button:has-text("Menu")').or(page.locator('button[aria-label*="menu" i]')).first();
+      await expect(menuButton).toBeVisible({ timeout: 15000 });
+      await menuButton.click();
+
+      // Tunggu bottom sheet terbuka
+      const sheetTitle = page.getByText("Menu & Pengaturan");
+      await expect(sheetTitle).toBeVisible({ timeout: 10000 });
+
+      // Temukan tombol silang X dan badge OWNER di dalam sheet dialog
+      const sheetDialog = page.locator('[role="dialog"]');
+      const closeButton = sheetDialog.locator('button[aria-label="Tutup menu"]').first();
+      const ownerBadge = sheetDialog.locator('div, span').filter({ hasText: /^OWNER$/ }).first();
+
+      await expect(closeButton).toBeVisible({ timeout: 5000 });
+      await expect(ownerBadge).toBeVisible({ timeout: 5000 });
+
+      const closeBox = await closeButton.boundingBox();
+      const ownerBox = await ownerBadge.boundingBox();
+
+      expect(closeBox).not.toBeNull();
+      expect(ownerBox).not.toBeNull();
+
+      if (closeBox && ownerBox) {
+        // Pastikan keduanya berada di dalam batas viewport horizontal mobile (375px)
+        expect(closeBox.x).toBeGreaterThanOrEqual(0);
+        expect(closeBox.x + closeBox.width).toBeLessThanOrEqual(375 + 10);
+        expect(ownerBox.x).toBeGreaterThanOrEqual(0);
+
+        // Periksa tumpang tindih matematis AABB (Axis-Aligned Bounding Box)
+        const isOverlap = !(
+          ownerBox.x + ownerBox.width <= closeBox.x || // Badge di sebelah kiri tombol X
+          ownerBox.x >= closeBox.x + closeBox.width || // Badge di sebelah kanan tombol X
+          ownerBox.y + ownerBox.height <= closeBox.y || // Badge di atas tombol X
+          ownerBox.y >= closeBox.y + closeBox.height    // Badge di bawah tombol X
+        );
+
+        // Verifikasi mutlak: 0px tumpang tindih
+        expect(isOverlap).toBe(false);
+
+        // Badge OWNER berada di sisi kiri (x < closeBox.x) dengan margin lega
+        expect(closeBox.x).toBeGreaterThan(ownerBox.x + ownerBox.width + 12);
+      }
+
+      // Tutup sheet kembali
+      await closeButton.click();
+      await expect(sheetTitle).toBeHidden({ timeout: 5000 });
     });
   });
 });

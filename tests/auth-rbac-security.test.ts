@@ -5,7 +5,7 @@ import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { validateCsrfOrigin } from "@/lib/security/csrf";
 import { handleGuardError } from "@/lib/auth/guard";
 
-describe("Skenario 1: Login Web vs APK Dual Transport & Token Payload", () => {
+describe("Autentikasi & RBAC: Login Web vs APK Dual Transport & Token Payload", () => {
   it("harus membuat Access Token JWT dengan klaim lengkap: sub, role, platform, tokenVersion", async () => {
     const webToken = await signAccessToken({
       userId: "user_owner_01",
@@ -42,7 +42,7 @@ describe("Skenario 1: Login Web vs APK Dual Transport & Token Payload", () => {
   });
 });
 
-describe("Skenario 2: Password Security & Brute-force Lockout Logic", () => {
+describe("Password Security & Brute-force Lockout Logic", () => {
   it("harus menerapkan cost factor bcrypt minimal 12", async () => {
     const hashed = await hashPassword("SandiKuat2026!");
     expect(hashed.startsWith("$2a$12$") || hashed.startsWith("$2b$12$")).toBe(true);
@@ -62,7 +62,7 @@ describe("Skenario 2: Password Security & Brute-force Lockout Logic", () => {
   });
 });
 
-describe("Skenario 3: Refresh Token Rotation & Reuse Detection Entropy", () => {
+describe("Refresh Token Rotation & Reuse Detection Entropy", () => {
   it("harus menghasilkan opaque token dengan entropi 64-karakter hex (32 bytes cryptographically secure)", () => {
     const token1 = generateOpaqueRefreshToken();
     const token2 = generateOpaqueRefreshToken();
@@ -80,7 +80,7 @@ describe("Skenario 3: Refresh Token Rotation & Reuse Detection Entropy", () => {
   });
 });
 
-describe("Skenario 4 & 5: Akses Kontrol Peran (RBAC - Owner vs Kasir)", () => {
+describe("Akses Kontrol Peran (RBAC - Owner vs Kasir)", () => {
   it("harus memetakan penolakan akses kasir ke HTTP 403 Forbidden", () => {
     const handled = handleGuardError(new Error("FORBIDDEN_NOT_OWNER"));
     expect(handled.status).toBe(403);
@@ -94,7 +94,7 @@ describe("Skenario 4 & 5: Akses Kontrol Peran (RBAC - Owner vs Kasir)", () => {
   });
 });
 
-describe("Skenario 6 & 7: 4-Layer Web-Only Guard (Bearer & Capacitor Origin Rejection)", () => {
+describe("4-Layer Web-Only Guard (Bearer & Capacitor Origin Rejection)", () => {
   it("Lapis 1: harus menolak akses dengan header Bearer di /api/users/** dengan HTTP 403", () => {
     const handled = handleGuardError(new Error("FORBIDDEN_BEARER_NOT_ALLOWED"));
     expect(handled.status).toBe(403);
@@ -118,7 +118,7 @@ describe("Skenario 6 & 7: 4-Layer Web-Only Guard (Bearer & Capacitor Origin Reje
   });
 });
 
-describe("Skenario 8: Instant Session Revocation (Token Version Mismatch)", () => {
+describe("Instant Session Revocation (Token Version Mismatch)", () => {
   it("harus menolak sesi jika tokenVersion database tidak cocok dengan klaim token JWT", () => {
     const dbTokenVersion: number = 2; // Dinaikkan karena password reset atau logout-all
     const jwtTokenVersion: number = 1; // Token lama yang beredar
@@ -131,7 +131,7 @@ describe("Skenario 8: Instant Session Revocation (Token Version Mismatch)", () =
   });
 });
 
-describe("Skenario 9: Anti-Lockout Owner Protection", () => {
+describe("Anti-Lockout Owner Protection", () => {
   it("Owner tidak boleh dapat menonaktifkan dirinya sendiri", () => {
     const currentUserId = "usr_owner_main";
     const targetUserId = "usr_owner_main";
@@ -157,7 +157,7 @@ describe("Skenario 9: Anti-Lockout Owner Protection", () => {
   });
 });
 
-describe("Skenario 10: Zod Strict Payload Validation", () => {
+describe("Zod Strict Payload Validation", () => {
   it("harus menggagalkan payload yang menyuntikkan properti tak dikenal", () => {
     const malicious = {
       name: "Kasir Test",
@@ -177,7 +177,7 @@ describe("Skenario 10: Zod Strict Payload Validation", () => {
   });
 });
 
-describe("Skenario 11: Audit Log Sensitive Data Sanitization", () => {
+describe("Audit Log Sensitive Data Sanitization", () => {
   it("harus menyamarkan kunci sensitif (password, token, hash, secret) dari metadata audit log", async () => {
     const { sanitizeMetadata } = await import("@/lib/security/audit");
 

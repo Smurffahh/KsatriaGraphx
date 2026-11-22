@@ -194,6 +194,8 @@ export default function ProductsPage() {
 
       await loadInitialData();
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["quick-calc-finishings"] });
       setIsProductModalOpen(false);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Terjadi kesalahan saat menyimpan produk";
@@ -222,6 +224,8 @@ export default function ProductsPage() {
       toast.success(`Produk "${deleteProductTarget.name}" berhasil dihapus`);
       await loadInitialData();
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["quick-calc-finishings"] });
       setDeleteProductTarget(null);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus";
@@ -261,7 +265,7 @@ export default function ProductsPage() {
           <button
             type="button"
             onClick={() => setActiveTab("products")}
-            className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
+            className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-[color,background-color,box-shadow] ${
               activeTab === "products"
                 ? "bg-primary text-primary-foreground shadow-xs"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -273,7 +277,7 @@ export default function ProductsPage() {
           <button
             type="button"
             onClick={() => setActiveTab("categories")}
-            className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
+            className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-[color,background-color,box-shadow] ${
               activeTab === "categories"
                 ? "bg-primary text-primary-foreground shadow-xs"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -285,7 +289,7 @@ export default function ProductsPage() {
           <button
             type="button"
             onClick={() => setActiveTab("finishings")}
-            className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
+            className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-[color,background-color,box-shadow] ${
               activeTab === "finishings"
                 ? "bg-primary text-primary-foreground shadow-xs"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -355,7 +359,7 @@ export default function ProductsPage() {
             <button
               type="button"
               onClick={() => setSelectedCategoryFilter("ALL")}
-              className={`min-h-[34px] shrink-0 rounded-lg px-3 py-1 text-xs font-semibold transition-all ${
+              className={`min-h-[34px] shrink-0 rounded-lg px-3 py-1 text-xs font-semibold transition-[color,background-color,box-shadow] ${
                 selectedCategoryFilter === "ALL"
                   ? "bg-primary text-primary-foreground shadow-xs"
                   : "bg-secondary text-secondary-foreground hover:bg-muted"
@@ -368,7 +372,7 @@ export default function ProductsPage() {
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategoryFilter(cat.id)}
-                className={`min-h-[34px] shrink-0 rounded-lg px-3 py-1 text-xs font-semibold transition-all ${
+                className={`min-h-[34px] shrink-0 rounded-lg px-3 py-1 text-xs font-semibold transition-[color,background-color,box-shadow] ${
                   selectedCategoryFilter === cat.id
                     ? "bg-primary text-primary-foreground shadow-xs"
                     : "bg-secondary text-secondary-foreground hover:bg-muted"

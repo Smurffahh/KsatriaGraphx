@@ -387,7 +387,7 @@ export function PosItemCalculator({
                     onChange={(e) => setIsOverrideActive(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-border peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                  <div className="w-9 h-5 bg-border peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-transform peer-checked:bg-amber-500"></div>
                 </label>
               </div>
 
@@ -427,7 +427,7 @@ export function PosItemCalculator({
                     return (
                       <div
                         key={f.id}
-                        className={`p-3 rounded-xl border transition-all flex items-center justify-between ${
+                        className={`p-3 rounded-xl border transition-[color,background-color,border-color,box-shadow] flex items-center justify-between ${
                           isSelected
                             ? "bg-primary/5 border-primary/40 shadow-xs"
                             : "bg-surface border-border/70 hover:border-border"

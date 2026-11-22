@@ -13,7 +13,7 @@ import {
   resetPasswordSchema,
 } from "@/lib/validators/user";
 
-describe("Fase 2: Password Hashing & Entropy Tests", () => {
+describe("Password Hashing & Entropy Tests", () => {
   it("harus menghasilkan hash bcrypt valid dengan cost factor aman dan verifikasi sukses", async () => {
     const rawPassword = "AdminKsatria123!";
     const hashed = await hashPassword(rawPassword);
@@ -29,7 +29,7 @@ describe("Fase 2: Password Hashing & Entropy Tests", () => {
   });
 });
 
-describe("Fase 2: Access Token & Opaque Refresh Token Tests", () => {
+describe("Access Token & Opaque Refresh Token Tests", () => {
   it("harus menandatangani dan memverifikasi JWT access token 15 menit dengan klaim lengkap", async () => {
     const token = await signAccessToken({
       userId: "usr_test_123",
@@ -76,7 +76,7 @@ describe("Fase 2: Access Token & Opaque Refresh Token Tests", () => {
   });
 });
 
-describe("Fase 2: CSRF & Origin Guard Tests", () => {
+describe("CSRF & Origin Guard Tests", () => {
   it("harus menolak request mutasi dengan origin Capacitor", () => {
     const reqCapacitor = new Request("http://localhost:3000/api/users", {
       method: "POST",
@@ -111,7 +111,7 @@ describe("Fase 2: CSRF & Origin Guard Tests", () => {
   });
 });
 
-describe("Fase 2: Zod Strict Validation & Anti-Tampering Tests", () => {
+describe("Zod Strict Validation & Anti-Tampering Tests", () => {
   it("harus menolak payload create user yang mengandung field ilegal / asing (.strict())", () => {
     const maliciousPayload = {
       name: "Kasir Baru",
@@ -199,7 +199,7 @@ describe("Fase 2: Zod Strict Validation & Anti-Tampering Tests", () => {
   });
 });
 
-describe("Fase 2: 4-Layer Web-Only Guard Error Mapping Tests", () => {
+describe("4-Layer Web-Only Guard Error Mapping Tests", () => {
   it("harus memetakan error guard ke status HTTP 403 Forbidden untuk pelanggaran platform & peran", async () => {
     const { handleGuardError } = await import("../guard");
 

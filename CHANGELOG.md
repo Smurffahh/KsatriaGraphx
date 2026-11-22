@@ -4,6 +4,27 @@ Semua pembaruan terstruktur untuk proyek **Ksatria Graphx** didokumentasikan dal
 
 ---
 
+## [v1.3.1] - 2026-11-22
+
+Pembaruan patch v1.3.1 berfokus pada penguatan transaksi database atomik POS, sinkronisasi invalidasi cache katalog dan kalkulator cepat, eliminasi transisi tidak terarah demi performa rendering GPU 60fps, pengamanan isolasi kredensial uji E2E tanpa fallback, serta restrukturisasi penamaan berkas pengujian berbasis fitur.
+
+### Database & Transaksi POS Atomik
+- **Row-Level Locking Pembayaran Pesanan**: Endpoint `/api/orders/[id]/payments` dilindungi kunci baris eksplisit `.for("update")` dan konfirmasi sisa tagihan untuk mencegah *race condition* pembayaran ganda secara bersamaan.
+- **Katalog Produk Cetak Inti**: Sinkronisasi seed katalog menambahkan varian produk spanduk standar (`Banner Flexi 280gr Standard` dan `Banner Flexi 340gr Semi-Korcin`) ke database secara aman dan *idempotent*.
+
+### Sinkronisasi Kontrak & Mutasi State
+- **Invalidasi Cache Menyeluruh**: Mutasi tambah/edit produk di halaman katalog kini menginvalidasi cache kueri kategori dan finishing kalkulator secara langsung, menjamin ketersediaan bahan pembanding seketika di Kalkulator Cepat maupun POS.
+
+### Performa Antarmuka & GPU Transitions
+- **Pembersihan `transition-all`**: Menghapus seluruh pemakaian transisi global yang memicu *layout thrashing* di halaman produk, pengaturan, modal pelanggan, dan kalkulator item POS, digantikan dengan transisi selektif ramah GPU (`transition-transform`, `transition-colors`, `transition-opacity`).
+- **Pratinjau Struk Statis**: Kontainer pratinjau struk thermal (`ReceiptView.tsx`) dijaga 100% statis tanpa transisi demi kepastian tata letak cetak Bluetooth ESC/POS.
+
+### Arsitektur Pengujian & Sanitasi Rahasia
+- **Penamaan Berkas Pengujian Berbasis Fitur**: Merapikan 6 berkas uji bernomor fase menjadi modul berbasis kemampuan domain (`auth-rbac-security`, `products-settings`, `pos-orders`, `reports-dashboard-audit`, `capacitor-mobile`, `security-pentest`).
+- **Isolasi Variabel Lingkungan E2E**: Menghapus fallback kredensial default dari script pengujian Playwright dan menggantikannya dengan pembacaan terisolasi dari variabel lingkungan lokal via `dotenv`.
+
+---
+
 ## [v1.3.0] - 2026-11-22
 
 Rilis minor v1.3.0 menghadirkan sistem Splash Screen pra-login dan pasca-login personal, animasi bertahap (stagger) pada halaman masuk, dashboard toko interaktif dengan visualisasi data halus, indikator pemuatan data kontekstual di seluruh modul, serta umpan balik mikro pada tombol dan navigasi dengan kepatuhan penuh terhadap standar aksesibilitas dan preferensi gerak pengguna (*prefers-reduced-motion*).

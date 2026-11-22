@@ -266,7 +266,7 @@ export function ReceiptView({
       <div className="flex justify-center">
         <div
           id="receipt-print-area"
-          className={`receipt-print-area w-full ${containerWidthClass} bg-white text-black p-4 sm:p-5 rounded-2xl shadow-md border border-neutral-300 font-mono text-[11px] leading-relaxed transition-all`}
+          className={`receipt-print-area w-full ${containerWidthClass} bg-white text-black p-4 sm:p-5 rounded-2xl shadow-md border border-neutral-300 font-mono text-[11px] leading-relaxed`}
         >
           {/* Store Header */}
           <div className="text-center border-b border-dashed border-neutral-400 pb-3 mb-3">

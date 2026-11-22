@@ -3,8 +3,16 @@ import { db } from "@/db";
 import { rateLimitBuckets } from "@/db/schema";
 import { like } from "drizzle-orm";
 
-const OWNER_USERNAME = process.env.DEFAULT_OWNER_USERNAME || "owner";
-const OWNER_PASSWORD = process.env.DEFAULT_OWNER_PASSWORD || "Dans_newbie2";
+const OWNER_USERNAME =
+  process.env.E2E_OWNER_USERNAME || process.env.DEFAULT_OWNER_USERNAME || "owner";
+const OWNER_PASSWORD =
+  process.env.E2E_OWNER_PASSWORD || process.env.DEFAULT_OWNER_PASSWORD;
+
+if (!OWNER_PASSWORD) {
+  throw new Error(
+    "Kredensial E2E belum dikonfigurasi. Mohon definisikan E2E_OWNER_PASSWORD (atau DEFAULT_OWNER_PASSWORD) pada file .env.local sebelum menjalankan pengujian Playwright."
+  );
+}
 
 test.describe("E2E: Motion, Splash Screens, Login Stagger & Dashboard Interactions", () => {
   test.describe("1. Alur Splash Pra-Login & Login Stagger (Tanpa Sesi)", () => {

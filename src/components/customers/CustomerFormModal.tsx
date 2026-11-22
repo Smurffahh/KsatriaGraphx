@@ -147,7 +147,7 @@ export function CustomerFormModal({
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Contoh: Budi Santoso / PT Maju Jaya"
                 required
-                className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm bg-surface-muted border border-border rounded-xl text-text placeholder:text-text-muted/60 focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm bg-surface-muted border border-border rounded-xl text-text placeholder:text-text-muted/60 focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary transition-[color,background-color,border-color,box-shadow]"
               />
             </div>
           </div>
@@ -163,7 +163,7 @@ export function CustomerFormModal({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="08123456789 atau 628..."
-                className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm bg-surface-muted border border-border rounded-xl text-text placeholder:text-text-muted/60 focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm bg-surface-muted border border-border rounded-xl text-text placeholder:text-text-muted/60 focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary transition-[color,background-color,border-color,box-shadow]"
               />
             </div>
             <p className="mt-1 text-[11px] text-text-muted">
@@ -182,7 +182,7 @@ export function CustomerFormModal({
                 onChange={(e) => setAddress(e.target.value)}
                 rows={2}
                 placeholder="Alamat kantor / tempat tinggal..."
-                className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm bg-surface-muted border border-border rounded-xl text-text placeholder:text-text-muted/60 focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm bg-surface-muted border border-border rounded-xl text-text placeholder:text-text-muted/60 focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary transition-[color,background-color,border-color,box-shadow]"
               />
             </div>
           </div>
@@ -198,7 +198,7 @@ export function CustomerFormModal({
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
                 placeholder="Catatan preferensi desain, tempo bayar, dll..."
-                className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm bg-surface-muted border border-border rounded-xl text-text placeholder:text-text-muted/60 focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm bg-surface-muted border border-border rounded-xl text-text placeholder:text-text-muted/60 focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary transition-[color,background-color,border-color,box-shadow]"
               />
             </div>
           </div>

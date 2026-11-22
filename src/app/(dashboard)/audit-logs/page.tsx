@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
   ShieldCheck,
@@ -16,6 +17,7 @@ import {
   Lock,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
 import { Button } from "@/components/ui/button";
@@ -72,6 +74,7 @@ function AuditLogsSkeleton() {
 }
 
 export default function AuditLogsPage() {
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState<{
     role: "OWNER" | "KASIR";
   } | null>(null);
@@ -85,16 +88,21 @@ export default function AuditLogsPage() {
     unknown
   > | null>(null);
 
-  // Check Current User Role
+  // Check Current User Role & Redirect if Kasir
   useEffect(() => {
     apiClient<{ user: { role: "OWNER" | "KASIR" } }>("/api/auth/me")
       .then((res) => {
         if (res.success && res.data?.user) {
+          if (res.data.user.role === "KASIR") {
+            toast.error("Akses ditolak: Audit Log hanya dapat diakses oleh Pemilik Usaha (Owner).");
+            router.replace("/dashboard");
+            return;
+          }
           setCurrentUser(res.data.user);
         }
       })
       .catch(() => {});
-  }, []);
+  }, [router]);
 
   const isOwner = currentUser?.role === "OWNER";
 

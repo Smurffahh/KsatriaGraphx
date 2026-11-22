@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { eq, and, ne, count } from "drizzle-orm";
+import { eq, and, ne } from "drizzle-orm";
 import { assertWebOwnerOnly, handleGuardError } from "@/lib/auth/guard";
 import { updateUserSchema } from "@/lib/validators/user";
 import { revokeAllUserSessions } from "@/lib/auth/session";
@@ -56,6 +56,21 @@ export async function GET(request: Request, { params }: RouteParams) {
       { status: 200, headers: corsHeaders }
     );
   } catch (error) {
+    const errStr = error instanceof Error ? error.message : String(error);
+    const errCode = (error as { code?: string })?.code;
+
+    if (errStr.includes("users_single_owner_idx") || errCode === "23505") {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Sistem sudah memiliki satu akun Owner aktif. Tidak dapat menambahkan atau mengubah akun menjadi Owner.",
+          code: "SINGLE_OWNER_CONFLICT",
+        },
+        { status: 409, headers: corsHeaders }
+      );
+    }
+
     const handled = handleGuardError(error);
     if (handled.isHandled) {
       return NextResponse.json(
@@ -83,6 +98,33 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const userAgent = request.headers.get("user-agent");
 
     const rawBody = await request.json().catch(() => ({}));
+
+    // Strict Single-Owner Guard: Tolak promosi akun mana pun menjadi OWNER
+    if (rawBody && typeof rawBody === "object" && rawBody.role === "OWNER") {
+      await recordAuditLog({
+        userId: session.userId,
+        action: "USER_UPDATE_REJECTED",
+        entityType: "USER",
+        entityId: id,
+        platform: "WEB",
+        ipAddress,
+        userAgent,
+        metadata: {
+          reason: "Percobaan promosi akun menjadi Owner ditolak.",
+          attemptedRole: "OWNER",
+        },
+      });
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Sistem hanya mengizinkan satu akun Owner. Tidak dapat mempromosikan akun menjadi Owner.",
+          code: "SINGLE_OWNER_PROMOTION_FORBIDDEN",
+        },
+        { status: 403, headers: corsHeaders }
+      );
+    }
+
     const parseResult = updateUserSchema.safeParse(rawBody);
 
     if (!parseResult.success) {
@@ -118,6 +160,57 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     const updates = parseResult.data;
 
+    // Strict Single-Owner: Proteksi mutlak akun Owner
+    if (targetUser.role === "OWNER") {
+      if (updates.role) {
+        await recordAuditLog({
+          userId: session.userId,
+          action: "USER_UPDATE_REJECTED",
+          entityType: "USER",
+          entityId: targetUser.id,
+          platform: "WEB",
+          ipAddress,
+          userAgent,
+          metadata: {
+            reason: "Percobaan demosi akun Owner tunggal ditolak.",
+            targetUsername: targetUser.username,
+          },
+        });
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Akun Owner tunggal tidak dapat diubah perannya menjadi Kasir.",
+            code: "SINGLE_OWNER_DEMOTION_FORBIDDEN",
+          },
+          { status: 403, headers: corsHeaders }
+        );
+      }
+
+      if (updates.isActive === false) {
+        await recordAuditLog({
+          userId: session.userId,
+          action: "USER_UPDATE_REJECTED",
+          entityType: "USER",
+          entityId: targetUser.id,
+          platform: "WEB",
+          ipAddress,
+          userAgent,
+          metadata: {
+            reason: "Percobaan penonaktifan akun Owner tunggal ditolak.",
+            targetUsername: targetUser.username,
+          },
+        });
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Akun Owner tunggal tidak dapat dinonaktifkan.",
+            code: "SINGLE_OWNER_DEACTIVATION_FORBIDDEN",
+          },
+          { status: 403, headers: corsHeaders }
+        );
+      }
+    }
+
     if (targetUser.id === session.userId) {
       if (updates.isActive === false) {
         return NextResponse.json(
@@ -125,29 +218,9 @@ export async function PATCH(request: Request, { params }: RouteParams) {
           { status: 400, headers: corsHeaders }
         );
       }
-      if (updates.role && updates.role !== "OWNER") {
+      if (updates.role) {
         return NextResponse.json(
           { success: false, error: "Anda tidak dapat mengubah role akun Anda sendiri menjadi KASIR" },
-          { status: 400, headers: corsHeaders }
-        );
-      }
-    }
-
-    if (
-      targetUser.role === "OWNER" &&
-      (updates.isActive === false || (updates.role && updates.role !== "OWNER"))
-    ) {
-      const [activeOwnerCount] = await db
-        .select({ total: count() })
-        .from(users)
-        .where(and(eq(users.role, "OWNER"), eq(users.isActive, true)));
-
-      if ((activeOwnerCount?.total || 0) <= 1) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Tidak dapat menonaktifkan atau mengubah role pemilik (Owner) terakhir di sistem",
-          },
           { status: 400, headers: corsHeaders }
         );
       }
@@ -247,6 +320,21 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       { status: 200, headers: corsHeaders }
     );
   } catch (error) {
+    const errStr = error instanceof Error ? error.message : String(error);
+    const errCode = (error as { code?: string })?.code;
+
+    if (errStr.includes("users_single_owner_idx") || errCode === "23505") {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Sistem sudah memiliki satu akun Owner aktif. Tidak dapat menambahkan atau mengubah akun menjadi Owner.",
+          code: "SINGLE_OWNER_CONFLICT",
+        },
+        { status: 409, headers: corsHeaders }
+      );
+    }
+
     const handled = handleGuardError(error);
     if (handled.isHandled) {
       return NextResponse.json(
@@ -299,20 +387,27 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     }
 
     if (targetUser.role === "OWNER") {
-      const [activeOwnerCount] = await db
-        .select({ total: count() })
-        .from(users)
-        .where(and(eq(users.role, "OWNER"), eq(users.isActive, true)));
-
-      if ((activeOwnerCount?.total || 0) <= 1) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Tidak dapat menonaktifkan pemilik (Owner) terakhir di sistem",
-          },
-          { status: 400, headers: corsHeaders }
-        );
-      }
+      await recordAuditLog({
+        userId: session.userId,
+        action: "USER_DELETE_REJECTED",
+        entityType: "USER",
+        entityId: targetUser.id,
+        platform: "WEB",
+        ipAddress,
+        userAgent,
+        metadata: {
+          reason: "Percobaan penghapusan akun Owner tunggal ditolak.",
+          targetUsername: targetUser.username,
+        },
+      });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Akun Owner tunggal tidak dapat dinonaktifkan atau dihapus.",
+          code: "SINGLE_OWNER_DELETION_FORBIDDEN",
+        },
+        { status: 403, headers: corsHeaders }
+      );
     }
 
     await db
@@ -347,6 +442,21 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       { status: 200, headers: corsHeaders }
     );
   } catch (error) {
+    const errStr = error instanceof Error ? error.message : String(error);
+    const errCode = (error as { code?: string })?.code;
+
+    if (errStr.includes("users_single_owner_idx") || errCode === "23505") {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Sistem sudah memiliki satu akun Owner aktif. Tidak dapat menambahkan atau mengubah akun menjadi Owner.",
+          code: "SINGLE_OWNER_CONFLICT",
+        },
+        { status: 409, headers: corsHeaders }
+      );
+    }
+
     const handled = handleGuardError(error);
     if (handled.isHandled) {
       return NextResponse.json(

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
   Download,
@@ -104,6 +105,7 @@ function ReportsSkeleton() {
 }
 
 export default function ReportsPage() {
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState<{
     role: "OWNER" | "KASIR";
   } | null>(null);
@@ -128,11 +130,16 @@ export default function ReportsPage() {
     setEndDate(today);
   }, []);
 
-  // Fetch current user & cashier list if owner
+  // Fetch current user & cashier list if owner, redirect if kasir
   useEffect(() => {
     apiClient<{ user: { role: "OWNER" | "KASIR" } }>("/api/auth/me")
       .then((res) => {
         if (res.success && res.data?.user) {
+          if (res.data.user.role === "KASIR") {
+            toast.error("Akses ditolak: Laporan Omzet hanya dapat diakses oleh Pemilik Usaha (Owner).");
+            router.replace("/dashboard");
+            return;
+          }
           setCurrentUser(res.data.user);
           if (res.data.user.role === "OWNER") {
             apiClient<{ users: UserListItem[] }>("/api/users")
@@ -146,7 +153,7 @@ export default function ReportsPage() {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [router]);
 
   // Preset Date Handlers
   const handlePresetChange = (preset: "today" | "7d" | "month" | "custom") => {
@@ -198,7 +205,7 @@ export default function ReportsPage() {
         }
         return res.data;
       },
-      enabled: Boolean(startDate && endDate),
+      enabled: Boolean(startDate && endDate) && currentUser?.role === "OWNER",
       staleTime: 60 * 1000,
     });
 

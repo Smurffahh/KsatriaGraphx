@@ -77,7 +77,7 @@ const mainNavItems: NavItem[] = [
 ];
 
 const managementNavItems: NavItem[] = [
-  { label: "Laporan Omzet", href: "/reports", icon: BarChart3 },
+  { label: "Laporan Omzet", href: "/reports", icon: BarChart3, ownerOnly: true },
   { label: "Pengaturan Toko", href: "/settings", icon: Settings },
   { label: "Kelola Pengguna", href: "/users", icon: UserCheck, ownerOnly: true, webOnly: true },
   { label: "Audit Log", href: "/audit-logs", icon: ShieldCheck, ownerOnly: true },

@@ -4,6 +4,27 @@ Semua pembaruan terstruktur untuk proyek **Ksatria Graphx** didokumentasikan dal
 
 ---
 
+## [v1.3.3] - 2026-11-22
+
+Pembaruan keamanan v1.3.3 memperkuat tata kelola hak akses berbasis peran (RBAC) dan mengunci integritas akun Pemilik Usaha (Owner) secara absolut pada seluruh lapisan aplikasi:
+
+### Penegakan Batas Akun Pemilik Tunggal (Strict Single-Owner)
+- **Indeks Unik Parsial Database**: Menambahkan indeks unik PostgreSQL `users_single_owner_idx` pada tabel `users` dengan predikat `WHERE role = 'OWNER'`, memastikan secara fisik database Neon hanya dapat menyimpan tepat 1 akun Owner.
+- **Validasi Ketat Skema Input (Zod v4)**: Skema `createUserSchema` dan `updateUserSchema` menolak pembuatan akun baru dengan peran Owner maupun promosi peran menjadi Owner, menyertakan pesan penolakan yang jelas.
+- **Perlindungan Rute Pengguna API**: Endpoint `POST /api/users` dan `PATCH /api/users/[id]` memblokir percobaan pembuatan Owner tambahan, promosi Kasir menjadi Owner, demosi Owner menjadi Kasir, penonaktifan Owner, dan penghapusan Owner dengan respon `403 Forbidden` serta pencatatan audit log `USER_UPDATE_REJECTED`.
+- **Idempotensi Seed Database**: Skema inisialisasi akun memeriksa eksistensi peran Owner sebelum menyisipkan data, mencegah pelanggaran indeks unik saat migrasi ulang.
+
+### Penguatan Batas Hak Akses Kasir (RBAC Boundary Hardening)
+- **Proteksi Laporan Omzet Global**: Rute `GET /api/reports` dikunci dengan guard `requireOwner`, memblokir pembacaan data pendapatan toko secara langsung dari akun Kasir.
+- **Pembersihan Navigasi & Redireksi Aman**: Menu Laporan Omzet pada antarmuka ditandai `ownerOnly: true`. Akses URL langsung ke `/reports`, `/users`, dan `/audit-logs` oleh akun Kasir langsung dialihkan ke `/dashboard` disertai notifikasi peringatan.
+- **Isolasi Dashboard Kasir (Anti-IDOR)**: Rute `GET /api/dashboard` untuk Kasir membatasi metrik omzet dan penerimaan uang fisik hanya pada transaksi milik kasir yang bersangkutan, tanpa menampilkan grafik tren pendapatan global toko.
+
+### Pengujian & Verifikasi Kualitas
+- **Pengujian Keamanan RBAC**: Menambahkan uji validasi skema Zod, uji larangan demosi/penonaktifan Owner, dan pengujian matriks izin endpoint Kasir pada `tests/auth-rbac-security.test.ts`.
+- **Pengujian E2E Playwright**: Memperluas verifikasi antarmuka manajemen pengguna di Desktop dan Mobile Chrome untuk memastikan peran formulir penambahan terkunci pada Kasir tanpa opsi pilihan Owner.
+
+---
+
 ## [v1.3.2] - 2026-11-22
 
 Pembaruan patch v1.3.2 menyempurnakan kenyamanan visual dan tata letak responsif antarmuka:

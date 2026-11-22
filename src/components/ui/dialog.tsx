@@ -43,7 +43,10 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-xl p-1.5 text-muted-foreground opacity-70 transition-opacity hover:opacity-100 hover:bg-muted focus:outline-hidden focus:ring-2 focus:ring-ring disabled:pointer-events-none">
+      <DialogPrimitive.Close
+        aria-label="Tutup"
+        className="absolute right-4 top-4 flex size-9 items-center justify-center rounded-xl text-muted-foreground opacity-80 transition-[color,background-color,opacity,transform] hover:opacity-100 hover:text-foreground hover:bg-muted focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.96] disabled:pointer-events-none"
+      >
         <X className="size-4" />
         <span className="sr-only">Tutup</span>
       </DialogPrimitive.Close>

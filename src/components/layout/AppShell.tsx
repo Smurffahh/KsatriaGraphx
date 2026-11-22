@@ -593,13 +593,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* ========================================================= */}
       <Sheet open={isMenuSheetOpen} onOpenChange={setIsMenuSheetOpen}>
         <SheetContent side="bottom" className="p-5 max-w-lg mx-auto space-y-4">
-          <SheetHeader className="text-left space-y-1">
-            <div className="flex items-center justify-between">
-              <SheetTitle className="text-base font-bold">Menu & Pengaturan</SheetTitle>
-              <Badge variant="outline" className="text-[10px] uppercase">
-                {user?.role}
-              </Badge>
-            </div>
+          <SheetHeader className="text-left space-y-1 pr-12">
+            <SheetTitle className="text-base font-bold text-foreground">
+              Menu & Pengaturan
+            </SheetTitle>
             <SheetDescription className="text-xs text-muted-foreground">
               Akses cepat ke modul sekunder, pelanggan, laporan, dan preferensi toko
             </SheetDescription>
@@ -611,10 +608,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {user?.name ? user.name.slice(0, 2).toUpperCase() : "KG"}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold text-foreground">
-                {user?.name}
-              </p>
-              <p className="text-[10px] text-muted-foreground truncate">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="truncate text-xs font-bold text-foreground">
+                  {user?.name}
+                </p>
+                {user?.role && (
+                  <Badge
+                    variant={isOwner ? "default" : "secondary"}
+                    className="text-[10px] px-2 py-0.5 uppercase tracking-wider font-semibold shrink-0"
+                  >
+                    {user.role}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-[10px] text-muted-foreground truncate mt-0.5">
                 {isNative ? "Android APK Native" : "Web Desktop System"}
               </p>
             </div>

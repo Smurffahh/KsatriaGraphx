@@ -4,6 +4,20 @@ Semua pembaruan terstruktur untuk proyek **Ksatria Graphx** didokumentasikan dal
 
 ---
 
+## [v1.3.2] - 2026-11-22
+
+Pembaruan patch v1.3.2 menyempurnakan kenyamanan visual dan tata letak responsif antarmuka:
+
+### Splash Screen & Transisi Masuk
+- **Perlambatan Pre-Login Splash**: Memperpanjang ritme fade-in (500ms), fase tahan/progress bar halus 0% -> 100% (~2.050ms), dan fade-out (450ms) dengan total durasi ~2,5 detik agar identitas aplikasi nyaman dibaca.
+- **Stabilitas Siklus Hidup**: Menjamin timer transisi tidak ter-reset saat pengguna berinteraksi dengan kolom input, tetap mendukung ketukan untuk lewati (*tap-to-skip*), dan mode *reduced-motion*.
+
+### Tata Letak Antarmuka & Drawer Mobile
+- **Pemisahan Zona Tombol Tutup & Badge Peran**: Memberikan padding kanan aman (`pr-12`) pada header drawer mobile 'Menu & Pengaturan' dan menempatkan badge peran (`OWNER`/`KASIR`) di sebelah nama pengguna pada kartu profil di sisi kiri.
+- **Zero Overlap & Touch Target**: Menghilangkan tumpang tindih antara tombol silang `X` dan badge akun (0px overlap), memperbesar target sentuh tombol tutup ke 40x40px (`size-10`), serta menambahkan umpan balik tekan `active:scale-[0.96]`.
+
+---
+
 ## [v1.3.1] - 2026-11-22
 
 Pembaruan patch v1.3.1 berfokus pada penguatan transaksi database atomik POS, sinkronisasi invalidasi cache katalog dan kalkulator cepat, eliminasi transisi tidak terarah demi performa rendering GPU 60fps, pengamanan isolasi kredensial uji E2E tanpa fallback, serta restrukturisasi penamaan berkas pengujian berbasis fitur.

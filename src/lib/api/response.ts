@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
+import { handleGuardError } from "@/lib/auth/guard";
 
 export interface ApiResponse<T = unknown> {
   success: boolean;
@@ -81,8 +82,32 @@ export function handleApiError(err: unknown) {
     );
   }
 
+  const guard = handleGuardError(err);
+  if (guard.isHandled) {
+    return errorResponse(guard.message, guard.status, { code: guard.code });
+  }
+
   const errorObj = err as { message?: string; status?: number };
   const status = typeof errorObj?.status === "number" ? errorObj.status : 500;
-  const message = errorObj?.message || "Terjadi kesalahan pada server";
+  let message = errorObj?.message || "Terjadi kesalahan pada server";
+
+  if (status >= 500) {
+    const lower = message.toLowerCase();
+    if (
+      lower.includes("postgres") ||
+      lower.includes("drizzle") ||
+      lower.includes("relation") ||
+      lower.includes("syntax") ||
+      lower.includes("column") ||
+      lower.includes("database") ||
+      lower.includes("connection") ||
+      lower.includes("econnrefused") ||
+      lower.includes("password") ||
+      lower.includes("secret")
+    ) {
+      message = "Terjadi kesalahan internal pada server";
+    }
+  }
+
   return errorResponse(message, status);
 }

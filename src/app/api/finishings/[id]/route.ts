@@ -8,6 +8,7 @@ import { recordAuditLog } from "@/lib/security/audit";
 import { getClientIp } from "@/lib/security/client-ip";
 import { getCorsHeaders, handleCorsPreflight } from "@/lib/api/cors";
 import { updateFinishingSchema } from "@/lib/validators/finishing";
+import { isValidUuid } from "@/lib/validators/uuid";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,12 @@ export async function GET(
   try {
     await requireAuth(request);
     const { id } = await params;
+    if (!isValidUuid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Format ID finishing tidak valid", code: "INVALID_UUID" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
 
     const [finishing] = await db
       .select()
@@ -65,6 +72,12 @@ export async function PATCH(
   try {
     const session = await requireOwner(request);
     const { id } = await params;
+    if (!isValidUuid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Format ID finishing tidak valid", code: "INVALID_UUID" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
 
     if (session.platform === "WEB") {
       const isOriginValid = validateCsrfOrigin(request);
@@ -162,6 +175,12 @@ export async function DELETE(
   try {
     const session = await requireOwner(request);
     const { id } = await params;
+    if (!isValidUuid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Format ID finishing tidak valid", code: "INVALID_UUID" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
 
     if (session.platform === "WEB") {
       const isOriginValid = validateCsrfOrigin(request);

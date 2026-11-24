@@ -13,6 +13,7 @@ import { requireAuth } from "@/lib/auth/guard";
 import { validateCsrfOrigin } from "@/lib/security/csrf";
 import { recordAuditLog } from "@/lib/security/audit";
 import { updateOrderStatusSchema } from "@/lib/validators/order";
+import { isValidUuid } from "@/lib/validators/uuid";
 import { jsonResponse, errorResponse, handleApiError } from "@/lib/api/response";
 import { handleCorsPreflight } from "@/lib/api/cors";
 
@@ -29,6 +30,9 @@ export async function GET(
   try {
     await requireAuth(request);
     const { id } = await params;
+    if (!isValidUuid(id)) {
+      return errorResponse("Format ID pesanan tidak valid", 400);
+    }
 
     const [order] = await db
       .select({
@@ -133,6 +137,9 @@ export async function PATCH(
     }
 
     const { id } = await params;
+    if (!isValidUuid(id)) {
+      return errorResponse("Format ID pesanan tidak valid", 400);
+    }
 
     const [existingOrder] = await db
       .select()

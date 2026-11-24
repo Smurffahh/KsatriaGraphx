@@ -6,6 +6,7 @@ import { requireAuth, requireOwner } from "@/lib/auth/guard";
 import { validateCsrfOrigin } from "@/lib/security/csrf";
 import { recordAuditLog } from "@/lib/security/audit";
 import { updateCustomerSchema } from "@/lib/validators/customer";
+import { isValidUuid } from "@/lib/validators/uuid";
 import { jsonResponse, errorResponse, handleApiError } from "@/lib/api/response";
 import { handleCorsPreflight } from "@/lib/api/cors";
 
@@ -22,6 +23,9 @@ export async function GET(
   try {
     await requireAuth(request);
     const { id } = await params;
+    if (!isValidUuid(id)) {
+      return errorResponse("Format ID pelanggan tidak valid", 400);
+    }
 
     const [customer] = await db
       .select()
@@ -82,6 +86,9 @@ export async function PATCH(
     }
 
     const { id } = await params;
+    if (!isValidUuid(id)) {
+      return errorResponse("Format ID pelanggan tidak valid", 400);
+    }
 
     const [existing] = await db
       .select()
@@ -136,6 +143,9 @@ export async function DELETE(
     }
 
     const { id } = await params;
+    if (!isValidUuid(id)) {
+      return errorResponse("Format ID pelanggan tidak valid", 400);
+    }
 
     const [existing] = await db
       .select()

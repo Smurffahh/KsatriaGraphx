@@ -92,6 +92,11 @@ export async function POST(request: Request) {
       .limit(1);
 
     if (!targetUser) {
+      // Anti-Timing Attack: Lakukan dummy verifyPassword agar waktu eksekusi konstan dengan kasus user ditemukan
+      await verifyPassword(
+        password,
+        "$2a$12$e80y6fQ2W8O7cW9xZ8sFauN9q4tWbE.d0vS0b5eH2f5l3J8h1yqGK"
+      );
       return NextResponse.json(
         { success: false, error: "Username atau password salah" },
         { status: 401, headers: corsHeaders }

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { users, userSessions } from "@/db/schema";
+import { eq, and, isNull, sql } from "drizzle-orm";
 import { assertWebOwnerOnly, handleGuardError } from "@/lib/auth/guard";
 import { resetPasswordSchema } from "@/lib/validators/user";
+import { isValidUuid } from "@/lib/validators/uuid";
 import { hashPassword } from "@/lib/auth/password";
-import { revokeAllUserSessions } from "@/lib/auth/session";
 import { recordAuditLog } from "@/lib/security/audit";
 import { getClientIp } from "@/lib/security/client-ip";
 import { getCorsHeaders, handleCorsPreflight } from "@/lib/api/cors";
@@ -27,6 +27,12 @@ export async function POST(request: Request, { params }: RouteParams) {
   try {
     const session = await assertWebOwnerOnly(request);
     const { id } = await params;
+    if (!isValidUuid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Format ID pengguna tidak valid" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
     const ipAddress = getClientIp(request);
     const userAgent = request.headers.get("user-agent");
 
@@ -63,17 +69,23 @@ export async function POST(request: Request, { params }: RouteParams) {
 
     const newPasswordHash = await hashPassword(parseResult.data.password);
 
-    await db
-      .update(users)
-      .set({
-        passwordHash: newPasswordHash,
-        failedLoginAttempts: 0,
-        lockedUntil: null,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, targetUser.id));
+    await db.transaction(async (tx) => {
+      await tx
+        .update(users)
+        .set({
+          passwordHash: newPasswordHash,
+          tokenVersion: sql`${users.tokenVersion} + 1`,
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, targetUser.id));
 
-    await revokeAllUserSessions(targetUser.id, "PASSWORD_RESET_BY_OWNER");
+      await tx
+        .update(userSessions)
+        .set({ revokedAt: new Date() })
+        .where(and(eq(userSessions.userId, targetUser.id), isNull(userSessions.revokedAt)));
+    });
 
     await recordAuditLog({
       userId: session.userId,

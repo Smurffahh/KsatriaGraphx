@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   UserPlus,
@@ -86,7 +86,7 @@ export default function UsersPage() {
   // Action loading - Revoke Sessions
   const [isRevokingSessions, setIsRevokingSessions] = useState(false);
 
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
       const meRes = await apiClient<{ user: CurrentUser }>("/api/auth/me");
@@ -110,11 +110,11 @@ export default function UsersPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [router]);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   function showSuccess(msg: string) {
     toast.success(msg);

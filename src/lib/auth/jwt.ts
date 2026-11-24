@@ -6,7 +6,13 @@ const ACCESS_TOKEN_EXPIRY = "15m";
 const REFRESH_TOKEN_DAYS = 30;
 
 function getAccessSecretKey(): Uint8Array {
-  const secret = process.env.JWT_ACCESS_SECRET || "default-dev-jwt-access-secret-min-32-chars-long";
+  const secret = process.env.JWT_ACCESS_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("JWT_ACCESS_SECRET wajib didefinisikan pada lingkungan produksi");
+    }
+    return new TextEncoder().encode("default-dev-jwt-access-secret-min-32-chars-long");
+  }
   return new TextEncoder().encode(secret);
 }
 

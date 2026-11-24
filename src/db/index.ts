@@ -28,6 +28,15 @@ export function getDb(): Database {
     );
   }
 
+  if (
+    process.env.NODE_ENV === "production" &&
+    !connectionString.includes("sslmode=require")
+  ) {
+    throw new Error(
+      "DATABASE_URL wajib menyertakan sslmode=require pada lingkungan produksi demi keamanan transmisi data"
+    );
+  }
+
   cachedPool = new Pool({ connectionString });
   cachedPool.on("error", () => {
     // Reset cache pool agar query berikutnya membuat koneksi baru saat koneksi lama idle/closed

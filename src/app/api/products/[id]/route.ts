@@ -13,6 +13,7 @@ import {
   formatZodError,
 } from "@/lib/validators/product";
 import { deleteProductImage } from "@/lib/storage/blob";
+import { isValidUuid } from "@/lib/validators/uuid";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,12 @@ export async function GET(
   try {
     await requireAuth(request);
     const { id } = await params;
+    if (!isValidUuid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Format ID produk tidak valid" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
 
     const [product] = await db
       .select({
@@ -101,6 +108,12 @@ export async function PATCH(
   try {
     const session = await requireOwner(request);
     const { id } = await params;
+    if (!isValidUuid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Format ID produk tidak valid" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
 
     if (session.platform === "WEB") {
       const isOriginValid = validateCsrfOrigin(request);
@@ -298,6 +311,12 @@ export async function DELETE(
   try {
     const session = await requireOwner(request);
     const { id } = await params;
+    if (!isValidUuid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Format ID produk tidak valid" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
 
     if (session.platform === "WEB") {
       const isOriginValid = validateCsrfOrigin(request);

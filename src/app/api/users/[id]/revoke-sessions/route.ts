@@ -4,6 +4,7 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { assertWebOwnerOnly, handleGuardError } from "@/lib/auth/guard";
 import { revokeAllUserSessions } from "@/lib/auth/session";
+import { isValidUuid } from "@/lib/validators/uuid";
 import { recordAuditLog } from "@/lib/security/audit";
 import { getClientIp } from "@/lib/security/client-ip";
 import { getCorsHeaders, handleCorsPreflight } from "@/lib/api/cors";
@@ -25,6 +26,12 @@ export async function POST(request: Request, { params }: RouteParams) {
   try {
     const session = await assertWebOwnerOnly(request);
     const { id } = await params;
+    if (!isValidUuid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Format ID pengguna tidak valid" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
     const ipAddress = getClientIp(request);
     const userAgent = request.headers.get("user-agent");
 

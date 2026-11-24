@@ -4,6 +4,7 @@ import { users } from "@/db/schema";
 import { eq, and, ne } from "drizzle-orm";
 import { assertWebOwnerOnly, handleGuardError } from "@/lib/auth/guard";
 import { updateUserSchema } from "@/lib/validators/user";
+import { isValidUuid } from "@/lib/validators/uuid";
 import { revokeAllUserSessions } from "@/lib/auth/session";
 import { recordAuditLog } from "@/lib/security/audit";
 import { getClientIp } from "@/lib/security/client-ip";
@@ -26,6 +27,12 @@ export async function GET(request: Request, { params }: RouteParams) {
   try {
     await assertWebOwnerOnly(request);
     const { id } = await params;
+    if (!isValidUuid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Format ID pengguna tidak valid" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
 
     const [targetUser] = await db
       .select({
@@ -94,6 +101,12 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   try {
     const session = await assertWebOwnerOnly(request);
     const { id } = await params;
+    if (!isValidUuid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Format ID pengguna tidak valid" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
     const ipAddress = getClientIp(request);
     const userAgent = request.headers.get("user-agent");
 
@@ -358,6 +371,12 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   try {
     const session = await assertWebOwnerOnly(request);
     const { id } = await params;
+    if (!isValidUuid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Format ID pengguna tidak valid" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
     const ipAddress = getClientIp(request);
     const userAgent = request.headers.get("user-agent");
 

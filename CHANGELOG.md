@@ -4,6 +4,30 @@ Semua pembaruan terstruktur untuk proyek **Ksatria Graphx** didokumentasikan dal
 
 ---
 
+## [v1.3.4] - 2026-11-24
+
+Pembaruan v1.3.4 mencakup pembersihan kode mati (*dead code cleanup*), perapian dependensi render antarmuka, serta audit dan penguatan keamanan menyeluruh pada 20 titik pemeriksaan sistem:
+
+### Pembersihan Kode & Perapian ESLint
+- **Stabilisasi Render Pengguna**: Memperbaiki memoization fungsi pemuatan data (`loadData`) pada `src/app/(dashboard)/users/page.tsx` menggunakan `useCallback`, menghilangkan seluruh peringatan dependensi React Hooks pada ESLint.
+- **Audit Dependensi & Komponen**: Memverifikasi 29 paket dependensi serta seluruh komponen antarmuka aktif digunakan tanpa adanya modul mati (*dead code*).
+
+### Penguatan Keamanan Sistem (20 Security Checks)
+- **Validasi Ketat Format UUID**: Menerapkan fungsi pembantu `isValidUuid` pada seluruh parameter rute dinamis backend (`orders/[id]`, `payments`, `customers/[id]`, `products/[id]`, `categories/[id]`, `finishings/[id]`, `users/[id]`, `reset-password`, dan `revoke-sessions`), langsung mengembalikan respon `400 Bad Request` sebelum kueri dieksekusi ke database jika ID tidak valid.
+- **Sanitasi Pesanan Error Server 500**: Mengintegrasikan `handleGuardError` ke dalam penanganan galat terpusat `handleApiError` dan menyaring pesan galat basis data PostgreSQL/Drizzle ORM agar tidak membocorkan detail internal tabel kepada pengguna luar.
+- **Pencegahan Kunci Rahasia Bawaan (Fallback Secret)**: Memastikan generator token JWT pada mode produksi menolak fallback string dan langsung melempar galat konfigurasi jika `JWT_ACCESS_SECRET` kosong.
+- **Penegakan Enkripsi Koneksi Database**: Memvalidasi parameter koneksi database mewajibkan `sslmode=require` pada lingkungan produksi sebelum inisialisasi koneksi Neon Serverless.
+- **Mitigasi Serangan Waktu Autentikasi (Timing Attack)**: Menambahkan verifikasi hash kata sandi dummy pada rute login ketika akun tidak ditemukan, menyamakan latensi respons autentikasi antara akun yang ada dan yang tidak ada.
+- **Transaksi Atomik Pemulihan Kata Sandi**: Menggabungkan pembaruan hash kata sandi baru dan pembatalan seluruh sesi login aktif ke dalam satu transaksi basis data atomik.
+- **Proteksi Bom Dekompresi Gambar**: Menetapkan batas resolusi piksel maksimum (`limitInputPixels: 16_000_000` / 16 MP) pada validasi unggahan bukti transfer untuk mencegah serangan kehabisan memori server (*denial-of-service*).
+
+### Pengujian Otomatis & Verifikasi Kualitas
+- **Pengujian Regresi Keamanan**: Menambahkan 5 pengujian otomatis baru pada `tests/security-pentest.test.ts` untuk memvalidasi penolakan UUID invalid, sanitasi pesan galat 500, penolakan secret produksi kosong, dan pembersihan karakter ASCII kontrol ESC/POS (total 215 unit tests lulus 100%).
+- **Pengujian E2E Playwright**: Memastikan seluruh 42 skenario pengujian fungsional Playwright lintas Desktop dan Mobile Chrome lulus tanpa kendala.
+- **Pemindaian Rahasia Ganda (Double Secret Scan)**: Memindai seluruh aset statis build klien Next.js, direktori ekspor `out/`, dan aset aplikasi Android APK dengan hasil nol kebocoran data sensitif.
+
+---
+
 ## [v1.3.3] - 2026-11-22
 
 Pembaruan keamanan v1.3.3 memperkuat tata kelola hak akses berbasis peran (RBAC) dan mengunci integritas akun Pemilik Usaha (Owner) secara absolut pada seluruh lapisan aplikasi:

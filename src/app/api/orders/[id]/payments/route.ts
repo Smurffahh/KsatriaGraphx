@@ -6,6 +6,7 @@ import { requireAuth } from "@/lib/auth/guard";
 import { validateCsrfOrigin } from "@/lib/security/csrf";
 import { recordAuditLog } from "@/lib/security/audit";
 import { addPaymentSchema } from "@/lib/validators/order";
+import { isValidUuid } from "@/lib/validators/uuid";
 import { jsonResponse, errorResponse, handleApiError } from "@/lib/api/response";
 import { handleCorsPreflight } from "@/lib/api/cors";
 
@@ -26,6 +27,9 @@ export async function POST(
     }
 
     const { id } = await params;
+    if (!isValidUuid(id)) {
+      return errorResponse("Format ID pesanan tidak valid", 400);
+    }
     const body = await request.json();
     const validated = addPaymentSchema.parse(body);
 

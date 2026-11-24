@@ -92,7 +92,9 @@ export async function validateAndProcessImage(buffer: Buffer): Promise<{
   }
 
   try {
-    const processedBuffer = await sharp(buffer)
+    const processedBuffer = await sharp(buffer, {
+      limitInputPixels: 16_000_000,
+    })
       .rotate() // Menyelaraskan orientasi lalu membuang metadata EXIF orientasi
       .resize(1024, 1024, {
         fit: "inside",

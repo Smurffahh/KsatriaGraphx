@@ -262,17 +262,17 @@ export function PosCheckoutModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
       <div className="w-full max-w-2xl bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92dvh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-surface-muted/30">
+        <div className="flex items-center justify-between gap-3 px-5 py-4 sm:px-6 border-b border-border bg-surface-muted/30">
           <div>
-            <h2 className="text-base font-bold text-text">Checkout Nota Pesanan</h2>
-            <p className="text-xs text-text-muted mt-0.5">
+            <h2 className="text-base sm:text-lg font-semibold text-text">Checkout Nota Pesanan</h2>
+            <p className="text-xs sm:text-sm text-text-muted mt-0.5">
               {cartItems.length} jenis item dalam keranjang
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-text-muted hover:text-text rounded-xl hover:bg-surface-muted transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="p-2 text-text-muted hover:text-text rounded-xl hover:bg-surface-muted transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 cursor-pointer"
             aria-label="Tutup"
           >
             <X className="size-5" />
@@ -280,22 +280,22 @@ export function PosCheckoutModal({
         </div>
 
         {/* Content Body */}
-        <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-5">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 overflow-y-auto space-y-5">
           {errorMessage && (
-            <div className="p-3 text-xs text-danger bg-danger/10 border border-danger/20 rounded-xl flex items-center gap-2">
+            <div className="p-3.5 text-sm text-danger bg-danger/10 border border-danger/20 rounded-xl flex items-center gap-2.5">
               <AlertCircle className="size-4 shrink-0" />
               <span>{errorMessage}</span>
             </div>
           )}
 
           {/* Section: Customer Selection */}
-          <div className="p-4 rounded-xl bg-surface-muted/30 border border-border space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-text flex items-center gap-1.5">
-                <User className="size-3.5 text-primary" />
+          <div className="p-4 rounded-xl bg-surface-muted/30 border border-border space-y-3.5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs sm:text-sm font-semibold text-text flex items-center gap-1.5">
+                <User className="size-4 text-primary" />
                 <span>Data Pelanggan</span>
               </span>
-              <div className="inline-flex p-0.5 rounded-lg bg-surface border border-border text-xs font-medium">
+              <div className="inline-flex p-1 rounded-xl bg-surface border border-border text-xs font-medium">
                 <button
                   type="button"
                   onClick={() => {
@@ -304,8 +304,8 @@ export function PosCheckoutModal({
                     setCustomerName("Pelanggan Umum (Walk-in)");
                     setCustomerPhone("");
                   }}
-                  className={`px-2.5 py-1 rounded-md transition-colors ${
-                    customerMode === "WALK_IN" ? "bg-primary text-white" : "text-text-muted hover:text-text"
+                  className={`min-h-8 px-3 py-1 rounded-lg transition-colors cursor-pointer ${
+                    customerMode === "WALK_IN" ? "bg-primary text-white font-semibold" : "text-text-muted hover:text-text"
                   }`}
                 >
                   Walk-in (Umum)
@@ -313,8 +313,8 @@ export function PosCheckoutModal({
                 <button
                   type="button"
                   onClick={() => setCustomerMode("SELECT")}
-                  className={`px-2.5 py-1 rounded-md transition-colors ${
-                    customerMode === "SELECT" ? "bg-primary text-white" : "text-text-muted hover:text-text"
+                  className={`min-h-8 px-3 py-1 rounded-lg transition-colors cursor-pointer ${
+                    customerMode === "SELECT" ? "bg-primary text-white font-semibold" : "text-text-muted hover:text-text"
                   }`}
                 >
                   Pilih / Tambah
@@ -323,35 +323,35 @@ export function PosCheckoutModal({
             </div>
 
             {customerMode === "SELECT" ? (
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-text-muted" />
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-text-muted" />
                     <input
                       type="text"
                       placeholder="Ketik nama atau no. WA untuk mencari..."
                       value={customerSearch}
                       onChange={(e) => setCustomerSearch(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 text-xs bg-surface border border-border rounded-xl text-text"
+                      className="h-11 w-full pl-10 pr-3.5 text-base sm:text-sm bg-surface border border-border rounded-xl text-text"
                     />
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsCustomerModalOpen(true)}
-                    className="inline-flex items-center gap-1 px-3 py-2 text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 rounded-xl min-h-[38px]"
+                    className="inline-flex items-center gap-1.5 px-3.5 text-xs sm:text-sm font-medium bg-primary/10 text-primary hover:bg-primary/20 rounded-xl min-h-[44px] shrink-0 cursor-pointer"
                   >
-                    <Plus className="size-3.5" />
+                    <Plus className="size-4" />
                     <span>Baru</span>
                   </button>
                 </div>
 
                 {customerList.length > 0 && (
-                  <div className="divide-y divide-border/60 bg-surface border border-border rounded-xl max-h-36 overflow-y-auto">
+                  <div className="divide-y divide-border/60 bg-surface border border-border rounded-xl max-h-40 overflow-y-auto">
                     {customerList.map((c) => (
                       <div
                         key={c.id}
                         onClick={() => handleSelectCustomer(c)}
-                        className="p-2.5 hover:bg-surface-muted/50 cursor-pointer flex items-center justify-between text-xs"
+                        className="p-3 hover:bg-surface-muted/50 cursor-pointer flex items-center justify-between text-xs sm:text-sm"
                       >
                         <span className="font-medium text-text">{c.name}</span>
                         <span className="text-text-muted tabular-nums">{c.phone || "-"}</span>
@@ -360,9 +360,9 @@ export function PosCheckoutModal({
                   </div>
                 )}
 
-                <div className="p-2.5 rounded-lg bg-surface border border-border/80 flex items-center justify-between text-xs">
+                <div className="p-3 rounded-xl bg-surface border border-border/80 flex items-center justify-between text-xs sm:text-sm">
                   <div>
-                    <span className="text-text-muted block text-[10px]">Terpilih:</span>
+                    <span className="text-text-muted block text-xs">Terpilih:</span>
                     <span className="font-semibold text-text">{customerName}</span>
                   </div>
                   {customerPhone && (
@@ -371,9 +371,9 @@ export function PosCheckoutModal({
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[11px] text-text-muted mb-1">
+                  <label className="block text-xs sm:text-sm font-medium text-text-muted mb-1.5">
                     Nama Pelanggan <span className="text-danger">*</span>
                   </label>
                   <input
@@ -381,17 +381,17 @@ export function PosCheckoutModal({
                     required
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full px-3 py-2 text-base sm:text-sm bg-surface border border-border rounded-xl text-text"
+                    className="h-11 w-full px-3.5 text-base sm:text-sm bg-surface border border-border rounded-xl text-text"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] text-text-muted mb-1">Nomor WhatsApp</label>
+                  <label className="block text-xs sm:text-sm font-medium text-text-muted mb-1.5">Nomor WhatsApp</label>
                   <input
                     type="tel"
                     placeholder="08123456789 (Opsional)"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
-                    className="w-full px-3 py-2 text-base sm:text-sm bg-surface border border-border rounded-xl text-text"
+                    className="h-11 w-full px-3.5 text-base sm:text-sm bg-surface border border-border rounded-xl text-text"
                   />
                 </div>
               </div>
@@ -401,7 +401,7 @@ export function PosCheckoutModal({
           {/* Section: Design Fee & Discount */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-text-muted mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-text-muted mb-1.5">
                 Biaya Desain (Rp)
               </label>
               <input
@@ -412,22 +412,22 @@ export function PosCheckoutModal({
                 onChange={(e) =>
                   setDesignFee(e.target.value === "" ? "" : parseInt(e.target.value, 10))
                 }
-                className="w-full px-3 py-2 text-base sm:text-sm bg-surface border border-border rounded-xl text-text"
+                className="h-11 w-full px-3.5 text-base sm:text-sm bg-surface border border-border rounded-xl text-text"
               />
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-medium text-text-muted">Potongan Diskon</label>
-                <div className="flex items-center gap-1 text-[11px]">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs sm:text-sm font-medium text-text-muted">Potongan Diskon</label>
+                <div className="flex items-center gap-1 text-xs">
                   <button
                     type="button"
                     onClick={() => {
                       setDiscountType("NONE");
                       setDiscountValue("");
                     }}
-                    className={`px-1.5 py-0.5 rounded ${
-                      discountType === "NONE" ? "bg-primary text-white" : "text-text-muted"
+                    className={`min-h-8 px-2.5 py-1 rounded-lg font-medium cursor-pointer ${
+                      discountType === "NONE" ? "bg-primary text-white" : "text-text-muted hover:text-text"
                     }`}
                   >
                     Tidak
@@ -435,8 +435,8 @@ export function PosCheckoutModal({
                   <button
                     type="button"
                     onClick={() => setDiscountType("PERCENT")}
-                    className={`px-1.5 py-0.5 rounded ${
-                      discountType === "PERCENT" ? "bg-primary text-white" : "text-text-muted"
+                    className={`min-h-8 px-2.5 py-1 rounded-lg font-medium cursor-pointer ${
+                      discountType === "PERCENT" ? "bg-primary text-white" : "text-text-muted hover:text-text"
                     }`}
                   >
                     %
@@ -444,8 +444,8 @@ export function PosCheckoutModal({
                   <button
                     type="button"
                     onClick={() => setDiscountType("FIXED")}
-                    className={`px-1.5 py-0.5 rounded ${
-                      discountType === "FIXED" ? "bg-primary text-white" : "text-text-muted"
+                    className={`min-h-8 px-2.5 py-1 rounded-lg font-medium cursor-pointer ${
+                      discountType === "FIXED" ? "bg-primary text-white" : "text-text-muted hover:text-text"
                     }`}
                   >
                     Rp
@@ -465,12 +465,12 @@ export function PosCheckoutModal({
                         e.target.value === "" ? "" : parseInt(e.target.value, 10)
                       )
                     }
-                    className={`w-full px-3 py-2 text-base sm:text-sm bg-surface border rounded-xl text-text ${
+                    className={`h-11 w-full px-3.5 text-base sm:text-sm bg-surface border rounded-xl text-text ${
                       isDiscountOverLimit ? "border-danger ring-1 ring-danger" : "border-border"
                     }`}
                   />
                   {isDiscountOverLimit && (
-                    <p className="mt-1 text-[11px] text-danger">
+                    <p className="mt-1.5 text-xs text-danger">
                       Diskon kasir maksimal {maxCashierPercent}%. Silakan minta bantuan Owner.
                     </p>
                   )}
@@ -482,21 +482,21 @@ export function PosCheckoutModal({
           {/* Section: Estimated Date & Notes */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-text-muted mb-1 flex items-center gap-1.5">
-                <Calendar className="size-3.5 text-primary" />
+              <label className="text-xs sm:text-sm font-medium text-text-muted mb-1.5 flex items-center gap-1.5">
+                <Calendar className="size-4 text-primary" />
                 <span>Estimasi Selesai (Opsional)</span>
               </label>
               <input
                 type="datetime-local"
                 value={estimatedReadyAt}
                 onChange={(e) => setEstimatedReadyAt(e.target.value)}
-                className="w-full px-3 py-2 text-base sm:text-sm bg-surface border border-border rounded-xl text-text"
+                className="h-11 w-full px-3.5 text-base sm:text-sm bg-surface border border-border rounded-xl text-text"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-text-muted mb-1 flex items-center gap-1.5">
-                <FileText className="size-3.5 text-primary" />
+              <label className="text-xs sm:text-sm font-medium text-text-muted mb-1.5 flex items-center gap-1.5">
+                <FileText className="size-4 text-primary" />
                 <span>Catatan Nota / Pengerjaan</span>
               </label>
               <input
@@ -504,21 +504,21 @@ export function PosCheckoutModal({
                 placeholder="Contoh: Ditunggu jam 5 sore..."
                 value={orderNotes}
                 onChange={(e) => setOrderNotes(e.target.value)}
-                className="w-full px-3 py-2 text-base sm:text-sm bg-surface border border-border rounded-xl text-text"
+                className="h-11 w-full px-3.5 text-base sm:text-sm bg-surface border border-border rounded-xl text-text"
               />
             </div>
           </div>
 
           {/* Section: Payment Method & Presets */}
-          <div className="p-4 rounded-xl bg-surface-muted/30 border border-border space-y-3">
-            <span className="text-xs font-semibold text-text block">Pembayaran Pertama</span>
+          <div className="p-4 rounded-xl bg-surface-muted/30 border border-border space-y-3.5">
+            <span className="text-xs sm:text-sm font-semibold text-text block">Pembayaran Pertama</span>
 
             {/* Presets */}
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button
                 type="button"
                 onClick={() => setPaymentPreset("FULL")}
-                className={`py-2 text-xs font-medium rounded-xl border transition-colors ${
+                className={`min-h-10 py-2 px-3 text-xs sm:text-sm font-medium rounded-xl border transition-colors cursor-pointer ${
                   paymentPreset === "FULL"
                     ? "bg-emerald-500/10 border-emerald-500 text-emerald-600 font-semibold"
                     : "bg-surface border-border text-text-muted hover:text-text"
@@ -529,7 +529,7 @@ export function PosCheckoutModal({
               <button
                 type="button"
                 onClick={() => setPaymentPreset("DP_50")}
-                className={`py-2 text-xs font-medium rounded-xl border transition-colors ${
+                className={`min-h-10 py-2 px-3 text-xs sm:text-sm font-medium rounded-xl border transition-colors cursor-pointer ${
                   paymentPreset === "DP_50"
                     ? "bg-amber-500/10 border-amber-500 text-amber-600 font-semibold"
                     : "bg-surface border-border text-text-muted hover:text-text"
@@ -540,7 +540,7 @@ export function PosCheckoutModal({
               <button
                 type="button"
                 onClick={() => setPaymentPreset("ZERO")}
-                className={`py-2 text-xs font-medium rounded-xl border transition-colors ${
+                className={`min-h-10 py-2 px-3 text-xs sm:text-sm font-medium rounded-xl border transition-colors cursor-pointer ${
                   paymentPreset === "ZERO"
                     ? "bg-danger/10 border-danger text-danger font-semibold"
                     : "bg-surface border-border text-text-muted hover:text-text"
@@ -551,7 +551,7 @@ export function PosCheckoutModal({
               <button
                 type="button"
                 onClick={() => setPaymentPreset("CUSTOM")}
-                className={`py-2 text-xs font-medium rounded-xl border transition-colors ${
+                className={`min-h-10 py-2 px-3 text-xs sm:text-sm font-medium rounded-xl border transition-colors cursor-pointer ${
                   paymentPreset === "CUSTOM"
                     ? "bg-primary/10 border-primary text-primary font-semibold"
                     : "bg-surface border-border text-text-muted hover:text-text"
@@ -567,37 +567,37 @@ export function PosCheckoutModal({
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("CASH")}
-                  className={`py-2 text-xs font-medium rounded-xl border flex items-center justify-center gap-1.5 transition-colors ${
+                  className={`min-h-10 py-2 px-2 text-xs sm:text-sm font-medium rounded-xl border flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
                     paymentMethod === "CASH"
                       ? "bg-primary text-white border-primary"
                       : "bg-surface border-border text-text-muted hover:text-text"
                   }`}
                 >
-                  <Banknote className="size-3.5" />
-                  <span>Tunai (CASH)</span>
+                  <Banknote className="size-4 shrink-0" />
+                  <span>Tunai</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("TRANSFER")}
-                  className={`py-2 text-xs font-medium rounded-xl border flex items-center justify-center gap-1.5 transition-colors ${
+                  className={`min-h-10 py-2 px-2 text-xs sm:text-sm font-medium rounded-xl border flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
                     paymentMethod === "TRANSFER"
                       ? "bg-primary text-white border-primary"
                       : "bg-surface border-border text-text-muted hover:text-text"
                   }`}
                 >
-                  <CreditCard className="size-3.5" />
-                  <span>Transfer Bank</span>
+                  <CreditCard className="size-4 shrink-0" />
+                  <span>Transfer</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("QRIS")}
-                  className={`py-2 text-xs font-medium rounded-xl border flex items-center justify-center gap-1.5 transition-colors ${
+                  className={`min-h-10 py-2 px-2 text-xs sm:text-sm font-medium rounded-xl border flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
                     paymentMethod === "QRIS"
                       ? "bg-primary text-white border-primary"
                       : "bg-surface border-border text-text-muted hover:text-text"
                   }`}
                 >
-                  <QrCode className="size-3.5" />
+                  <QrCode className="size-4 shrink-0" />
                   <span>QRIS</span>
                 </button>
               </div>
@@ -605,9 +605,9 @@ export function PosCheckoutModal({
 
             {/* Payment Inputs */}
             {paymentPreset !== "ZERO" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
                 <div>
-                  <label className="block text-[11px] text-text-muted mb-1">
+                  <label className="block text-xs sm:text-sm font-medium text-text-muted mb-1.5">
                     Nominal Dibayar (Rp)
                   </label>
                   <input
@@ -620,13 +620,13 @@ export function PosCheckoutModal({
                         e.target.value === "" ? "" : parseInt(e.target.value, 10)
                       );
                     }}
-                    className="w-full px-3 py-2 text-base sm:text-sm bg-surface border border-border rounded-xl text-text font-semibold tabular-nums"
+                    className="h-11 w-full px-3.5 text-base sm:text-sm bg-surface border border-border rounded-xl text-text font-semibold tabular-nums"
                   />
                 </div>
 
                 {paymentMethod === "CASH" && (
                   <div>
-                    <label className="block text-[11px] text-text-muted mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-text-muted mb-1.5">
                       Uang Diterima dari Pelanggan (Rp)
                     </label>
                     <input
@@ -638,10 +638,10 @@ export function PosCheckoutModal({
                           e.target.value === "" ? "" : parseInt(e.target.value, 10)
                         )
                       }
-                      className="w-full px-3 py-2 text-base sm:text-sm bg-surface border border-border rounded-xl text-text tabular-nums"
+                      className="h-11 w-full px-3.5 text-base sm:text-sm bg-surface border border-border rounded-xl text-text tabular-nums"
                     />
                     {cashChange > 0 && (
-                      <div className="mt-1 text-xs text-emerald-600 font-semibold tabular-nums">
+                      <div className="mt-1.5 text-xs text-emerald-600 font-semibold tabular-nums">
                         Kembalian Tunai: Rp {cashChange.toLocaleString("id-ID")}
                       </div>
                     )}
@@ -652,7 +652,7 @@ export function PosCheckoutModal({
           </div>
 
           {/* Breakdown Totals */}
-          <div className="p-4 rounded-xl bg-surface border border-border space-y-2 text-xs">
+          <div className="p-4 rounded-xl bg-surface border border-border space-y-2.5 text-sm">
             <div className="flex items-center justify-between text-text-muted">
               <span>Subtotal Produk:</span>
               <span className="tabular-nums">
@@ -675,9 +675,9 @@ export function PosCheckoutModal({
                 </span>
               </div>
             )}
-            <div className="flex items-center justify-between text-base font-bold text-text pt-2 border-t border-border">
+            <div className="flex items-center justify-between text-base sm:text-lg font-bold text-text pt-2.5 border-t border-border">
               <span>Grand Total:</span>
-              <span className="text-primary tabular-nums">
+              <span className="text-primary text-lg sm:text-xl tabular-nums">
                 Rp {grandTotal.toLocaleString("id-ID")}
               </span>
             </div>
@@ -689,14 +689,14 @@ export function PosCheckoutModal({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2.5 text-sm font-medium text-text-muted hover:text-text rounded-xl hover:bg-surface-muted transition-colors min-h-[44px]"
+              className="px-4 py-2.5 text-sm font-medium text-text-muted hover:text-text rounded-xl hover:bg-surface-muted transition-colors min-h-[44px] cursor-pointer"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isSubmitting || isDiscountOverLimit}
-              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-semibold bg-primary hover:bg-primary-hover text-white rounded-xl shadow-xs transition-colors min-h-[44px] disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-semibold bg-primary hover:bg-primary-hover text-white rounded-xl shadow-xs transition-colors min-h-[44px] disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? (
                 <>

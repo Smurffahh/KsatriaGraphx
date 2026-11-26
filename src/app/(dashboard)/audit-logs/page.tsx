@@ -159,11 +159,11 @@ export default function AuditLogsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <ShieldCheck className="size-6 text-primary" />
+          <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight text-foreground flex items-center gap-2.5">
+            <ShieldCheck className="size-6 sm:size-7 text-primary shrink-0" />
             <span>Audit Log Forensik</span>
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+          <p className="text-sm text-muted-foreground mt-1">
             Rekam jejak aktivitas sensitif: transaksi, pembatalan nota, login, dan
             perubahan master data
           </p>
@@ -186,15 +186,15 @@ export default function AuditLogsPage() {
 
       {/* Filter Card */}
       <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border shadow-xs space-y-4">
-        <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-          <Filter className="size-3.5" />
+        <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          <Filter className="size-4" />
           <span>Filter Aktivitas</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           {/* Filter Aksi */}
           <div>
-            <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-1.5">
               Jenis Tindakan (Action)
             </label>
             <select
@@ -203,7 +203,7 @@ export default function AuditLogsPage() {
                 setActionFilter(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2 text-xs bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary min-h-[44px]"
+              className="h-11 w-full px-3.5 text-base sm:text-sm bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
             >
               <option value="">Semua Aksi</option>
               <option value="LOGIN_SUCCESS">LOGIN_SUCCESS</option>
@@ -221,7 +221,7 @@ export default function AuditLogsPage() {
 
           {/* Filter Entitas */}
           <div>
-            <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-1.5">
               Entitas Sistem
             </label>
             <select
@@ -230,7 +230,7 @@ export default function AuditLogsPage() {
                 setEntityFilter(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2 text-xs bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary min-h-[44px]"
+              className="h-11 w-full px-3.5 text-base sm:text-sm bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
             >
               <option value="">Semua Entitas</option>
               <option value="AUTH">AUTH</option>
@@ -245,7 +245,7 @@ export default function AuditLogsPage() {
 
           {/* Dari Tanggal */}
           <div>
-            <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-1.5">
               Dari Tanggal
             </label>
             <input
@@ -255,13 +255,13 @@ export default function AuditLogsPage() {
                 setStartDate(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2 text-xs bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary min-h-[44px]"
+              className="h-11 w-full px-3.5 text-base sm:text-sm bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
             />
           </div>
 
           {/* Sampai Tanggal */}
           <div>
-            <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-1.5">
               Sampai Tanggal
             </label>
             <input
@@ -271,7 +271,7 @@ export default function AuditLogsPage() {
                 setEndDate(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2 text-xs bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary min-h-[44px]"
+              className="h-11 w-full px-3.5 text-base sm:text-sm bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
             />
           </div>
         </div>
@@ -282,16 +282,15 @@ export default function AuditLogsPage() {
 
       {/* Error Banner */}
       {isError && (
-        <div className="p-6 rounded-2xl bg-destructive/10 border border-destructive/20 text-center space-y-2">
-          <AlertCircle className="size-6 text-destructive mx-auto" />
-          <p className="text-xs text-destructive font-semibold">
+        <div className="p-6 rounded-2xl bg-destructive/10 border border-destructive/20 text-center space-y-2.5">
+          <AlertCircle className="size-7 text-destructive mx-auto" />
+          <p className="text-sm text-destructive font-semibold">
             Gagal memuat log audit
           </p>
           <Button
             variant="destructive"
-            size="sm"
             onClick={() => refetch()}
-            className="min-h-[38px]"
+            className="min-h-10"
           >
             Coba Lagi
           </Button>
@@ -301,7 +300,7 @@ export default function AuditLogsPage() {
       {/* Data Loaded */}
       {!isLoading && !isError && data && (
         <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-4">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center justify-between gap-2 flex-wrap text-xs sm:text-sm text-muted-foreground">
             <span>
               Total <strong>{data.pagination.total}</strong> aktivitas tercatat
             </span>
@@ -311,8 +310,8 @@ export default function AuditLogsPage() {
           </div>
 
           {data.auditLogs.length === 0 ? (
-            <div className="p-12 text-center text-xs text-muted-foreground space-y-2">
-              <ShieldCheck className="size-8 mx-auto text-muted-foreground/60" />
+            <div className="p-12 text-center text-sm text-muted-foreground space-y-2">
+              <ShieldCheck className="size-9 mx-auto text-muted-foreground/60" />
               <p>Tidak ada log aktivitas sesuai kriteria pencarian.</p>
             </div>
           ) : (
@@ -325,11 +324,11 @@ export default function AuditLogsPage() {
                   return (
                     <div
                       key={log.id}
-                      className="p-3.5 rounded-xl bg-muted/40 border border-border space-y-2 text-xs"
+                      className="p-4 rounded-xl bg-muted/40 border border-border space-y-2.5 text-xs sm:text-sm"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
                         <span
-                          className={`px-2 py-0.5 text-[10px] font-bold rounded ${
+                          className={`px-2.5 py-0.5 text-xs font-semibold rounded-md ${
                             isDanger
                               ? "bg-destructive/10 text-destructive"
                               : "bg-primary/10 text-primary"
@@ -337,7 +336,7 @@ export default function AuditLogsPage() {
                         >
                           {log.action}
                         </span>
-                        <span className="text-[10px] text-muted-foreground font-mono">
+                        <span className="text-xs text-muted-foreground font-mono">
                           {new Date(log.createdAt).toLocaleDateString("id-ID", {
                             timeZone: "Asia/Jakarta",
                             day: "2-digit",
@@ -348,23 +347,23 @@ export default function AuditLogsPage() {
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between text-foreground">
-                        <span className="font-semibold">
+                      <div className="flex items-center justify-between gap-2 text-foreground">
+                        <span className="font-semibold text-sm">
                           {log.actorName || "Sistem"}
                         </span>
-                        <span className="text-[11px] text-muted-foreground font-mono">
+                        <span className="text-xs text-muted-foreground font-mono">
                           {log.ipAddress || "-"}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/40">
-                        <div className="flex items-center gap-1.5">
+                      <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground pt-2 border-t border-border/40">
+                        <div className="flex items-center gap-1.5 min-w-0">
                           {log.platform === "WEB" ? (
-                            <Monitor className="size-3.5 text-blue-500" />
+                            <Monitor className="size-4 text-blue-500 shrink-0" />
                           ) : (
-                            <Smartphone className="size-3.5 text-emerald-500" />
+                            <Smartphone className="size-4 text-emerald-500 shrink-0" />
                           )}
-                          <span>
+                          <span className="truncate">
                             {log.entityType}
                             {log.entityId ? ` #${log.entityId.slice(0, 8)}` : ""}
                           </span>
@@ -374,9 +373,9 @@ export default function AuditLogsPage() {
                           <button
                             type="button"
                             onClick={() => setSelectedMetadata(log.metadata)}
-                            className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline font-mono"
+                            className="inline-flex min-h-9 items-center gap-1.5 px-3 py-1.5 text-xs text-primary bg-primary/10 hover:bg-primary/20 rounded-lg font-mono font-medium shrink-0 cursor-pointer"
                           >
-                            <Code2 className="size-3" />
+                            <Code2 className="size-3.5" />
                             <span>JSON</span>
                           </button>
                         )}
@@ -388,15 +387,15 @@ export default function AuditLogsPage() {
 
               {/* Desktop Table (>=640px) */}
               <div className="hidden sm:block overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
+                <table className="w-full text-left text-sm border-collapse">
                   <thead>
-                    <tr className="border-b border-border text-muted-foreground bg-muted/30">
-                      <th className="py-3 px-3 font-semibold">Waktu (WIB)</th>
-                      <th className="py-3 px-3 font-semibold">Aktor / Pengguna</th>
-                      <th className="py-3 px-3 font-semibold">Tindakan</th>
-                      <th className="py-3 px-3 font-semibold">Entitas</th>
-                      <th className="py-3 px-3 font-semibold">Platform & IP</th>
-                      <th className="py-3 px-3 font-semibold text-right">Rincian Metadata</th>
+                    <tr className="border-b border-border text-xs uppercase tracking-wider text-muted-foreground bg-muted/30">
+                      <th className="py-3.5 px-4 font-semibold">Waktu (WIB)</th>
+                      <th className="py-3.5 px-4 font-semibold">Aktor / Pengguna</th>
+                      <th className="py-3.5 px-4 font-semibold">Tindakan</th>
+                      <th className="py-3.5 px-4 font-semibold">Entitas</th>
+                      <th className="py-3.5 px-4 font-semibold">Platform &amp; IP</th>
+                      <th className="py-3.5 px-4 font-semibold text-right">Rincian Metadata</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
@@ -408,7 +407,7 @@ export default function AuditLogsPage() {
                           key={log.id}
                           className="hover:bg-muted/20 transition-colors"
                         >
-                          <td className="py-3 px-3 font-mono text-muted-foreground whitespace-nowrap">
+                          <td className="py-3.5 px-4 font-mono text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
                             {new Date(log.createdAt).toLocaleDateString(
                               "id-ID",
                               {
@@ -421,18 +420,18 @@ export default function AuditLogsPage() {
                               }
                             )}
                           </td>
-                          <td className="py-3 px-3">
+                          <td className="py-3.5 px-4">
                             <div className="font-semibold text-foreground">
                               {log.actorName || "Sistem"}
                             </div>
-                            <div className="text-[10px] text-muted-foreground">
+                            <div className="text-xs text-muted-foreground mt-0.5">
                               {log.actorRole || "SYSTEM"}
                               {log.actorUsername ? ` (@${log.actorUsername})` : ""}
                             </div>
                           </td>
-                          <td className="py-3 px-3">
+                          <td className="py-3.5 px-4">
                             <span
-                              className={`px-2 py-0.5 text-[10px] font-bold rounded font-mono ${
+                              className={`px-2.5 py-0.5 text-xs font-semibold rounded-md font-mono ${
                                 isDanger
                                   ? "bg-destructive/10 text-destructive"
                                   : "bg-primary/10 text-primary"
@@ -441,33 +440,33 @@ export default function AuditLogsPage() {
                               {log.action}
                             </span>
                           </td>
-                          <td className="py-3 px-3 font-mono text-foreground">
+                          <td className="py-3.5 px-4 font-mono text-foreground">
                             {log.entityType}
                             {log.entityId && (
-                              <div className="text-[10px] text-muted-foreground">
+                              <div className="text-xs text-muted-foreground mt-0.5">
                                 ID: {log.entityId.slice(0, 10)}...
                               </div>
                             )}
                           </td>
-                          <td className="py-3 px-3">
+                          <td className="py-3.5 px-4">
                             <div className="flex items-center gap-1.5 font-medium text-foreground">
                               {log.platform === "WEB" ? (
-                                <Monitor className="size-3.5 text-blue-500" />
+                                <Monitor className="size-4 text-blue-500" />
                               ) : (
-                                <Smartphone className="size-3.5 text-emerald-500" />
+                                <Smartphone className="size-4 text-emerald-500" />
                               )}
                               <span>{log.platform}</span>
                             </div>
-                            <div className="text-[10px] font-mono text-muted-foreground">
+                            <div className="text-xs font-mono text-muted-foreground mt-0.5">
                               {log.ipAddress || "-"}
                             </div>
                           </td>
-                          <td className="py-3 px-3 text-right">
+                          <td className="py-3.5 px-4 text-right">
                             {log.metadata ? (
                               <button
                                 type="button"
                                 onClick={() => setSelectedMetadata(log.metadata)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono rounded-lg bg-muted hover:bg-border text-foreground transition-colors min-h-[36px]"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-lg bg-muted hover:bg-border text-foreground transition-colors min-h-9 cursor-pointer"
                               >
                                 <Code2 className="size-3.5 text-primary" />
                                 <span>Lihat JSON</span>
@@ -485,8 +484,8 @@ export default function AuditLogsPage() {
 
               {/* Pagination Controls */}
               {data.pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-xs text-muted-foreground">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                  <span className="text-xs sm:text-sm text-muted-foreground">
                     Halaman {data.pagination.page} dari{" "}
                     {data.pagination.totalPages}
                   </span>
@@ -494,10 +493,9 @@ export default function AuditLogsPage() {
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
-                      size="sm"
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={page <= 1}
-                      className="gap-1 min-h-[44px]"
+                      className="gap-1.5 min-h-[44px]"
                     >
                       <ChevronLeft className="size-4" />
                       <span>Sebelumnya</span>
@@ -505,12 +503,11 @@ export default function AuditLogsPage() {
 
                     <Button
                       variant="outline"
-                      size="sm"
                       onClick={() =>
                         setPage((p) => Math.min(data.pagination.totalPages, p + 1))
                       }
                       disabled={page >= data.pagination.totalPages}
-                      className="gap-1 min-h-[44px]"
+                      className="gap-1.5 min-h-[44px]"
                     >
                       <span>Berikutnya</span>
                       <ChevronRight className="size-4" />
@@ -530,14 +527,14 @@ export default function AuditLogsPage() {
             <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">
                 <Code2 className="size-5 text-primary" />
-                <h3 className="font-bold text-sm sm:text-base text-foreground">
+                <h3 className="font-semibold text-base sm:text-lg text-foreground">
                   Inspeksi Payload Metadata
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedMetadata(null)}
-                className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+                className="flex size-10 items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
                 aria-label="Tutup inspeksi JSON"
               >
                 <X className="size-5" />

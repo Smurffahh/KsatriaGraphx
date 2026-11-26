@@ -143,10 +143,10 @@ export function CategoryTab({ categories, onRefresh, isOwner }: CategoryTabProps
       {/* Top action bar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-base font-bold text-foreground">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground">
             Daftar Kategori Produk
           </h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
             Kelompokkan produk percetakan (Banner, Kaos, Merchandise, Stiker, dll.)
           </p>
         </div>
@@ -155,7 +155,7 @@ export function CategoryTab({ categories, onRefresh, isOwner }: CategoryTabProps
           <button
             type="button"
             onClick={handleOpenAdd}
-            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95"
+            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 cursor-pointer"
           >
             <Plus className="size-4" />
             Tambah Kategori
@@ -165,30 +165,30 @@ export function CategoryTab({ categories, onRefresh, isOwner }: CategoryTabProps
 
       {/* Daftar Kategori */}
       {categories.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-12 text-center">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card py-12 text-center px-4">
           <Folder className="size-10 text-muted-foreground/40 mb-2" />
-          <p className="text-sm font-semibold text-foreground">Belum Ada Kategori</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Mulai dengan menambahkan kategori produk percetakan pertama Anda.</p>
+          <p className="text-base font-semibold text-foreground">Belum Ada Kategori</p>
+          <p className="text-sm text-muted-foreground mt-1">Mulai dengan menambahkan kategori produk percetakan pertama Anda.</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-2xs">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-2xs">
           <div className="divide-y divide-border">
             {categories.map((cat) => (
               <div
                 key={cat.id}
-                className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between hover:bg-muted/40 transition-colors"
+                className="flex flex-col gap-3 p-4 sm:p-5 sm:flex-row sm:items-center sm:justify-between hover:bg-muted/40 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Folder className="size-4.5" />
+                <div className="flex items-center gap-3.5">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Folder className="size-5" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-foreground">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm sm:text-base font-semibold text-foreground">
                         {cat.name}
                       </span>
                       <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                           cat.isActive
                             ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
                             : "bg-muted text-muted-foreground"
@@ -197,18 +197,18 @@ export function CategoryTab({ categories, onRefresh, isOwner }: CategoryTabProps
                         {cat.isActive ? "Aktif" : "Nonaktif"}
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                       Slug: <span className="font-mono text-foreground">{cat.slug}</span> &bull; Urutan: {cat.sortOrder}
                     </p>
                   </div>
                 </div>
 
                 {isOwner && (
-                  <div className="flex items-center gap-1.5 self-end sm:self-auto">
+                  <div className="flex items-center gap-2 self-end sm:self-auto">
                     <button
                       type="button"
                       onClick={() => handleOpenEdit(cat)}
-                      className="inline-flex min-h-[38px] items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted transition-colors"
+                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted transition-colors cursor-pointer"
                     >
                       <Edit2 className="size-3.5" />
                       Edit
@@ -219,7 +219,7 @@ export function CategoryTab({ categories, onRefresh, isOwner }: CategoryTabProps
                         setDeleteTarget(cat);
                         setDeleteError(null);
                       }}
-                      className="inline-flex min-h-[38px] items-center gap-1 rounded-lg border border-destructive/20 bg-destructive/10 px-2.5 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/20 transition-colors"
+                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-destructive/20 bg-destructive/10 px-3.5 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/20 transition-colors cursor-pointer"
                     >
                       <Trash2 className="size-3.5" />
                       Hapus
@@ -236,15 +236,16 @@ export function CategoryTab({ categories, onRefresh, isOwner }: CategoryTabProps
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-background/80 backdrop-blur-xs" onClick={() => setIsModalOpen(false)} />
-          <div className="relative w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-xl">
-            <div className="flex items-center justify-between pb-4 border-b border-border">
-              <h3 className="text-base font-bold text-foreground">
+          <div className="relative w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl">
+            <div className="flex items-center justify-between gap-3 pb-4 border-b border-border">
+              <h3 className="text-lg font-semibold text-foreground">
                 {selectedCategory ? "Edit Kategori" : "Tambah Kategori Baru"}
               </h3>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="flex size-10 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+                aria-label="Tutup"
               >
                 <X className="size-5" />
               </button>
@@ -252,14 +253,14 @@ export function CategoryTab({ categories, onRefresh, isOwner }: CategoryTabProps
 
             <form onSubmit={handleSave} className="mt-4 space-y-4">
               {errorMessage && (
-                <div className="flex items-center gap-2 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
+                <div className="flex items-center gap-2.5 rounded-xl border border-destructive/20 bg-destructive/10 p-3.5 text-sm text-destructive">
                   <AlertCircle className="size-4 shrink-0" />
                   <span>{errorMessage}</span>
                 </div>
               )}
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">
+                <label className="text-xs sm:text-sm font-semibold text-foreground">
                   Nama Kategori <span className="text-destructive">*</span>
                 </label>
                 <input
@@ -273,12 +274,12 @@ export function CategoryTab({ categories, onRefresh, isOwner }: CategoryTabProps
                   }}
                   required
                   placeholder="Contoh: Digital Printing, Sablon Kaos"
-                  className="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                  className="h-11 w-full rounded-xl border border-input bg-background px-3.5 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">
+                <label className="text-xs sm:text-sm font-semibold text-foreground">
                   Slug URL (Otomatis)
                 </label>
                 <input
@@ -286,23 +287,23 @@ export function CategoryTab({ categories, onRefresh, isOwner }: CategoryTabProps
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   placeholder="contoh: digital-printing"
-                  className="w-full font-mono text-sm rounded-lg border border-input bg-background px-3.5 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                  className="h-11 w-full font-mono text-base sm:text-sm rounded-xl border border-input bg-background px-3.5 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground">
+                  <label className="text-xs sm:text-sm font-semibold text-foreground">
                     Urutan Tampil
                   </label>
                   <input
                     type="number"
                     value={sortOrder}
                     onChange={(e) => setSortOrder(parseInt(e.target.value, 10) || 0)}
-                    className="w-full font-mono text-sm rounded-lg border border-input bg-background px-3.5 py-2.5 text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                    className="h-11 w-full font-mono text-base sm:text-sm rounded-xl border border-input bg-background px-3.5 text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
                   />
                 </div>
-                <div className="flex items-center gap-2 pt-6">
+                <div className="flex items-center gap-2.5 pt-6">
                   <input
                     type="checkbox"
                     id="catIsActive"
@@ -316,19 +317,19 @@ export function CategoryTab({ categories, onRefresh, isOwner }: CategoryTabProps
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
+              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
                   disabled={isSubmitting}
-                  className="min-h-[44px] rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+                  className="min-h-[44px] rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors cursor-pointer"
                 >
                   <Save className="size-4" />
                   {isSubmitting ? "Menyimpan..." : "Simpan"}
@@ -343,27 +344,27 @@ export function CategoryTab({ categories, onRefresh, isOwner }: CategoryTabProps
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-background/80 backdrop-blur-xs" onClick={() => setDeleteTarget(null)} />
-          <div className="relative w-full max-w-sm rounded-lg border border-border bg-card p-6 shadow-xl">
-            <h3 className="text-base font-bold text-foreground">
+          <div className="relative w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl">
+            <h3 className="text-base font-semibold text-foreground">
               Hapus Kategori?
             </h3>
-            <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
+            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
               Anda yakin ingin menghapus kategori <strong className="text-foreground">{deleteTarget.name}</strong>? Tindakan ini tidak dapat dibatalkan.
             </p>
 
             {deleteError && (
-              <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-destructive/20 bg-destructive/10 p-2.5 text-xs text-destructive">
+              <div className="mt-3 flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
                 <AlertCircle className="size-4 shrink-0" />
                 <span>{deleteError}</span>
               </div>
             )}
 
-            <div className="mt-5 flex items-center justify-end gap-2">
+            <div className="mt-5 flex items-center justify-end gap-2.5">
               <button
                 type="button"
                 onClick={() => setDeleteTarget(null)}
                 disabled={isDeleting}
-                className="min-h-[40px] rounded-lg border border-border bg-card px-3.5 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition-colors"
+                className="min-h-[44px] rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
               >
                 Batal
               </button>
@@ -371,7 +372,7 @@ export function CategoryTab({ categories, onRefresh, isOwner }: CategoryTabProps
                 type="button"
                 onClick={handleDeleteConfirm}
                 disabled={isDeleting}
-                className="min-h-[40px] rounded-lg bg-destructive px-3.5 py-1.5 text-xs font-semibold text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50 transition-colors"
+                className="min-h-[44px] rounded-xl bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50 transition-colors cursor-pointer"
               >
                 {isDeleting ? "Menghapus..." : "Ya, Hapus"}
               </button>

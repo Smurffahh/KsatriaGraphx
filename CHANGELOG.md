@@ -4,6 +4,24 @@ Semua pembaruan terstruktur untuk proyek **Ksatria Graphx** didokumentasikan dal
 
 ---
 
+## [v1.4.0] - 2026-11-26
+
+Pembaruan v1.4.0 merombak proporsi tata letak, skala tipografi, serta kenyamanan sentuh di seluruh antarmuka **Ksatria Graphx** lintas Desktop, Tablet, dan Mobile/APK Android:
+
+### Skala Tipografi, Komponen & Tata Letak Utama
+- **Standardisasi Komponen UI**: Memperbesar proporsi tombol, kartu, tabel, dialog, dan lencana (*badge*) pada `src/components/ui/` serta memastikan area tutup minimal `40px-44px` di layar kecil.
+- **Navigasi `AppShell` & Drawer Mobile**: Menaikkan tinggi topbar menjadi `64px` (`min-h-16`), memberi ruang bawah khusus `/pos` (`pb-36`), serta menata ulang kartu pengguna pada drawer *Menu & Pengaturan* agar lencana peran selalu berada di baris rapi dengan jarak aman dari tombol tutup (`0px` tumpang tindih).
+
+### Formulir Mobile 16px, POS & Kalkulator Cepat
+- **Input Anti-Zoom iOS/Android**: Menaikkan seluruh ukuran teks kolom input dan filter di perangkat mobile menjadi `16px` (`text-base sm:text-sm`) dengan tinggi sentuh `44px` (`h-11`), mencakup halaman Login, Kalkulator POS, Modal Checkout, Kalkulator Cepat, Pesanan, Produk, Pelanggan, Laporan, Audit Log, Pengguna, dan Pengaturan.
+- **Tata Letak Responsif & Stabilitas Modal Produk**: Menyesuaikan susunan filter tanggal pesanan, header tablet `Dashboard` (`lg:flex-row`), serta memisahkan efek inisialisasi kategori di `ProductFormModal` agar muatan data asinkron tidak mereset kolom produk yang sedang diisi.
+
+### Verifikasi Visual & Kualitas
+- **Audit Visual Multi-Viewport**: Menguji tampilan terang dan gelap di resolusi Desktop (`1440x900`), Tablet (`768x1024`), dan Mobile (`375x812`) dengan nol *horizontal overflow* dan nol pemakaian `transition-all`.
+- **Pengujian Otomatis & Keamanan Rilis**: Memverifikasi rangkaian unit tests Vitest, skenario Playwright E2E lintas Desktop dan Mobile Chrome, serta *dual-build* Web dan ekspor statis Android APK tanpa kebocoran rahasia.
+
+---
+
 ## [v1.3.4] - 2026-11-24
 
 Pembaruan v1.3.4 mencakup pembersihan kode mati (*dead code cleanup*), perapian dependensi render antarmuka, serta audit dan penguatan keamanan menyeluruh pada 20 titik pemeriksaan sistem:

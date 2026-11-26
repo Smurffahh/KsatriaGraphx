@@ -34,31 +34,31 @@ export function PosSuccessModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="w-full max-w-md bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden p-6 text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
+      <div className="w-full max-w-md bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden p-6 sm:p-7 text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
         <div className="size-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto">
           <CheckCircle2 className="size-8 stroke-[2.5]" />
         </div>
 
         <div>
-          <h2 className="text-xl font-bold text-text">Transaksi Berhasil Disimpan!</h2>
-          <p className="text-xs text-text-muted mt-1">
+          <h2 className="text-xl font-semibold text-text">Transaksi Berhasil Disimpan!</h2>
+          <p className="text-sm text-text-muted mt-1 leading-relaxed">
             Nota pesanan telah tercatat ke dalam sistem database secara atomik
           </p>
         </div>
 
         {/* Invoice Summary Box */}
-        <div className="p-4 rounded-xl bg-surface-muted/50 border border-border space-y-3 text-left">
+        <div className="p-4 rounded-xl bg-surface-muted/50 border border-border space-y-3 text-left text-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-text-muted">Nomor Nota:</span>
+            <span className="text-xs sm:text-sm text-text-muted">Nomor Nota:</span>
             <span className="font-bold text-sm text-primary tracking-wide">
               {orderData.invoiceNumber}
             </span>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-xs text-text-muted">Status Pembayaran:</span>
+            <span className="text-xs sm:text-sm text-text-muted">Status Pembayaran:</span>
             <span
-              className={`px-2 py-0.5 text-xs font-semibold rounded-md ${
+              className={`px-2.5 py-0.5 text-xs font-semibold rounded-md ${
                 isPaid
                   ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
                   : isPartial
@@ -71,14 +71,14 @@ export function PosSuccessModal({
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-xs text-text-muted">Grand Total:</span>
+            <span className="text-xs sm:text-sm text-text-muted">Grand Total:</span>
             <span className="font-semibold text-text text-sm tabular-nums">
               Rp {orderData.grandTotal.toLocaleString("id-ID")}
             </span>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-xs text-text-muted">Nominal Dibayar:</span>
+            <span className="text-xs sm:text-sm text-text-muted">Nominal Dibayar:</span>
             <span className="font-semibold text-emerald-600 text-sm tabular-nums">
               Rp {orderData.paidAmount.toLocaleString("id-ID")}
             </span>
@@ -86,7 +86,7 @@ export function PosSuccessModal({
 
           {orderData.remainingAmount > 0 && (
             <div className="flex items-center justify-between text-amber-600">
-              <span className="text-xs font-medium">Sisa Piutang:</span>
+              <span className="text-xs sm:text-sm font-medium">Sisa Piutang:</span>
               <span className="font-bold text-sm tabular-nums">
                 Rp {orderData.remainingAmount.toLocaleString("id-ID")}
               </span>
@@ -95,7 +95,7 @@ export function PosSuccessModal({
 
           {orderData.changeAmount > 0 && (
             <div className="flex items-center justify-between text-emerald-600 pt-2 border-t border-border/60">
-              <span className="text-xs font-medium">Kembalian Tunai:</span>
+              <span className="text-xs sm:text-sm font-medium">Kembalian Tunai:</span>
               <span className="font-bold text-sm tabular-nums">
                 Rp {orderData.changeAmount.toLocaleString("id-ID")}
               </span>

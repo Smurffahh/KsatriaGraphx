@@ -179,21 +179,21 @@ function CustomerDetailContent() {
               <User className="size-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">
+              <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight text-foreground">
                 {customer.name}
               </h1>
-              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-1">
+              <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-muted-foreground mt-1">
                 {customer.phone ? (
-                  <span className="flex items-center gap-1 tabular-nums">
-                    <Phone className="size-3.5 text-primary" />
+                  <span className="flex items-center gap-1.5 tabular-nums">
+                    <Phone className="size-4 text-primary" />
                     {customer.phone}
                   </span>
                 ) : (
                   <span className="italic">Tanpa kontak telepon</span>
                 )}
                 <span>•</span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="size-3.5" />
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="size-4" />
                   Terdaftar:{" "}
                   {new Date(customer.createdAt).toLocaleDateString("id-ID")}
                 </span>
@@ -203,10 +203,10 @@ function CustomerDetailContent() {
         </div>
 
         {/* Info Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <div className="p-3.5 rounded-xl bg-muted/40 border border-border/40 space-y-1">
-            <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
-              <MapPin className="size-3.5 text-primary" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="p-4 rounded-xl bg-muted/40 border border-border/40 space-y-1.5">
+            <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground font-medium">
+              <MapPin className="size-4 text-primary" />
               <span>Alamat Lengkap</span>
             </div>
             <p className="text-foreground leading-relaxed">
@@ -214,9 +214,9 @@ function CustomerDetailContent() {
             </p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-muted/40 border border-border/40 space-y-1">
-            <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
-              <FileText className="size-3.5 text-primary" />
+          <div className="p-4 rounded-xl bg-muted/40 border border-border/40 space-y-1.5">
+            <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground font-medium">
+              <FileText className="size-4 text-primary" />
               <span>Catatan Khusus Pelanggan</span>
             </div>
             <p className="text-foreground leading-relaxed">
@@ -227,28 +227,28 @@ function CustomerDetailContent() {
 
         {/* Stats Row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-          <div className="p-4 rounded-xl bg-muted/40 border border-border/60">
-            <span className="text-xs text-muted-foreground">Total Transaksi</span>
-            <div className="text-lg font-bold text-foreground tabular-nums mt-0.5">
+          <div className="p-4 sm:p-5 rounded-xl bg-muted/40 border border-border/60">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Transaksi</span>
+            <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums mt-1">
               {customer.stats.totalOrders} Nota
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-muted/40 border border-border/60">
-            <span className="text-xs text-muted-foreground">
+          <div className="p-4 sm:p-5 rounded-xl bg-muted/40 border border-border/60">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Total Pembelanjaan
             </span>
-            <div className="text-lg font-bold text-foreground tabular-nums mt-0.5">
+            <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums mt-1">
               Rp {customer.stats.totalSpent.toLocaleString("id-ID")}
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-muted/40 border border-border/60">
-            <span className="text-xs text-muted-foreground">
+          <div className="p-4 sm:p-5 rounded-xl bg-muted/40 border border-border/60">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Sisa Piutang Aktif
             </span>
             <div
-              className={`text-lg font-bold tabular-nums mt-0.5 ${
+              className={`text-xl sm:text-2xl font-bold tabular-nums mt-1 ${
                 customer.stats.totalPiutang > 0
                   ? "text-amber-500"
                   : "text-emerald-500"
@@ -261,19 +261,19 @@ function CustomerDetailContent() {
       </div>
 
       {/* Recent Orders Section */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-            <Receipt className="size-4 text-primary" />
+      <div className="space-y-3.5">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+            <Receipt className="size-4.5 text-primary" />
             <span>Riwayat Transaksi Terakhir</span>
           </h2>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs sm:text-sm text-muted-foreground">
             Maksimal 10 nota terbaru
           </span>
         </div>
 
         {customer.recentOrders.length === 0 ? (
-          <div className="p-8 text-center rounded-2xl bg-card border border-border text-muted-foreground text-xs">
+          <div className="p-8 text-center rounded-2xl bg-card border border-border text-muted-foreground text-sm">
             Pelanggan ini belum memiliki riwayat transaksi nota.
           </div>
         ) : (
@@ -285,18 +285,18 @@ function CustomerDetailContent() {
               return (
                 <div
                   key={order.id}
-                  className="p-4 rounded-2xl bg-card border border-border shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  className="p-4 sm:p-5 rounded-2xl bg-card border border-border shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                 >
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     <div className="flex items-center gap-2 flex-wrap">
                       <Link
                         href={`/orders/detail?id=${order.id}`}
-                        className="font-semibold text-sm text-foreground hover:text-primary transition-colors"
+                        className="font-semibold text-sm sm:text-base text-foreground hover:text-primary transition-colors"
                       >
                         {order.invoiceNumber}
                       </Link>
                       <span
-                        className={`px-2 py-0.5 text-[10px] font-semibold rounded-md ${
+                        className={`px-2.5 py-0.5 text-xs font-semibold rounded-md ${
                           isPaid
                             ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
                             : isPartial
@@ -306,7 +306,7 @@ function CustomerDetailContent() {
                       >
                         {order.paymentStatus}
                       </span>
-                      <span className="px-2 py-0.5 text-[10px] font-medium rounded-md bg-muted text-muted-foreground border border-border">
+                      <span className="px-2.5 py-0.5 text-xs font-medium rounded-md bg-muted text-muted-foreground border border-border">
                         {order.productionStatus}
                       </span>
                     </div>
@@ -322,13 +322,13 @@ function CustomerDetailContent() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-2 sm:pt-0 border-border/60">
-                    <div className="text-right">
-                      <div className="text-xs font-semibold text-foreground tabular-nums">
+                  <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-3 sm:pt-0 border-border/60">
+                    <div className="text-left sm:text-right">
+                      <div className="text-sm sm:text-base font-semibold text-foreground tabular-nums">
                         Rp {order.grandTotal.toLocaleString("id-ID")}
                       </div>
                       {order.remainingAmount > 0 && (
-                        <div className="text-[11px] text-amber-500 font-medium tabular-nums">
+                        <div className="text-xs text-amber-500 font-medium tabular-nums">
                           Sisa: Rp {order.remainingAmount.toLocaleString("id-ID")}
                         </div>
                       )}
@@ -336,7 +336,7 @@ function CustomerDetailContent() {
 
                     <Link
                       href={`/orders/detail?id=${order.id}`}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-muted hover:bg-border text-foreground rounded-lg transition-colors min-h-[44px]"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-medium bg-muted hover:bg-border text-foreground rounded-xl transition-colors min-h-[44px]"
                     >
                       <span>Lihat Nota</span>
                     </Link>

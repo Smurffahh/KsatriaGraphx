@@ -19,7 +19,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
   if (!mounted) {
     return (
       <div
-        className={`size-9 rounded-xl border border-border/60 bg-surface/50 ${className}`}
+        className={`size-10 rounded-xl border border-border/60 bg-surface/50 ${className}`}
         aria-hidden="true"
       />
     );
@@ -31,7 +31,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
     <button
       type="button"
       onClick={toggleTheme}
-      className={`relative inline-flex size-9 items-center justify-center rounded-xl border border-border/80 bg-surface text-foreground shadow-xs transition-colors hover:bg-muted hover:text-foreground active:scale-95 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring ${className}`}
+      className={`relative inline-flex size-10 items-center justify-center rounded-xl border border-border/80 bg-surface text-foreground shadow-xs transition-colors hover:bg-muted hover:text-foreground active:scale-95 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring ${className}`}
       aria-label={
         isDark ? "Beralih ke mode terang" : "Beralih ke mode gelap"
       }

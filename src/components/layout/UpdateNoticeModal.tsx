@@ -98,7 +98,7 @@ export function UpdateNoticeModal({
               <span className="font-mono font-bold text-primary">
                 v{latestVersion}
               </span>
-              <Badge variant="outline" className="border-primary/30 text-primary text-[10px] py-0 px-1.5">
+              <Badge variant="outline" className="border-primary/30 text-primary text-xs py-0.5 px-2">
                 Baru
               </Badge>
             </div>
@@ -111,7 +111,7 @@ export function UpdateNoticeModal({
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Catatan Rilis
             </span>
-            <div className="max-h-48 overflow-y-auto rounded-xl border border-border bg-card p-3 text-xs text-foreground space-y-1.5 scrollbar-thin">
+            <div className="max-h-48 overflow-y-auto rounded-xl border border-border bg-card p-3.5 text-sm text-foreground space-y-2 scrollbar-thin">
               {changelog.map((line, idx) => (
                 <div key={idx} className="flex items-start gap-2">
                   <CheckCircle2 className="size-3.5 shrink-0 text-emerald-500 mt-0.5" />

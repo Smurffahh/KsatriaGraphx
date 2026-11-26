@@ -79,31 +79,26 @@ export default function ProductsPage() {
 
   const isOwner = user?.role === "OWNER";
 
-  // Load User & All Master Data
   const loadInitialData = useCallback(async () => {
     setIsLoading(true);
     setPageError(null);
     try {
-      // 1. Profil pengguna
-      const meRes = await apiClient<{ user: UserProfile }>("/api/auth/me");
+      const [meRes, catRes, finRes, prodRes] = await Promise.all([
+        apiClient<{ user: UserProfile }>("/api/auth/me"),
+        apiClient<CategoryItem[]>("/api/categories"),
+        apiClient<FinishingItem[]>("/api/finishings"),
+        apiClient<ProductItem[]>("/api/products?includeInactive=true"),
+      ]);
+
       if (meRes.success && meRes.data?.user) {
         setUser(meRes.data.user);
       }
-
-      // 2. Kategori
-      const catRes = await apiClient<CategoryItem[]>("/api/categories");
       if (catRes.success && catRes.data) {
         setCategoriesList(catRes.data);
       }
-
-      // 3. Finishing
-      const finRes = await apiClient<FinishingItem[]>("/api/finishings");
       if (finRes.success && finRes.data) {
         setFinishingsList(finRes.data);
       }
-
-      // 4. Produk
-      const prodRes = await apiClient<ProductItem[]>("/api/products?includeInactive=true");
       if (prodRes.success && prodRes.data) {
         setProductsList(prodRes.data);
       }
@@ -239,11 +234,11 @@ export default function ProductsPage() {
   function getPricingTypeBadge(type: "AREA" | "UNIT" | "CUSTOM") {
     switch (type) {
       case "AREA":
-        return <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">Meteran (P x L)</span>;
+        return <span className="inline-flex whitespace-nowrap rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">Meteran (P x L)</span>;
       case "UNIT":
-        return <span className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">Satuan / Tier</span>;
+        return <span className="inline-flex whitespace-nowrap rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">Satuan / Tier</span>;
       case "CUSTOM":
-        return <span className="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">Custom</span>;
+        return <span className="inline-flex whitespace-nowrap rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">Custom</span>;
     }
   }
 
@@ -252,57 +247,57 @@ export default function ProductsPage() {
       {/* Header Halaman */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-            Katalog Produk & Master Percetakan
+          <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight text-foreground">
+            Katalog Produk &amp; Master Percetakan
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Kelola produk percetakan, harga meteran/grosir bertingkat, kategori, dan opsi finishing.
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center rounded-lg border border-border bg-card p-1 shadow-2xs self-start sm:self-auto">
+        <div className="flex items-center rounded-xl border border-border bg-card p-1 shadow-2xs self-start sm:self-auto">
           <button
             type="button"
             onClick={() => setActiveTab("products")}
-            className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-[color,background-color,box-shadow] ${
+            className={`inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-[color,background-color,box-shadow] cursor-pointer ${
               activeTab === "products"
-                ? "bg-primary text-primary-foreground shadow-xs"
+                ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
-            <Package className="size-3.5" />
+            <Package className="size-4" />
             Produk ({productsList.length})
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("categories")}
-            className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-[color,background-color,box-shadow] ${
+            className={`inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-[color,background-color,box-shadow] cursor-pointer ${
               activeTab === "categories"
-                ? "bg-primary text-primary-foreground shadow-xs"
+                ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
-            <Layers className="size-3.5" />
+            <Layers className="size-4" />
             Kategori ({categoriesList.length})
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("finishings")}
-            className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-[color,background-color,box-shadow] ${
+            className={`inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-[color,background-color,box-shadow] cursor-pointer ${
               activeTab === "finishings"
-                ? "bg-primary text-primary-foreground shadow-xs"
+                ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
-            <Scissors className="size-3.5" />
+            <Scissors className="size-4" />
             Finishing ({finishingsList.length})
           </button>
         </div>
       </div>
 
       {pageError && (
-        <div className="flex items-center gap-2 rounded-lg bg-destructive/10 p-4 text-xs sm:text-sm text-destructive">
+        <div className="flex items-center gap-2.5 rounded-xl bg-destructive/10 p-4 text-sm text-destructive">
           <AlertCircle className="size-5 shrink-0" />
           <span>{pageError}</span>
         </div>
@@ -337,7 +332,7 @@ export default function ProductsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari nama produk atau SKU..."
-                className="w-full rounded-lg border border-input bg-card pl-10 pr-4 py-2.5 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                className="h-11 w-full rounded-xl border border-input bg-card pl-10 pr-4 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
               />
             </div>
 
@@ -346,7 +341,7 @@ export default function ProductsPage() {
               <button
                 type="button"
                 onClick={handleOpenAddProduct}
-                className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95"
+                className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 cursor-pointer"
               >
                 <Plus className="size-4" />
                 Tambah Produk
@@ -355,13 +350,13 @@ export default function ProductsPage() {
           </div>
 
           {/* Filter Pills Kategori */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
             <button
               type="button"
               onClick={() => setSelectedCategoryFilter("ALL")}
-              className={`min-h-[34px] shrink-0 rounded-lg px-3 py-1 text-xs font-semibold transition-[color,background-color,box-shadow] ${
+              className={`min-h-10 shrink-0 rounded-xl px-4 py-1.5 text-xs sm:text-sm font-medium transition-[color,background-color,box-shadow] cursor-pointer ${
                 selectedCategoryFilter === "ALL"
-                  ? "bg-primary text-primary-foreground shadow-xs"
+                  ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                   : "bg-secondary text-secondary-foreground hover:bg-muted"
               }`}
             >
@@ -372,9 +367,9 @@ export default function ProductsPage() {
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategoryFilter(cat.id)}
-                className={`min-h-[34px] shrink-0 rounded-lg px-3 py-1 text-xs font-semibold transition-[color,background-color,box-shadow] ${
+                className={`min-h-10 shrink-0 rounded-xl px-4 py-1.5 text-xs sm:text-sm font-medium transition-[color,background-color,box-shadow] cursor-pointer ${
                   selectedCategoryFilter === cat.id
-                    ? "bg-primary text-primary-foreground shadow-xs"
+                    ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                     : "bg-secondary text-secondary-foreground hover:bg-muted"
                 }`}
               >
@@ -387,21 +382,21 @@ export default function ProductsPage() {
           {isLoading ? (
             <div className="space-y-4">
               <PageLoadingBanner message="Memuat katalog produk..." />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="h-32 rounded-xl bg-card border border-border p-4 animate-pulse" />
                 ))}
               </div>
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-16 text-center">
-              <Package className="size-12 text-muted-foreground/40 mb-2" />
-              <p className="text-sm font-semibold text-foreground">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card py-16 text-center px-4">
+              <Package className="size-12 text-muted-foreground/40 mb-3" />
+              <p className="text-base font-semibold text-foreground">
                 {searchQuery || selectedCategoryFilter !== "ALL"
                   ? "Tidak Ada Produk yang Cocok"
                   : "Katalog Produk Masih Kosong"}
               </p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-sm">
+              <p className="text-sm text-muted-foreground mt-1 max-w-sm">
                 {searchQuery || selectedCategoryFilter !== "ALL"
                   ? "Coba sesuaikan kata kunci pencarian atau ganti filter kategori."
                   : "Mulai tambahkan produk percetakan meteran atau satuan dengan foto dan harga tier."}
@@ -410,25 +405,25 @@ export default function ProductsPage() {
           ) : (
             <>
               {/* Tampilan Desktop (Table View) */}
-              <div className="hidden md:block overflow-hidden rounded-xl border border-border bg-card shadow-2xs">
+              <div className="hidden md:block overflow-hidden rounded-2xl border border-border bg-card shadow-2xs">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-border bg-muted/50 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                      <th className="py-3 px-4 w-16">Foto</th>
-                      <th className="py-3 px-4">Nama Produk & SKU</th>
-                      <th className="py-3 px-4">Kategori</th>
-                      <th className="py-3 px-4">Tipe & Satuan</th>
-                      <th className="py-3 px-4">Harga Dasar & Tier</th>
-                      <th className="py-3 px-4">Status</th>
-                      {isOwner && <th className="py-3 px-4 text-right">Aksi</th>}
+                    <tr className="border-b border-border bg-muted/50 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <th className="py-3.5 px-4 w-16">Foto</th>
+                      <th className="py-3.5 px-4">Nama Produk &amp; SKU</th>
+                      <th className="py-3.5 px-4">Kategori</th>
+                      <th className="py-3.5 px-4">Tipe &amp; Satuan</th>
+                      <th className="py-3.5 px-4">Harga Dasar &amp; Tier</th>
+                      <th className="py-3.5 px-4">Status</th>
+                      {isOwner && <th className="py-3.5 px-4 text-right">Aksi</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border text-sm">
                     {filteredProducts.map((p) => (
                       <tr key={p.id} className="hover:bg-muted/40 transition-colors">
                         {/* Thumbnail Foto */}
-                        <td className="py-3 px-4">
-                          <div className="relative size-12 shrink-0 overflow-hidden rounded-lg border border-border bg-muted flex items-center justify-center">
+                        <td className="py-3.5 px-4">
+                          <div className="relative size-12 shrink-0 overflow-hidden rounded-lg outline-1 -outline-offset-1 outline-black/10 dark:outline-white/10 bg-muted flex items-center justify-center">
                             {p.imageUrl ? (
                               <Image
                                 src={p.imageUrl}
@@ -443,24 +438,24 @@ export default function ProductsPage() {
                         </td>
 
                         {/* Nama & SKU */}
-                        <td className="py-3 px-4">
-                          <p className="font-bold text-foreground">{p.name}</p>
+                        <td className="py-3.5 px-4">
+                          <p className="font-semibold text-foreground">{p.name}</p>
                           {p.sku && (
-                            <span className="font-mono text-[11px] text-muted-foreground">
+                            <span className="font-mono text-xs text-muted-foreground mt-0.5 inline-block">
                               SKU: {p.sku}
                             </span>
                           )}
                         </td>
 
                         {/* Kategori */}
-                        <td className="py-3 px-4">
-                          <span className="text-xs font-medium text-foreground">
+                        <td className="py-3.5 px-4">
+                          <span className="text-sm font-medium text-foreground">
                             {p.categoryName || "-"}
                           </span>
                         </td>
 
                         {/* Tipe & Satuan */}
-                        <td className="py-3 px-4">
+                        <td className="py-3.5 px-4">
                           <div className="flex flex-col gap-1 items-start">
                             {getPricingTypeBadge(p.pricingType)}
                             <span className="text-xs text-muted-foreground">
@@ -470,29 +465,29 @@ export default function ProductsPage() {
                         </td>
 
                         {/* Harga Dasar & Tier */}
-                        <td className="py-3 px-4">
+                        <td className="py-3.5 px-4">
                           <div>
-                            <span className="font-mono font-bold text-foreground tabular-nums">
+                            <span className="font-mono font-semibold text-foreground tabular-nums">
                               Rp {p.basePrice.toLocaleString("id-ID")}
                             </span>
                             <span className="text-xs text-muted-foreground"> / {p.unitLabel}</span>
                           </div>
                           {p.pricingType === "UNIT" && p.priceTiers && p.priceTiers.length > 0 && (
-                            <p className="mt-0.5 text-[11px] text-primary font-medium">
+                            <p className="mt-0.5 text-xs text-primary font-medium">
                               {p.priceTiers.length} tingkat harga grosir
                             </p>
                           )}
                           {p.pricingType === "AREA" && (
-                            <p className="mt-0.5 text-[11px] text-muted-foreground">
+                            <p className="mt-0.5 text-xs text-muted-foreground">
                               Min: {p.minArea} m² &bull; {p.areaRounding}
                             </p>
                           )}
                         </td>
 
                         {/* Status */}
-                        <td className="py-3 px-4">
+                        <td className="py-3.5 px-4">
                           <span
-                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                               p.isActive
                                 ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
                                 : "bg-muted text-muted-foreground"
@@ -504,12 +499,12 @@ export default function ProductsPage() {
 
                         {/* Aksi OWNER */}
                         {isOwner && (
-                          <td className="py-3 px-4 text-right">
-                            <div className="inline-flex items-center gap-1.5">
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="inline-flex items-center gap-2">
                               <button
                                 type="button"
                                 onClick={() => handleOpenEditProduct(p)}
-                                className="inline-flex min-h-[38px] items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted active:scale-95 transition-colors"
+                                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted active:scale-95 transition-colors cursor-pointer"
                               >
                                 <Edit2 className="size-3.5" />
                                 Edit
@@ -520,7 +515,7 @@ export default function ProductsPage() {
                                   setDeleteProductTarget(p);
                                   setDeleteProductError(null);
                                 }}
-                                className="inline-flex min-h-[38px] items-center gap-1 rounded-lg border border-destructive/20 bg-destructive/10 px-2.5 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/20 active:scale-95 transition-colors"
+                                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/20 active:scale-95 transition-colors cursor-pointer"
                               >
                                 <Trash2 className="size-3.5" />
                                 Hapus
@@ -535,15 +530,15 @@ export default function ProductsPage() {
               </div>
 
               {/* Tampilan Mobile (Card View) */}
-              <div className="grid grid-cols-1 gap-3 md:hidden">
+              <div className="grid grid-cols-1 gap-3.5 md:hidden">
                 {filteredProducts.map((p) => (
                   <div
                     key={p.id}
                     className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-2xs"
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-3.5">
                       {/* Thumbnail Foto */}
-                      <div className="relative size-20 shrink-0 overflow-hidden rounded-lg border border-border bg-muted flex items-center justify-center">
+                      <div className="relative size-20 shrink-0 overflow-hidden rounded-xl outline-1 -outline-offset-1 outline-black/10 dark:outline-white/10 bg-muted flex items-center justify-center">
                         {p.imageUrl ? (
                           <Image
                             src={p.imageUrl}
@@ -563,7 +558,7 @@ export default function ProductsPage() {
                             {p.categoryName || "Umum"}
                           </span>
                           <span
-                            className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                            className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                               p.isActive
                                 ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
                                 : "bg-muted text-muted-foreground"
@@ -573,7 +568,7 @@ export default function ProductsPage() {
                           </span>
                         </div>
 
-                        <h3 className="font-bold text-foreground text-sm leading-snug mt-0.5 line-clamp-2">
+                        <h3 className="font-semibold text-foreground text-base leading-snug mt-1 line-clamp-2">
                           {p.name}
                         </h3>
 
@@ -586,22 +581,22 @@ export default function ProductsPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between border-t border-border pt-2.5">
-                      <div className="flex items-center gap-1.5">
+                    <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
+                      <div className="flex items-center gap-2 flex-wrap">
                         {getPricingTypeBadge(p.pricingType)}
                         {p.pricingType === "UNIT" && p.priceTiers && p.priceTiers.length > 0 && (
-                          <span className="text-[11px] text-primary font-medium">
+                          <span className="text-xs text-primary font-medium">
                             {p.priceTiers.length} tier grosir
                           </span>
                         )}
                       </div>
 
                       {isOwner && (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 shrink-0">
                           <button
                             type="button"
                             onClick={() => handleOpenEditProduct(p)}
-                            className="inline-flex min-h-[38px] items-center gap-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted transition-colors"
+                            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted transition-colors cursor-pointer"
                           >
                             <Edit2 className="size-3.5" />
                             Edit
@@ -612,7 +607,7 @@ export default function ProductsPage() {
                               setDeleteProductTarget(p);
                               setDeleteProductError(null);
                             }}
-                            className="inline-flex min-h-[38px] items-center gap-1 rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/20 transition-colors"
+                            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-destructive/20 bg-destructive/10 px-3.5 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/20 transition-colors cursor-pointer"
                           >
                             <Trash2 className="size-3.5" />
                             Hapus
@@ -640,27 +635,27 @@ export default function ProductsPage() {
           {deleteProductTarget && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
               <div className="fixed inset-0 bg-background/80 backdrop-blur-xs" onClick={() => setDeleteProductTarget(null)} />
-              <div className="relative w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-2xl">
-                <h3 className="text-base font-bold text-foreground">
+              <div className="relative w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl">
+                <h3 className="text-base font-semibold text-foreground">
                   Hapus Produk?
                 </h3>
-                <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
                   Anda yakin ingin menghapus <strong>{deleteProductTarget.name}</strong>? Foto di storage akan otomatis dibersihkan.
                 </p>
 
                 {deleteProductError && (
-                  <div className="mt-3 flex items-center gap-1.5 rounded-lg bg-destructive/10 p-2.5 text-xs text-destructive">
+                  <div className="mt-3 flex items-center gap-2 rounded-xl bg-destructive/10 p-3 text-xs text-destructive">
                     <AlertCircle className="size-4 shrink-0" />
                     <span>{deleteProductError}</span>
                   </div>
                 )}
 
-                <div className="mt-5 flex items-center justify-end gap-2">
+                <div className="mt-5 flex items-center justify-end gap-2.5">
                   <button
                     type="button"
                     onClick={() => setDeleteProductTarget(null)}
                     disabled={isDeletingProduct}
-                    className="min-h-[40px] rounded-lg border border-border px-3.5 py-1.5 text-xs font-semibold text-foreground hover:bg-muted"
+                    className="min-h-[44px] rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted cursor-pointer"
                   >
                     Batal
                   </button>
@@ -668,7 +663,7 @@ export default function ProductsPage() {
                     type="button"
                     onClick={handleDeleteProductConfirm}
                     disabled={isDeletingProduct}
-                    className="min-h-[40px] rounded-lg bg-destructive px-3.5 py-1.5 text-xs font-semibold text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+                    className="min-h-[44px] rounded-xl bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50 cursor-pointer"
                   >
                     {isDeletingProduct ? "Menghapus..." : "Ya, Hapus"}
                   </button>

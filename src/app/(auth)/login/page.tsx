@@ -129,18 +129,18 @@ export default function LoginPage() {
           variants={staggerContainer(0.06)}
           initial="hidden"
           animate={isSplashDone ? "visible" : "hidden"}
-          className="w-full max-w-sm"
+          className="w-full max-w-[420px]"
         >
           {/* 1. Header Logo & Title */}
-          <m.div variants={fadeUpItem} className="mb-6 flex flex-col items-center text-center">
-            <div className="flex size-12 items-center justify-center rounded-2xl bg-primary font-black text-lg text-primary-foreground shadow-xs">
+          <m.div variants={fadeUpItem} className="mb-7 flex flex-col items-center text-center">
+            <div className="flex size-14 items-center justify-center rounded-2xl bg-primary font-bold text-xl text-primary-foreground shadow-xs">
               KG
             </div>
-            <h1 className="mt-4 text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="mt-4 text-2xl sm:text-[28px] font-semibold tracking-tight text-foreground">
               Ksatria Graphx
             </h1>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Sistem Kasir & Manajemen Percetakan
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              Sistem Kasir &amp; Manajemen Percetakan
             </p>
           </m.div>
 
@@ -151,11 +151,11 @@ export default function LoginPage() {
             transition={{ duration: 0.35, ease: "easeInOut" }}
             className="rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-xs"
           >
-            <div className="mb-5 border-b border-border/80 pb-4">
-              <h2 className="text-base font-semibold text-foreground">
+            <div className="mb-6 border-b border-border/80 pb-4">
+              <h2 className="text-lg font-semibold tracking-tight text-foreground">
                 Masuk ke Akun
               </h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Gunakan kredensial yang telah didaftarkan
               </p>
             </div>
@@ -163,7 +163,7 @@ export default function LoginPage() {
             {errorMessage && (
               <div
                 role="alert"
-                className="mb-5 flex items-start gap-2.5 rounded-xl bg-destructive/10 p-3 text-xs text-destructive border border-destructive/20"
+                className="mb-5 flex items-start gap-2.5 rounded-xl bg-destructive/10 p-3.5 text-sm text-destructive border border-destructive/20"
               >
                 <AlertCircle className="size-4 shrink-0 mt-0.5" />
                 <div className="flex-1 leading-relaxed">{errorMessage}</div>
@@ -175,12 +175,12 @@ export default function LoginPage() {
               <m.div variants={fadeUpItem}>
                 <label
                   htmlFor="usernameOrEmail"
-                  className="mb-1.5 block text-xs font-medium text-foreground"
+                  className="mb-1.5 block text-sm font-medium text-foreground"
                 >
                   Username atau Email
                 </label>
                 <div className="relative">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground">
                     <User className="size-4" />
                   </div>
                   <input
@@ -192,7 +192,7 @@ export default function LoginPage() {
                     value={usernameOrEmail}
                     onChange={(e) => setUsernameOrEmail(e.target.value)}
                     placeholder="Masukkan username atau email"
-                    className="h-11 w-full rounded-xl border border-input bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-ring transition-colors"
+                    className="h-11 w-full rounded-xl border border-input bg-background pl-10 pr-3.5 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-ring transition-colors"
                   />
                 </div>
               </m.div>
@@ -201,12 +201,12 @@ export default function LoginPage() {
               <m.div variants={fadeUpItem}>
                 <label
                   htmlFor="password"
-                  className="mb-1.5 block text-xs font-medium text-foreground"
+                  className="mb-1.5 block text-sm font-medium text-foreground"
                 >
                   Password
                 </label>
                 <div className="relative">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground">
                     <Lock className="size-4" />
                   </div>
                   <input
@@ -218,7 +218,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Masukkan password akun"
-                    className="h-11 w-full rounded-xl border border-input bg-background pl-9 pr-11 text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-ring transition-colors"
+                    className="h-11 w-full rounded-xl border border-input bg-background pl-10 pr-11 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-ring transition-colors"
                   />
                   <button
                     type="button"
@@ -257,23 +257,24 @@ export default function LoginPage() {
               <m.div variants={fadeUpItem} className="pt-2">
                 <Button
                   type="submit"
+                  size="lg"
                   disabled={isLoading}
-                  className="w-full h-11 text-sm font-semibold shadow-xs active:not-disabled:scale-[0.96] transition-[transform,background-color,border-color,opacity]"
+                  className="w-full font-semibold shadow-xs"
                 >
                   {isLoading ? "Memverifikasi..." : "Masuk ke Sistem"}
                 </Button>
               </m.div>
             </form>
 
-            <div className="mt-6 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-              <ShieldCheck className="size-3.5 text-emerald-500" />
+            <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <ShieldCheck className="size-4 shrink-0 text-emerald-500" />
               <span>Sistem terlindungi autentikasi sesi berlapis</span>
             </div>
           </m.div>
 
           {/* 6. Footer Keterangan Versi */}
           <m.div variants={fadeUpItem} className="mt-6 text-center">
-            <span className="text-[11px] font-medium text-muted-foreground">
+            <span className="text-xs font-medium text-muted-foreground">
               {formatVersionLabel(isNative)}
             </span>
           </m.div>

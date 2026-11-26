@@ -231,12 +231,11 @@ function OrderDetailContent() {
         </Button>
 
         {/* Quick Action Placeholders */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <Button
             type="button"
-            size="sm"
             onClick={() => setReceiptModalOpen(true)}
-            className="gap-1.5 min-h-[44px]"
+            className="gap-2 min-h-[44px]"
           >
             <Printer className="size-4" />
             <span>Cetak Nota</span>
@@ -247,7 +246,7 @@ function OrderDetailContent() {
               href={`https://wa.me/${order.customerPhoneSnapshot}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-xl transition-colors shadow-xs min-h-[44px]"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-xl transition-colors shadow-xs min-h-[44px]"
             >
               <MessageCircle className="size-4" />
               <span>Kirim ke WhatsApp</span>
@@ -258,30 +257,30 @@ function OrderDetailContent() {
 
       {/* Cancelled Alert Banner */}
       {isCancelled && (
-        <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/30 text-destructive space-y-1">
-          <div className="flex items-center gap-2 font-bold text-sm">
-            <Ban className="size-4" />
+        <div className="p-4 sm:p-5 rounded-2xl bg-destructive/10 border border-destructive/30 text-destructive space-y-1">
+          <div className="flex items-center gap-2 font-semibold text-sm sm:text-base">
+            <Ban className="size-4 shrink-0" />
             <span>Nota Ini Telah Dibatalkan / Void</span>
           </div>
-          <p className="text-xs text-destructive/90">
+          <p className="text-xs sm:text-sm text-destructive/90">
             Alasan pembatalan: {order.cancelReason || "Tidak ada alasan tercatat"}
           </p>
         </div>
       )}
 
       {/* Main Order Header Card */}
-      <div className="p-6 rounded-2xl bg-card border border-border shadow-xs space-y-6">
+      <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
           <div>
-            <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+            <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
               Nomor Nota
             </span>
-            <h1 className="text-2xl font-extrabold text-primary tracking-wide">
+            <h1 className="text-2xl sm:text-[28px] font-bold text-primary tracking-wide mt-0.5">
               {order.invoiceNumber}
             </h1>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-1">
-              <span className="flex items-center gap-1">
-                <Clock className="size-3.5" />
+            <div className="flex flex-wrap items-center gap-2.5 text-xs sm:text-sm text-muted-foreground mt-1.5">
+              <span className="flex items-center gap-1.5">
+                <Clock className="size-4" />
                 {new Date(order.createdAt).toLocaleDateString("id-ID", {
                   day: "2-digit",
                   month: "long",
@@ -293,7 +292,7 @@ function OrderDetailContent() {
               <span>•</span>
               <span>Kasir: {order.cashierName || "Kasir"}</span>
               <span>•</span>
-              <span className="px-1.5 py-0.5 rounded text-[10px] bg-muted border border-border font-medium">
+              <span className="px-2.5 py-0.5 rounded-md text-xs bg-muted border border-border font-medium">
                 Platform: {order.sourcePlatform}
               </span>
             </div>
@@ -301,7 +300,7 @@ function OrderDetailContent() {
 
           <div className="flex items-center gap-2 flex-wrap">
             <span
-              className={`px-3 py-1 text-xs font-bold rounded-lg border ${
+              className={`px-3 py-1 text-xs font-semibold rounded-lg border ${
                 isPaid
                   ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                   : isPartial
@@ -319,31 +318,31 @@ function OrderDetailContent() {
         </div>
 
         {/* Customer Information & Summary Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <div className="p-4 rounded-xl bg-muted/40 border border-border/50 space-y-2">
-            <span className="text-muted-foreground font-medium flex items-center gap-1.5">
-              <User className="size-3.5 text-primary" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
+          <div className="p-4 sm:p-5 rounded-xl bg-muted/40 border border-border/50 space-y-2">
+            <span className="text-muted-foreground font-medium flex items-center gap-1.5 text-xs uppercase tracking-wider">
+              <User className="size-4 text-primary" />
               <span>Data Pelanggan</span>
             </span>
-            <div className="font-semibold text-foreground text-sm">
+            <div className="font-semibold text-foreground text-base">
               {order.customerNameSnapshot}
             </div>
             {order.customerPhoneSnapshot && (
-              <div className="text-muted-foreground tabular-nums">
+              <div className="text-muted-foreground tabular-nums text-sm">
                 WhatsApp: {order.customerPhoneSnapshot}
               </div>
             )}
             {order.customer?.address && (
-              <div className="text-muted-foreground">{order.customer.address}</div>
+              <div className="text-muted-foreground text-sm">{order.customer.address}</div>
             )}
           </div>
 
-          <div className="p-4 rounded-xl bg-muted/40 border border-border/50 space-y-2">
-            <span className="text-muted-foreground font-medium flex items-center gap-1.5">
-              <Clock className="size-3.5 text-primary" />
-              <span>Target & Catatan Pengerjaan</span>
+          <div className="p-4 sm:p-5 rounded-xl bg-muted/40 border border-border/50 space-y-2">
+            <span className="text-muted-foreground font-medium flex items-center gap-1.5 text-xs uppercase tracking-wider">
+              <Clock className="size-4 text-primary" />
+              <span>Target &amp; Catatan Pengerjaan</span>
             </span>
-            <div className="text-foreground">
+            <div className="text-foreground text-sm">
               <span className="text-muted-foreground">Estimasi Selesai: </span>
               <span className="font-semibold">
                 {order.estimatedReadyAt
@@ -358,7 +357,7 @@ function OrderDetailContent() {
               </span>
             </div>
             {order.notes && (
-              <div className="text-muted-foreground italic bg-card p-2 rounded-lg border border-border/50">
+              <div className="text-muted-foreground italic bg-card p-2.5 rounded-lg border border-border/50 text-sm">
                 &ldquo;{order.notes}&rdquo;
               </div>
             )}
@@ -367,22 +366,22 @@ function OrderDetailContent() {
 
         {/* Action Controls for Workflow & Settlement */}
         {!isCancelled && (
-          <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 flex flex-wrap items-center justify-between gap-3">
+          <div className="p-4 sm:p-5 rounded-xl bg-primary/5 border border-primary/20 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <span className="text-xs font-semibold text-foreground block">
+              <span className="text-sm font-semibold text-foreground block">
                 Aksi Nota
               </span>
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 Perbarui tahapan pengerjaan atau terima pelunasan piutang
               </span>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2.5 flex-wrap">
               {order.remainingAmount > 0 && (
                 <button
                   type="button"
                   onClick={() => setPaymentModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors min-h-[44px]"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-xs transition-colors min-h-[44px] cursor-pointer"
                 >
                   <DollarSign className="size-4" />
                   <span>
@@ -395,11 +394,10 @@ function OrderDetailContent() {
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
                 onClick={() => setStatusModalOpen(true)}
-                className="gap-1.5 min-h-[44px]"
+                className="gap-2 min-h-[44px]"
               >
-                <Edit2 className="size-3.5" />
+                <Edit2 className="size-4" />
                 <span>Ubah Status Produksi</span>
               </Button>
             </div>
@@ -409,46 +407,46 @@ function OrderDetailContent() {
 
       {/* Items Breakdown Table */}
       <div className="bg-card border border-border rounded-2xl shadow-xs overflow-hidden">
-        <div className="p-4 border-b border-border bg-muted/40">
-          <h2 className="text-sm font-bold text-foreground">
+        <div className="p-4 sm:p-5 border-b border-border bg-muted/40">
+          <h2 className="text-base font-semibold text-foreground">
             Daftar Item Percetakan
           </h2>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="border-b border-border bg-muted/40 text-muted-foreground">
-                <th className="py-3 px-4 font-semibold">Produk & Spesifikasi</th>
-                <th className="py-3 px-4 font-semibold text-center">Ukuran / Luas</th>
-                <th className="py-3 px-4 font-semibold text-center">Qty</th>
-                <th className="py-3 px-4 font-semibold text-right">Harga Satuan</th>
-                <th className="py-3 px-4 font-semibold text-right">Subtotal</th>
+              <tr className="border-b border-border bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
+                <th className="py-3.5 px-4 font-semibold">Produk &amp; Spesifikasi</th>
+                <th className="py-3.5 px-4 font-semibold text-center">Ukuran / Luas</th>
+                <th className="py-3.5 px-4 font-semibold text-center">Qty</th>
+                <th className="py-3.5 px-4 font-semibold text-right">Harga Satuan</th>
+                <th className="py-3.5 px-4 font-semibold text-right">Subtotal</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
               {order.items.map((item) => (
                 <tr key={item.id} className="align-top">
-                  <td className="py-3.5 px-4">
-                    <div className="font-semibold text-foreground text-sm">
+                  <td className="py-4 px-4">
+                    <div className="font-semibold text-foreground text-sm sm:text-base">
                       {item.productNameSnapshot}
                     </div>
 
                     {item.isPriceOverridden && (
-                      <span className="inline-block px-1.5 py-0.5 mt-1 text-[10px] bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded font-medium">
+                      <span className="inline-block px-2 py-0.5 mt-1.5 text-xs bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded-md font-medium">
                         Harga Override Owner
                       </span>
                     )}
 
                     {item.finishings.length > 0 && (
-                      <div className="mt-1.5 space-y-0.5">
-                        <span className="text-[10px] font-medium text-muted-foreground block">
+                      <div className="mt-2 space-y-1">
+                        <span className="text-xs font-medium text-muted-foreground block">
                           Finishing:
                         </span>
                         {item.finishings.map((f) => (
                           <div
                             key={f.id}
-                            className="text-[11px] text-muted-foreground"
+                            className="text-xs text-muted-foreground"
                           >
                             • {f.finishingNameSnapshot} ({f.quantity} × Rp{" "}
                             {f.unitPrice.toLocaleString("id-ID")}) = Rp{" "}
@@ -459,19 +457,19 @@ function OrderDetailContent() {
                     )}
 
                     {item.itemNotes && (
-                      <div className="text-[11px] text-muted-foreground italic mt-1">
+                      <div className="text-xs text-muted-foreground italic mt-1.5">
                         Catatan: {item.itemNotes}
                       </div>
                     )}
                   </td>
 
-                  <td className="py-3.5 px-4 text-center tabular-nums text-foreground">
+                  <td className="py-4 px-4 text-center tabular-nums text-foreground">
                     {item.pricingTypeSnapshot === "AREA" ? (
                       <div>
                         <span>
                           {item.widthM}m × {item.heightM}m
                         </span>
-                        <div className="text-[11px] text-muted-foreground">
+                        <div className="text-xs text-muted-foreground mt-0.5">
                           Luas: {item.billedAreaM2} m²
                         </div>
                       </div>
@@ -480,15 +478,15 @@ function OrderDetailContent() {
                     )}
                   </td>
 
-                  <td className="py-3.5 px-4 text-center font-semibold text-foreground tabular-nums">
+                  <td className="py-4 px-4 text-center font-semibold text-foreground tabular-nums">
                     {item.quantity}
                   </td>
 
-                  <td className="py-3.5 px-4 text-right tabular-nums text-foreground">
+                  <td className="py-4 px-4 text-right tabular-nums text-foreground">
                     Rp {item.unitPrice.toLocaleString("id-ID")}
                   </td>
 
-                  <td className="py-3.5 px-4 text-right font-bold text-foreground tabular-nums">
+                  <td className="py-4 px-4 text-right font-semibold text-foreground tabular-nums">
                     Rp {item.itemSubtotal.toLocaleString("id-ID")}
                   </td>
                 </tr>
@@ -498,8 +496,8 @@ function OrderDetailContent() {
         </div>
 
         {/* Financial Summary */}
-        <div className="p-4 bg-muted/40 border-t border-border flex flex-col items-end space-y-1.5 text-xs">
-          <div className="flex items-center justify-between w-64 text-muted-foreground">
+        <div className="p-5 sm:p-6 bg-muted/40 border-t border-border flex flex-col items-end space-y-2 text-sm">
+          <div className="flex items-center justify-between w-full sm:w-80 text-muted-foreground">
             <span>Subtotal Item:</span>
             <span className="tabular-nums">
               Rp {order.subtotal.toLocaleString("id-ID")}
@@ -507,7 +505,7 @@ function OrderDetailContent() {
           </div>
 
           {order.designFee > 0 && (
-            <div className="flex items-center justify-between w-64 text-muted-foreground">
+            <div className="flex items-center justify-between w-full sm:w-80 text-muted-foreground">
               <span>Biaya Desain:</span>
               <span className="tabular-nums">
                 Rp {order.designFee.toLocaleString("id-ID")}
@@ -516,7 +514,7 @@ function OrderDetailContent() {
           )}
 
           {order.discountAmount > 0 && (
-            <div className="flex items-center justify-between w-64 text-destructive">
+            <div className="flex items-center justify-between w-full sm:w-80 text-destructive">
               <span>Potongan Diskon:</span>
               <span className="tabular-nums">
                 - Rp {order.discountAmount.toLocaleString("id-ID")}
@@ -524,14 +522,14 @@ function OrderDetailContent() {
             </div>
           )}
 
-          <div className="flex items-center justify-between w-64 text-sm font-extrabold text-foreground pt-1.5 border-t border-border">
+          <div className="flex items-center justify-between w-full sm:w-80 text-base sm:text-lg font-bold text-foreground pt-2 border-t border-border">
             <span>Grand Total:</span>
             <span className="text-primary tabular-nums">
               Rp {order.grandTotal.toLocaleString("id-ID")}
             </span>
           </div>
 
-          <div className="flex items-center justify-between w-64 text-xs font-semibold text-emerald-600">
+          <div className="flex items-center justify-between w-full sm:w-80 text-sm font-semibold text-emerald-600">
             <span>Total Dibayar:</span>
             <span className="tabular-nums">
               Rp {order.paidAmount.toLocaleString("id-ID")}
@@ -539,7 +537,7 @@ function OrderDetailContent() {
           </div>
 
           {order.remainingAmount > 0 && (
-            <div className="flex items-center justify-between w-64 text-xs font-bold text-amber-600">
+            <div className="flex items-center justify-between w-full sm:w-80 text-sm font-bold text-amber-600">
               <span>Sisa Tagihan (Piutang):</span>
               <span className="tabular-nums">
                 Rp {order.remainingAmount.toLocaleString("id-ID")}
@@ -551,18 +549,18 @@ function OrderDetailContent() {
 
       {/* Payment History Section */}
       <div className="bg-card border border-border rounded-2xl shadow-xs overflow-hidden">
-        <div className="p-4 border-b border-border bg-muted/40 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-            <Banknote className="size-4 text-emerald-600" />
+        <div className="p-4 sm:p-5 border-b border-border bg-muted/40 flex items-center justify-between gap-2">
+          <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+            <Banknote className="size-4.5 text-emerald-600" />
             <span>Riwayat Pembayaran Nota</span>
           </h2>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs sm:text-sm text-muted-foreground">
             {order.payments.length} transaksi pembayaran
           </span>
         </div>
 
         {order.payments.length === 0 ? (
-          <div className="p-6 text-center text-xs text-muted-foreground">
+          <div className="p-6 text-center text-sm text-muted-foreground">
             Belum ada pembayaran yang diterima untuk nota ini (UNPAID).
           </div>
         ) : (
@@ -570,18 +568,18 @@ function OrderDetailContent() {
             {order.payments.map((p) => (
               <div
                 key={p.id}
-                className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm"
               >
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-foreground">
+                  <div className="flex items-center gap-2.5">
+                    <span className="font-semibold text-foreground tabular-nums text-base">
                       Rp {p.amount.toLocaleString("id-ID")}
                     </span>
-                    <span className="px-2 py-0.5 text-[10px] font-semibold bg-muted rounded border border-border">
+                    <span className="px-2.5 py-0.5 text-xs font-semibold bg-muted rounded-md border border-border">
                       {p.paymentMethod}
                     </span>
                   </div>
-                  <div className="text-[11px] text-muted-foreground">
+                  <div className="text-xs text-muted-foreground">
                     Diterima oleh {p.receivedByUserName} •{" "}
                     {new Date(p.paidAt).toLocaleDateString("id-ID", {
                       day: "2-digit",
@@ -592,19 +590,19 @@ function OrderDetailContent() {
                     })}
                   </div>
                   {p.referenceNote && (
-                    <div className="text-[11px] text-muted-foreground italic">
+                    <div className="text-xs text-muted-foreground italic">
                       Ref: {p.referenceNote}
                     </div>
                   )}
                 </div>
 
                 {p.paymentMethod === "CASH" && p.cashReceived && (
-                  <div className="text-right text-[11px] text-muted-foreground">
+                  <div className="sm:text-right text-xs text-muted-foreground">
                     <div>
                       Uang diterima: Rp {p.cashReceived.toLocaleString("id-ID")}
                     </div>
                     {p.changeAmount > 0 && (
-                      <div className="text-emerald-600 font-semibold">
+                      <div className="text-emerald-600 font-semibold mt-0.5">
                         Kembalian: Rp {p.changeAmount.toLocaleString("id-ID")}
                       </div>
                     )}

@@ -251,16 +251,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* ========================================================= */}
       {/* MOBILE TOP BAR (< 1024px) — 0 HAMBURGER                   */}
       {/* ========================================================= */}
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-card/90 px-4 pt-[env(safe-area-inset-top,0px)] backdrop-blur-md lg:hidden">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary font-black text-xs text-primary-foreground shadow-xs">
+      <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between border-b border-border bg-card/90 px-4 pt-[env(safe-area-inset-top,0px)] backdrop-blur-md lg:hidden">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary font-bold text-sm text-primary-foreground shadow-xs">
             KG
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="truncate text-sm font-bold tracking-tight text-foreground">
+            <span className="truncate text-base font-semibold tracking-tight text-foreground">
               {pageMeta.title}
             </span>
-            <span className="text-[10px] text-muted-foreground truncate">
+            <span className="text-xs text-muted-foreground truncate">
               {isNative ? "Android APK" : "Web System"}
             </span>
           </div>
@@ -271,20 +271,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
-              className="relative flex size-8 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors hover:bg-primary/20"
+              className="relative flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors hover:bg-primary/20"
               title={`Pembaruan v${latestVersion} tersedia`}
               aria-label="Pembaruan Aplikasi Tersedia"
             >
-              <span className="absolute -top-0.5 -right-0.5 flex size-2">
+              <span className="absolute top-1.5 right-1.5 flex size-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex size-2 rounded-full bg-primary"></span>
               </span>
-              <ArrowUpCircle className="size-4" />
+              <ArrowUpCircle className="size-4.5" />
             </button>
           )}
           <Badge
             variant={isOwner ? "default" : "secondary"}
-            className="text-[10px] px-2 py-0.5 uppercase tracking-wider"
+            className="text-xs px-2.5 py-0.5 uppercase tracking-wider"
           >
             {user?.role}
           </Badge>
@@ -301,28 +301,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* ======================================================= */}
         <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:shrink-0 lg:sticky lg:top-0 lg:h-dvh bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
           {/* Brand Header */}
-          <div className="flex h-14 items-center gap-2.5 border-b border-sidebar-border px-5 shrink-0">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary font-black text-xs text-sidebar-primary-foreground shadow-xs">
+          <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5 shrink-0">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-sidebar-primary font-bold text-sm text-sidebar-primary-foreground shadow-xs">
               KG
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-bold tracking-tight text-sidebar-foreground leading-none">
+              <span className="text-sm font-semibold tracking-tight text-sidebar-foreground leading-tight">
                 Ksatria Graphx
               </span>
-              <span className="text-[10px] text-sidebar-foreground/70 mt-0.5 font-medium">
+              <span className="text-xs text-sidebar-foreground/70 mt-0.5 font-medium">
                 POS & Percetakan
               </span>
             </div>
           </div>
 
           {/* Navigation Links */}
-          <div className="flex-1 overflow-y-auto px-3 py-3 space-y-6">
+          <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-6">
             {/* Navigasi Utama */}
-            <div className="space-y-1">
-              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/60">
+            <div className="space-y-1.5">
+              <span className="px-3.5 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/60">
                 Menu Utama
               </span>
-              <nav className="mt-1.5 space-y-0.5">
+              <nav className="mt-1.5 space-y-1">
                 {mainNavItems.map((item) => {
                   const Icon = item.icon;
                   const isActive =
@@ -331,13 +331,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold active:scale-[0.98] transition-[transform,colors] min-h-[38px] ${
+                      className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium active:scale-[0.98] transition-[transform,color,background-color] min-h-11 ${
                         isActive
                           ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-xs"
-                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                          : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                       }`}
                     >
-                      <Icon className="size-4 shrink-0" />
+                      <Icon className="size-4.5 shrink-0" />
                       <span>{item.label}</span>
                     </Link>
                   );
@@ -346,11 +346,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* Navigasi Manajemen */}
-            <div className="space-y-1">
-              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/60">
+            <div className="space-y-1.5">
+              <span className="px-3.5 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/60">
                 Manajemen
               </span>
-              <nav className="mt-1.5 space-y-0.5">
+              <nav className="mt-1.5 space-y-1">
                 {allowedManagementItems.map((item) => {
                   const Icon = item.icon;
                   const isActive =
@@ -359,13 +359,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold active:scale-[0.98] transition-[transform,colors] min-h-[38px] ${
+                      className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium active:scale-[0.98] transition-[transform,color,background-color] min-h-11 ${
                         isActive
                           ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-xs"
-                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                          : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                       }`}
                     >
-                      <Icon className="size-4 shrink-0" />
+                      <Icon className="size-4.5 shrink-0" />
                       <span>{item.label}</span>
                     </Link>
                   );
@@ -375,17 +375,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Sidebar Footer Profile & Version */}
-          <div className="shrink-0 border-t border-sidebar-border p-3 bg-sidebar space-y-3">
-            <div className="flex items-center justify-between gap-2 rounded-lg bg-sidebar-accent/50 p-2.5">
+          <div className="shrink-0 border-t border-sidebar-border p-3.5 bg-sidebar space-y-3">
+            <div className="flex items-center justify-between gap-2 rounded-xl bg-sidebar-accent/50 p-3">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar text-xs font-bold text-sidebar-foreground border border-sidebar-border shadow-xs">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-sidebar text-xs font-bold text-sidebar-foreground border border-sidebar-border shadow-xs">
                   {user?.name ? user.name.slice(0, 2).toUpperCase() : "KG"}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-bold text-sidebar-foreground leading-tight">
+                  <p className="truncate text-sm font-semibold text-sidebar-foreground leading-tight">
                     {user?.name}
                   </p>
-                  <p className="text-[10px] text-sidebar-foreground/70 truncate uppercase font-semibold">
+                  <p className="text-xs text-sidebar-foreground/70 truncate uppercase font-medium mt-0.5">
                     {user?.role}
                   </p>
                 </div>
@@ -394,24 +394,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setShowLogoutConfirm(true)}
-                className="flex size-7 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground/70 hover:bg-destructive/10 hover:text-destructive transition-colors"
+                className="flex size-9 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground/70 hover:bg-destructive/10 hover:text-destructive transition-colors"
                 title="Keluar Sesi"
                 aria-label="Keluar Sesi"
               >
-                <LogOut className="size-3.5" />
+                <LogOut className="size-4" />
               </button>
             </div>
 
             {/* Titik 2: Badge Versi Single Source of Truth + Indikator Update */}
             <div className="flex items-center justify-between px-1">
-              <span className="text-[10px] font-medium text-sidebar-foreground/70">
+              <span className="text-xs font-medium text-sidebar-foreground/70">
                 {formatVersionBadge(isNative)}
               </span>
               {hasUpdate && (
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(true)}
-                  className="flex items-center gap-1 rounded-full bg-sidebar-primary/15 px-2 py-0.5 text-[10px] font-bold text-sidebar-primary hover:bg-sidebar-primary/25 transition-colors"
+                  className="flex items-center gap-1.5 rounded-full bg-sidebar-primary/15 px-2.5 py-0.5 text-xs font-semibold text-sidebar-primary hover:bg-sidebar-primary/25 transition-colors"
                   title={`Pembaruan v${latestVersion} tersedia`}
                 >
                   <span className="relative flex size-1.5">
@@ -430,12 +430,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* ======================================================= */}
         <div className="flex flex-1 flex-col min-w-0">
           {/* Desktop Sticky Topbar (>= 1024px) */}
-          <header className="hidden h-14 items-center justify-between border-b border-border bg-background/85 px-6 backdrop-blur-md lg:flex sticky top-0 z-30">
+          <header className="hidden h-16 items-center justify-between border-b border-border bg-background/85 px-6 lg:px-8 backdrop-blur-md lg:flex sticky top-0 z-30">
             <div>
-              <p className="text-base font-bold text-foreground leading-tight">
+              <p className="text-base font-semibold text-foreground leading-tight">
                 {pageMeta.title}
               </p>
-              <p className="text-xs text-muted-foreground leading-none mt-0.5">
+              <p className="text-xs text-muted-foreground leading-snug mt-0.5">
                 {pageMeta.subtitle}
               </p>
             </div>
@@ -444,9 +444,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {hasUpdate && (
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={() => setIsModalOpen(true)}
-                  className="gap-1.5 border-primary/40 text-primary bg-primary/5 hover:bg-primary/10"
+                  className="gap-2 border-primary/40 text-primary bg-primary/5 hover:bg-primary/10"
                 >
                   <span className="relative flex size-2">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
@@ -458,20 +457,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
                 onClick={() => setIsQuickCalcOpen(true)}
-                className="gap-1.5 rounded-lg text-xs font-semibold shadow-xs hover:bg-accent"
+                className="gap-2 rounded-xl text-sm font-medium shadow-xs hover:bg-accent"
                 title="Buka Kalkulator Cepat (Alt+K)"
               >
-                <Calculator className="size-3.5 text-primary" />
+                <Calculator className="size-4 text-primary" />
                 <span>Cek Harga</span>
-                <kbd className="pointer-events-none ml-1 hidden rounded border border-border bg-muted/80 px-1.5 font-mono text-[10px] font-medium text-muted-foreground lg:inline-block">
+                <kbd className="pointer-events-none ml-1 hidden rounded-md border border-border bg-muted/80 px-1.5 py-0.5 font-mono text-xs font-medium text-muted-foreground lg:inline-block">
                   Alt+K
                 </kbd>
               </Button>
               <ThemeToggle />
               <Link href="/pos">
-                <Button size="sm" className="gap-1.5 rounded-lg font-semibold shadow-xs">
+                <Button className="gap-2 rounded-xl font-semibold shadow-xs">
                   <Plus className="size-4" />
                   <span>Transaksi Baru</span>
                 </Button>
@@ -480,8 +478,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </header>
 
           {/* Main Content Canvas */}
-          <main className="flex-1 min-w-0 bg-muted/40 dark:bg-background pb-24 lg:pb-8">
-            <div className="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
+          <main
+            className={`flex-1 min-w-0 bg-muted/40 dark:bg-background lg:pb-10 ${
+              pathname === "/pos" ? "pb-36" : "pb-24"
+            }`}
+          >
+            <div className="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
               <m.div
                 key={pathname}
                 initial={{ opacity: 0, y: 6 }}
@@ -498,74 +500,74 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* ========================================================= */}
       {/* MOBILE BOTTOM NAVIGATION BAR (< 1024px) — 5 SLOTS         */}
       {/* ========================================================= */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 h-16 border-t border-border bg-card/95 pb-[max(0.25rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden grid grid-cols-5 items-center px-1">
+      <nav className="fixed inset-x-0 bottom-0 z-30 min-h-16 border-t border-border bg-card/95 pt-1 pb-[max(0.375rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden grid grid-cols-5 items-center px-1">
         {/* 1. Dashboard */}
         <Link
           href="/dashboard"
-          className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[44px] active:scale-95 transition-[transform,colors] rounded-xl ${
+          className={`flex flex-col items-center justify-center gap-1 py-1.5 min-h-[44px] active:scale-95 transition-[transform,color,background-color] rounded-xl ${
             pathname === "/dashboard"
-              ? "text-primary font-bold"
+              ? "text-primary font-semibold"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <LayoutDashboard className="size-4.5" />
-          <span className="text-[10px] tracking-tight">Dashboard</span>
+          <LayoutDashboard className="size-5" />
+          <span className="text-[11px] min-[370px]:text-xs tracking-tight">Dashboard</span>
         </Link>
 
         {/* 2. POS (Disorot sebagai Aksi Kasir Utama) */}
         <Link
           href="/pos"
-          className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[44px] active:scale-95 transition-[transform,colors] rounded-xl ${
+          className={`flex flex-col items-center justify-center gap-1 py-1.5 min-h-[44px] active:scale-95 transition-[transform,color,background-color] rounded-xl ${
             pathname === "/pos"
-              ? "text-primary font-bold"
+              ? "text-primary font-semibold"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <div className={`p-1 rounded-lg ${pathname === "/pos" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
+          <div className={`p-1.5 rounded-lg ${pathname === "/pos" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
             <Calculator className="size-4" />
           </div>
-          <span className="text-[10px] tracking-tight">POS</span>
+          <span className="text-[11px] min-[370px]:text-xs tracking-tight">POS</span>
         </Link>
 
         {/* 3. Pesanan */}
         <Link
           href="/orders"
-          className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[44px] active:scale-95 transition-[transform,colors] rounded-xl ${
+          className={`flex flex-col items-center justify-center gap-1 py-1.5 min-h-[44px] active:scale-95 transition-[transform,color,background-color] rounded-xl ${
             pathname.startsWith("/orders")
-              ? "text-primary font-bold"
+              ? "text-primary font-semibold"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <ClipboardList className="size-4.5" />
-          <span className="text-[10px] tracking-tight">Pesanan</span>
+          <ClipboardList className="size-5" />
+          <span className="text-[11px] min-[370px]:text-xs tracking-tight">Pesanan</span>
         </Link>
 
         {/* 4. Produk */}
         <Link
           href="/products"
-          className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[44px] active:scale-95 transition-[transform,colors] rounded-xl ${
+          className={`flex flex-col items-center justify-center gap-1 py-1.5 min-h-[44px] active:scale-95 transition-[transform,color,background-color] rounded-xl ${
             pathname.startsWith("/products")
-              ? "text-primary font-bold"
+              ? "text-primary font-semibold"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <Package className="size-4.5" />
-          <span className="text-[10px] tracking-tight">Produk</span>
+          <Package className="size-5" />
+          <span className="text-[11px] min-[370px]:text-xs tracking-tight">Produk</span>
         </Link>
 
         {/* 5. Menu (Buka Bottom Sheet) */}
         <button
           type="button"
           onClick={() => setIsMenuSheetOpen(true)}
-          className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[44px] active:scale-95 transition-[transform,colors] rounded-xl ${
+          className={`flex flex-col items-center justify-center gap-1 py-1.5 min-h-[44px] active:scale-95 transition-[transform,color,background-color] rounded-xl ${
             isMenuSheetOpen || pathname === "/customers" || pathname === "/reports" || pathname === "/settings" || pathname === "/users" || pathname === "/audit-logs"
-              ? "text-primary font-bold"
+              ? "text-primary font-semibold"
               : "text-muted-foreground hover:text-foreground"
           }`}
           aria-label="Buka Menu Lainnya"
         >
-          <MenuIcon className="size-4.5" />
-          <span className="text-[10px] tracking-tight">Menu</span>
+          <MenuIcon className="size-5" />
+          <span className="text-[11px] min-[370px]:text-xs tracking-tight">Menu</span>
         </button>
       </nav>
 
@@ -578,10 +580,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           onClick={() => setIsQuickCalcOpen(true)}
           aria-label="Buka Kalkulator Cepat"
           title="Buka Kalkulator Cepat"
-          className={`fixed right-4 z-40 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/20 active:scale-95 motion-safe:hover:scale-105 transition-[transform,colors,opacity] duration-150 lg:hidden cursor-pointer ${
+          className={`fixed right-4 z-40 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/20 active:scale-95 motion-safe:hover:scale-105 transition-[transform,color,background-color,opacity] duration-150 lg:hidden cursor-pointer ${
             pathname === "/pos"
-              ? "bottom-[calc(8.75rem+env(safe-area-inset-bottom))]"
-              : "bottom-[calc(4.75rem+env(safe-area-inset-bottom))]"
+              ? "bottom-[calc(9.5rem+env(safe-area-inset-bottom))]"
+              : "bottom-[calc(5rem+env(safe-area-inset-bottom))]"
           }`}
         >
           <Calculator className="size-5.5" />
@@ -592,38 +594,38 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* BOTTOM SHEET "MENU LAINNYA" (MOBILE ONLY)                 */}
       {/* ========================================================= */}
       <Sheet open={isMenuSheetOpen} onOpenChange={setIsMenuSheetOpen}>
-        <SheetContent side="bottom" className="p-5 max-w-lg mx-auto space-y-4">
+        <SheetContent side="bottom" className="p-5 sm:p-6 max-w-lg mx-auto space-y-4 rounded-t-2xl">
           <SheetHeader className="text-left space-y-1 pr-12">
-            <SheetTitle className="text-base font-bold text-foreground">
+            <SheetTitle className="text-lg font-semibold text-foreground">
               Menu & Pengaturan
             </SheetTitle>
-            <SheetDescription className="text-xs text-muted-foreground">
+            <SheetDescription className="text-sm text-muted-foreground">
               Akses cepat ke modul sekunder, pelanggan, laporan, dan preferensi toko
             </SheetDescription>
           </SheetHeader>
 
           {/* User Info Card in Sheet */}
-          <div className="flex items-center gap-3 rounded-2xl bg-muted/60 p-3 border border-border/80">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-card text-sm font-bold text-foreground border border-border shadow-xs">
+          <div className="flex items-center gap-3 rounded-2xl bg-muted/60 p-3.5 border border-border/80">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-card text-sm font-bold text-foreground border border-border shadow-xs">
               {user?.name ? user.name.slice(0, 2).toUpperCase() : "KG"}
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 space-y-1">
+              <p className="truncate text-sm font-semibold text-foreground">
+                {user?.name}
+              </p>
               <div className="flex flex-wrap items-center gap-2">
-                <p className="truncate text-xs font-bold text-foreground">
-                  {user?.name}
-                </p>
                 {user?.role && (
                   <Badge
                     variant={isOwner ? "default" : "secondary"}
-                    className="text-[10px] px-2 py-0.5 uppercase tracking-wider font-semibold shrink-0"
+                    className="text-xs px-2.5 py-0.5 uppercase tracking-wider font-semibold shrink-0"
                   >
                     {user.role}
                   </Badge>
                 )}
+                <span className="text-xs text-muted-foreground truncate">
+                  {isNative ? "Android APK Native" : "Web Desktop System"}
+                </span>
               </div>
-              <p className="text-[10px] text-muted-foreground truncate mt-0.5">
-                {isNative ? "Android APK Native" : "Web Desktop System"}
-              </p>
             </div>
           </div>
 
@@ -635,10 +637,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link
               href="/customers"
               onClick={() => setIsMenuSheetOpen(false)}
-              className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-xs font-semibold text-foreground transition-colors min-h-[44px]"
+              className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-sm font-medium text-foreground transition-colors min-h-[44px]"
             >
               <div className="flex items-center gap-3">
-                <UsersIcon className="size-4 text-primary" />
+                <UsersIcon className="size-4.5 text-primary" />
                 <span>Data Pelanggan</span>
               </div>
               <ChevronRight className="size-4 text-muted-foreground" />
@@ -648,10 +650,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link
               href="/reports"
               onClick={() => setIsMenuSheetOpen(false)}
-              className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-xs font-semibold text-foreground transition-colors min-h-[44px]"
+              className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-sm font-medium text-foreground transition-colors min-h-[44px]"
             >
               <div className="flex items-center gap-3">
-                <BarChart3 className="size-4 text-primary" />
+                <BarChart3 className="size-4.5 text-primary" />
                 <span>Laporan Omzet Penjualan</span>
               </div>
               <ChevronRight className="size-4 text-muted-foreground" />
@@ -662,13 +664,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link
                 href="/settings"
                 onClick={() => setIsMenuSheetOpen(false)}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-xs font-semibold text-foreground transition-colors min-h-[44px]"
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-sm font-medium text-foreground transition-colors min-h-[44px]"
               >
                 <div className="flex items-center gap-3">
                   {isNative && !isOwner ? (
-                    <Printer className="size-4 text-primary" />
+                    <Printer className="size-4.5 text-primary" />
                   ) : (
-                    <Settings className="size-4 text-primary" />
+                    <Settings className="size-4.5 text-primary" />
                   )}
                   <span>{isNative && !isOwner ? "Printer Bluetooth Kasir" : "Pengaturan Toko & Nota"}</span>
                 </div>
@@ -681,10 +683,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link
                 href="/audit-logs"
                 onClick={() => setIsMenuSheetOpen(false)}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-xs font-semibold text-foreground transition-colors min-h-[44px]"
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-sm font-medium text-foreground transition-colors min-h-[44px]"
               >
                 <div className="flex items-center gap-3">
-                  <ShieldCheck className="size-4 text-primary" />
+                  <ShieldCheck className="size-4.5 text-primary" />
                   <span>Audit Log Forensik</span>
                 </div>
                 <ChevronRight className="size-4 text-muted-foreground" />
@@ -696,10 +698,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link
                 href="/users"
                 onClick={() => setIsMenuSheetOpen(false)}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-xs font-semibold text-foreground transition-colors min-h-[44px]"
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-sm font-medium text-foreground transition-colors min-h-[44px]"
               >
                 <div className="flex items-center gap-3">
-                  <UserCheck className="size-4 text-primary" />
+                  <UserCheck className="size-4.5 text-primary" />
                   <span>Kelola Akun Pengguna</span>
                 </div>
                 <ChevronRight className="size-4 text-muted-foreground" />
@@ -710,9 +712,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Separator />
 
           {/* Titik 3: Info Versi & Status Update di Bottom Sheet */}
-          <div className="pt-2 flex items-center justify-between">
+          <div className="pt-2 flex items-center justify-between gap-3">
             <div className="flex flex-col">
-              <span className="text-[11px] font-medium text-muted-foreground">
+              <span className="text-xs font-medium text-muted-foreground">
                 {formatVersionLabel(isNative)}
               </span>
               {hasUpdate ? (
@@ -722,27 +724,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     setIsMenuSheetOpen(false);
                     setIsModalOpen(true);
                   }}
-                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline text-left mt-0.5"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline text-left mt-1 min-h-8"
                 >
                   <span className="size-1.5 rounded-full bg-primary animate-pulse" />
                   Pembaruan v{latestVersion} Tersedia
                 </button>
               ) : (
-                <span className="text-[10px] text-muted-foreground/70">
+                <span className="text-xs text-muted-foreground/80 mt-0.5">
                   Versi terbaru aktif
                 </span>
               )}
             </div>
             <Button
               variant="destructive"
-              size="sm"
               onClick={() => {
                 setIsMenuSheetOpen(false);
                 setShowLogoutConfirm(true);
               }}
-              className="gap-1.5"
+              className="gap-2 shrink-0"
             >
-              <LogOut className="size-3.5" />
+              <LogOut className="size-4" />
               <span>Keluar Sesi</span>
             </Button>
           </div>

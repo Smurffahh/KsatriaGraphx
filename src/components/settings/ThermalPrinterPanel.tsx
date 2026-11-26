@@ -169,7 +169,7 @@ export function ThermalPrinterPanel({ storeName = "Ksatria Graphx" }: { storeNam
 
         {/* Badge Platform */}
         <span
-          className={`self-start sm:self-auto px-2.5 py-1 text-xs font-semibold rounded-lg border ${
+          className={`self-start sm:self-auto px-3 py-1 text-xs font-semibold rounded-lg border ${
             isNative
               ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
               : "bg-surface-muted text-text-muted border-border"
@@ -181,10 +181,10 @@ export function ThermalPrinterPanel({ storeName = "Ksatria Graphx" }: { storeNam
 
       {/* Warning on Web */}
       {!isNative && (
-        <div className="p-4 rounded-xl bg-surface-muted/60 border border-border text-xs text-text-muted flex items-start gap-2.5">
+        <div className="p-4 rounded-xl bg-surface-muted/60 border border-border text-xs sm:text-sm text-text-muted flex items-start gap-2.5">
           <Smartphone className="size-4 shrink-0 text-text-muted mt-0.5" />
-          <p>
-            Pengaturan koneksi langsung ke printer thermal Bluetooth dirancang untuk aplikasi <strong>Android APK</strong>. 
+          <p className="leading-relaxed">
+            Pengaturan koneksi langsung ke printer thermal Bluetooth dirancang untuk aplikasi <strong>Android APK</strong>.{" "}
             Pada mode browser Web ini, sistem menggunakan dialog <strong>Web Print (PDF)</strong> bawaan peramban.
           </p>
         </div>
@@ -193,7 +193,7 @@ export function ThermalPrinterPanel({ storeName = "Ksatria Graphx" }: { storeNam
       {/* Status Message */}
       {statusMessage && (
         <div
-          className={`p-3.5 rounded-xl text-xs flex items-center gap-2.5 ${
+          className={`p-3.5 rounded-xl text-xs sm:text-sm flex items-center gap-2.5 ${
             statusMessage.type === "success"
               ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
               : statusMessage.type === "error"
@@ -212,10 +212,10 @@ export function ThermalPrinterPanel({ storeName = "Ksatria Graphx" }: { storeNam
 
       {/* Active Printer Card */}
       <div className="p-4 rounded-xl bg-surface-muted/40 border border-border space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-text-muted">Printer Terpilih Saat Ini:</span>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs sm:text-sm font-medium text-text-muted">Printer Terpilih Saat Ini:</span>
           {currentPrinter && (
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600">
+            <span className="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-500/10 text-emerald-600">
               Siap Cetak
             </span>
           )}
@@ -226,8 +226,8 @@ export function ThermalPrinterPanel({ storeName = "Ksatria Graphx" }: { storeNam
             <div className="flex items-center gap-2.5">
               <Printer className="size-5 text-primary" />
               <div>
-                <p className="font-bold text-sm text-text">{currentPrinter.name}</p>
-                <p className="text-[11px] font-mono text-text-muted">{currentPrinter.address}</p>
+                <p className="font-semibold text-sm text-text">{currentPrinter.name}</p>
+                <p className="text-xs font-mono text-text-muted">{currentPrinter.address}</p>
               </div>
             </div>
 
@@ -236,7 +236,7 @@ export function ThermalPrinterPanel({ storeName = "Ksatria Graphx" }: { storeNam
                 type="button"
                 onClick={handleTestPrint}
                 disabled={isTesting}
-                className="px-3 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg transition-colors min-h-[38px] disabled:opacity-50"
+                className="px-3.5 py-2 bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-semibold rounded-xl transition-colors min-h-10 disabled:opacity-50 cursor-pointer"
               >
                 {isTesting ? "Mencetak..." : "Tes Cetak Struk"}
               </button>
@@ -244,7 +244,7 @@ export function ThermalPrinterPanel({ storeName = "Ksatria Graphx" }: { storeNam
               <button
                 type="button"
                 onClick={handleDisconnectPrinter}
-                className="p-2 text-danger hover:bg-danger/10 rounded-lg transition-colors min-h-[38px] min-w-[38px] flex items-center justify-center"
+                className="p-2 text-danger hover:bg-danger/10 rounded-xl transition-colors min-h-10 min-w-10 flex items-center justify-center cursor-pointer"
                 aria-label="Putus koneksi printer"
               >
                 <Trash2 className="size-4" />
@@ -252,7 +252,7 @@ export function ThermalPrinterPanel({ storeName = "Ksatria Graphx" }: { storeNam
             </div>
           </div>
         ) : (
-          <p className="text-xs text-text-muted italic py-1">
+          <p className="text-xs sm:text-sm text-text-muted italic py-1">
             Belum ada printer Bluetooth yang dipilih sebagai printer default.
           </p>
         )}
@@ -260,12 +260,12 @@ export function ThermalPrinterPanel({ storeName = "Ksatria Graphx" }: { storeNam
 
       {/* Paper Width Selector */}
       <div className="space-y-2">
-        <label className="block text-xs font-semibold text-text">Ukuran Kertas Thermal Struk</label>
-        <div className="grid grid-cols-2 gap-3 max-w-xs">
+        <label className="block text-xs sm:text-sm font-semibold text-text">Ukuran Kertas Thermal Struk</label>
+        <div className="grid grid-cols-2 gap-3 max-w-sm">
           <button
             type="button"
             onClick={() => handleWidthChange("58mm")}
-            className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-semibold transition-colors min-h-[44px] ${
+            className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs sm:text-sm font-semibold transition-colors min-h-[44px] cursor-pointer ${
               paperWidth === "58mm"
                 ? "bg-primary text-white border-primary shadow-xs"
                 : "bg-surface-muted text-text-muted border-border hover:bg-surface-muted/80 hover:text-text"
@@ -278,7 +278,7 @@ export function ThermalPrinterPanel({ storeName = "Ksatria Graphx" }: { storeNam
           <button
             type="button"
             onClick={() => handleWidthChange("80mm")}
-            className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-semibold transition-colors min-h-[44px] ${
+            className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs sm:text-sm font-semibold transition-colors min-h-[44px] cursor-pointer ${
               paperWidth === "80mm"
                 ? "bg-primary text-white border-primary shadow-xs"
                 : "bg-surface-muted text-text-muted border-border hover:bg-surface-muted/80 hover:text-text"
@@ -292,15 +292,15 @@ export function ThermalPrinterPanel({ storeName = "Ksatria Graphx" }: { storeNam
 
       {/* Scan & List Devices */}
       <div className="space-y-3 pt-2 border-t border-border/60">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-text">Daftar Printer Bluetooth Terpasang (Paired)</span>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <span className="text-xs sm:text-sm font-semibold text-text">Daftar Printer Bluetooth Terpasang (Paired)</span>
           <button
             type="button"
             onClick={handleScanPrinters}
             disabled={isLoading}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface-muted hover:bg-border text-text text-xs font-medium rounded-lg transition-colors min-h-[36px] disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-surface-muted hover:bg-border text-text text-xs sm:text-sm font-medium rounded-xl transition-colors min-h-10 disabled:opacity-50 cursor-pointer"
           >
-            <RefreshCw className={`size-3.5 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} />
             <span>{isLoading ? "Memindai..." : "Pindai Perangkat"}</span>
           </button>
         </div>
@@ -312,24 +312,24 @@ export function ThermalPrinterPanel({ storeName = "Ksatria Graphx" }: { storeNam
               return (
                 <div
                   key={dev.address}
-                  className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
+                  className={`flex items-center justify-between gap-2 p-3.5 rounded-xl border transition-colors ${
                     isSelected
                       ? "bg-primary/5 border-primary/40"
                       : "bg-surface-muted/40 border-border"
                   }`}
                 >
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     <Bluetooth className="size-4 text-blue-500 shrink-0" />
-                    <div>
-                      <p className="font-semibold text-xs text-text">{dev.name}</p>
-                      <p className="text-[10px] font-mono text-text-muted">{dev.address}</p>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-xs sm:text-sm text-text truncate">{dev.name}</p>
+                      <p className="text-xs font-mono text-text-muted truncate">{dev.address}</p>
                     </div>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => handleSelectPrinter(dev)}
-                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors min-h-[36px] ${
+                    className={`px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-colors min-h-10 shrink-0 cursor-pointer ${
                       isSelected
                         ? "bg-emerald-600 text-white"
                         : "bg-primary text-white hover:bg-primary-hover"

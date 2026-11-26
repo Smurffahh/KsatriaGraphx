@@ -94,18 +94,18 @@ export function PostLoginSplash({
                 Selamat datang, {userName || "Pengguna"}
               </h2>
 
-              <div className="flex items-center justify-center gap-1.5">
+              <div className="flex items-center justify-center gap-2">
                 <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider ${
                     userRole === "OWNER"
                       ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
                       : "bg-primary/10 text-primary border border-primary/20"
                   }`}
                 >
                   {userRole === "OWNER" ? (
-                    <ShieldCheck className="size-3" />
+                    <ShieldCheck className="size-3.5" />
                   ) : (
-                    <UserCheck className="size-3" />
+                    <UserCheck className="size-3.5" />
                   )}
                   {userRole}
                 </span>

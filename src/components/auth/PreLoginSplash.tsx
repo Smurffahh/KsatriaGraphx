@@ -88,11 +88,11 @@ export function PreLoginSplash({ onComplete }: PreLoginSplashProps) {
               transition={{ delay: 0.12, duration: 0.5, ease: EASE_SMOOTH }}
               className="space-y-1"
             >
-              <h1 className="text-2xl font-black tracking-tight text-foreground sm:text-3xl">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                 Ksatria Graphx
               </h1>
-              <p className="text-xs font-medium text-muted-foreground">
-                POS & Kalkulator Percetakan
+              <p className="text-sm font-medium text-muted-foreground">
+                POS &amp; Kalkulator Percetakan
               </p>
             </m.div>
 
@@ -101,9 +101,9 @@ export function PreLoginSplash({ onComplete }: PreLoginSplashProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.3 }}
-              className="mt-6 flex flex-col items-center gap-2"
+              className="mt-6 flex flex-col items-center gap-2.5"
             >
-              <div className="h-1 w-36 overflow-hidden rounded-full bg-muted">
+              <div className="h-1 w-40 overflow-hidden rounded-full bg-muted">
                 <m.div
                   className="h-full bg-primary rounded-full origin-left"
                   initial={{ scaleX: 0 }}
@@ -114,7 +114,7 @@ export function PreLoginSplash({ onComplete }: PreLoginSplashProps) {
                   }}
                 />
               </div>
-              <span className="text-[10px] text-muted-foreground/80 tracking-wide uppercase">
+              <span className="text-xs text-muted-foreground/80 tracking-wide uppercase">
                 Ketuk layar untuk lewat
               </span>
             </m.div>

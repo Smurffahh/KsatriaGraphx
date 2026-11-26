@@ -276,19 +276,19 @@ export default function UsersPage() {
         {/* Top Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+            <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight text-foreground">
               Manajemen Pengguna
             </h1>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-sm text-muted-foreground">
               Kelola akun kasir, pemilik usaha, hak akses, dan keamanan sesi operasional.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <button
               type="button"
               onClick={loadData}
-              className="flex size-10 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              className="flex size-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
               aria-label="Segarkan Data"
             >
               <RefreshCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} />
@@ -296,7 +296,7 @@ export default function UsersPage() {
             <button
               type="button"
               onClick={() => setIsAddModalOpen(true)}
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 transition-colors"
+              className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 transition-colors cursor-pointer"
             >
               <UserPlus className="size-4" />
               <span>Tambah Pengguna</span>
@@ -308,22 +308,23 @@ export default function UsersPage() {
         {feedback && (
           <div
             role="alert"
-            className={`flex items-start gap-3 rounded-xl p-4 text-xs ${
+            className={`flex items-start gap-3 rounded-xl p-4 text-sm ${
               feedback.type === "success"
                 ? "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:ring-emerald-800/40"
                 : "bg-destructive/10 text-destructive ring-1 ring-destructive/20"
             }`}
           >
             {feedback.type === "success" ? (
-              <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
             ) : (
-              <AlertCircle className="size-4 shrink-0 text-destructive" />
+              <AlertCircle className="size-4 shrink-0 text-destructive mt-0.5" />
             )}
             <div className="flex-1 font-medium">{feedback.message}</div>
             <button
               type="button"
               onClick={() => setFeedback(null)}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground p-1"
+              aria-label="Tutup pesan"
             >
               <X className="size-4" />
             </button>
@@ -331,23 +332,23 @@ export default function UsersPage() {
         )}
 
         {/* Filter & Search Bar */}
-        <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 sm:flex-row sm:items-center sm:justify-between shadow-2xs">
+        <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between shadow-2xs">
           <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari nama, username, atau email..."
-              className="h-10 w-full rounded-lg border border-input bg-card pl-9 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+              className="h-11 w-full rounded-xl border border-input bg-card pl-10 pr-3.5 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="h-10 rounded-lg border border-input bg-card px-3 text-xs font-medium text-foreground focus:border-ring focus:outline-none"
+              className="h-11 rounded-xl border border-input bg-card px-3.5 text-base sm:text-sm font-medium text-foreground focus:border-ring focus:outline-none"
             >
               <option value="ALL">Semua Role</option>
               <option value="OWNER">Owner</option>
@@ -357,7 +358,7 @@ export default function UsersPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-10 rounded-lg border border-input bg-card px-3 text-xs font-medium text-foreground focus:border-ring focus:outline-none"
+              className="h-11 rounded-xl border border-input bg-card px-3.5 text-base sm:text-sm font-medium text-foreground focus:border-ring focus:outline-none"
             >
               <option value="ALL">Semua Status</option>
               <option value="ACTIVE">Aktif</option>
@@ -367,13 +368,13 @@ export default function UsersPage() {
         </div>
 
         {/* Users Table / List */}
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-2xs">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-2xs">
           {isLoading ? (
             <div className="p-6 space-y-4">
               <PageLoadingBanner message="Memuat daftar pengguna..." />
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="h-14 rounded-lg bg-muted/60 animate-pulse" />
+                  <div key={i} className="h-14 rounded-xl bg-muted/60 animate-pulse" />
                 ))}
               </div>
             </div>
@@ -382,10 +383,10 @@ export default function UsersPage() {
               <div className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
                 <Search className="size-6" />
               </div>
-              <h3 className="mt-3 text-sm font-semibold text-foreground">
+              <h3 className="mt-3 text-base font-semibold text-foreground">
                 Tidak ada pengguna yang cocok
               </h3>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Coba sesuaikan kata kunci pencarian atau filter status yang dipilih.
               </p>
             </div>
@@ -393,8 +394,8 @@ export default function UsersPage() {
             <>
               {/* Desktop View Table */}
               <div className="hidden overflow-x-auto md:block">
-                <table className="w-full text-left text-xs">
-                  <thead className="border-b border-border bg-muted/50 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-border bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     <tr>
                       <th className="px-5 py-3.5">Pengguna</th>
                       <th className="px-4 py-3.5">Email</th>
@@ -413,19 +414,19 @@ export default function UsersPage() {
                         <tr key={item.id} className="hover:bg-muted/40 transition-colors">
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="flex size-9 items-center justify-center rounded-lg bg-muted font-bold text-foreground">
+                              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted font-bold text-sm text-foreground">
                                 {item.name.slice(0, 2).toUpperCase()}
                               </div>
                               <div>
-                                <div className="flex items-center gap-1.5 font-semibold text-foreground">
+                                <div className="flex items-center gap-2 font-semibold text-foreground">
                                   <span>{item.name}</span>
                                   {isSelf && (
-                                    <span className="rounded bg-muted px-1.5 py-0.2 text-[10px] font-medium text-muted-foreground">
+                                    <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                                       Anda
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-[11px] text-muted-foreground">@{item.username}</div>
+                                <div className="text-xs text-muted-foreground">@{item.username}</div>
                               </div>
                             </div>
                           </td>
@@ -436,7 +437,7 @@ export default function UsersPage() {
 
                           <td className="px-4 py-4">
                             <span
-                              className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-bold ${
+                              className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold ${
                                 item.role === "OWNER"
                                   ? "bg-primary/10 text-primary ring-1 ring-primary/20"
                                   : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-500/30"
@@ -448,13 +449,13 @@ export default function UsersPage() {
 
                           <td className="px-4 py-4">
                             {item.isActive ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-                                <UserCheck className="size-3.5" />
+                              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                                <UserCheck className="size-4" />
                                 Aktif
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
-                                <UserX className="size-3.5" />
+                              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                                <UserX className="size-4" />
                                 Nonaktif
                               </span>
                             )}
@@ -462,16 +463,16 @@ export default function UsersPage() {
 
                           <td className="px-4 py-4">
                             {isLocked ? (
-                              <span className="inline-flex items-center gap-1 rounded bg-destructive/10 px-2 py-0.5 text-[10px] font-semibold text-destructive">
-                                <Lock className="size-3" />
+                              <span className="inline-flex items-center gap-1.5 rounded-md bg-destructive/10 px-2.5 py-0.5 text-xs font-semibold text-destructive">
+                                <Lock className="size-3.5" />
                                 Terkunci (5x Gagal)
                               </span>
                             ) : item.failedLoginAttempts > 0 ? (
-                              <span className="text-[11px] text-amber-600 dark:text-amber-400">
+                              <span className="text-xs text-amber-600 dark:text-amber-400">
                                 {item.failedLoginAttempts}x percobaan gagal
                               </span>
                             ) : (
-                              <span className="text-[11px] text-muted-foreground">Normal</span>
+                              <span className="text-xs text-muted-foreground">Normal</span>
                             )}
                           </td>
 
@@ -480,26 +481,29 @@ export default function UsersPage() {
                               <button
                                 type="button"
                                 onClick={() => openEditModal(item)}
-                                className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                                className="flex size-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
                                 title="Edit Pengguna"
+                                aria-label={`Edit ${item.name}`}
                               >
-                                <Edit2 className="size-3.5" />
+                                <Edit2 className="size-4" />
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setResetPasswordTarget(item)}
-                                className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                                className="flex size-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
                                 title="Reset Password"
+                                aria-label={`Reset password ${item.name}`}
                               >
-                                <KeyRound className="size-3.5" />
+                                <KeyRound className="size-4" />
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setRevokeSessionsTarget(item)}
-                                className="flex size-8 items-center justify-center rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
+                                className="flex size-9 items-center justify-center rounded-lg text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                                 title="Putus Semua Sesi"
+                                aria-label={`Putus semua sesi ${item.name}`}
                               >
-                                <LogOut className="size-3.5" />
+                                <LogOut className="size-4" />
                               </button>
                             </div>
                           </td>
@@ -517,27 +521,27 @@ export default function UsersPage() {
                   const isLocked = item.lockedUntil && new Date(item.lockedUntil) > new Date();
 
                   return (
-                    <div key={item.id} className="p-4 space-y-3">
+                    <div key={item.id} className="p-4 sm:p-5 space-y-3.5">
                       <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-2.5">
-                          <div className="flex size-10 items-center justify-center rounded-lg bg-muted font-bold text-foreground">
+                        <div className="flex items-center gap-3">
+                          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted font-bold text-sm text-foreground">
                             {item.name.slice(0, 2).toUpperCase()}
                           </div>
                           <div>
-                            <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                            <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
                               <span>{item.name}</span>
                               {isSelf && (
-                                <span className="rounded bg-muted px-1.5 py-0.2 text-[10px] font-medium text-muted-foreground">
+                                <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                                   Anda
                                 </span>
                               )}
                             </div>
-                            <div className="text-[11px] text-muted-foreground">@{item.username}</div>
+                            <div className="text-xs text-muted-foreground">@{item.username}</div>
                           </div>
                         </div>
 
                         <span
-                          className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold ${
+                          className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold shrink-0 ${
                             item.role === "OWNER"
                               ? "bg-primary/10 text-primary"
                               : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
@@ -547,7 +551,7 @@ export default function UsersPage() {
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <div>{item.email || "Tanpa email"}</div>
                         <div>
                           {item.isActive ? (
@@ -559,36 +563,37 @@ export default function UsersPage() {
                       </div>
 
                       {isLocked && (
-                        <div className="flex items-center gap-1.5 rounded-lg bg-destructive/10 p-2 text-[11px] text-destructive">
-                          <Lock className="size-3" />
+                        <div className="flex items-center gap-2 rounded-lg bg-destructive/10 p-2.5 text-xs text-destructive">
+                          <Lock className="size-3.5 shrink-0" />
                           <span>Akun terkunci sementara karena 5 kali percobaan login gagal.</span>
                         </div>
                       )}
 
-                      <div className="flex items-center gap-2 pt-1 border-t border-border">
+                      <div className="flex items-center gap-2 pt-2 border-t border-border">
                         <button
                           type="button"
                           onClick={() => openEditModal(item)}
-                          className="flex-1 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-card text-xs font-medium text-foreground hover:bg-muted transition-colors"
+                          className="flex-1 inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-border bg-card text-xs sm:text-sm font-medium text-foreground hover:bg-muted transition-colors cursor-pointer"
                         >
-                          <Edit2 className="size-3.5" />
+                          <Edit2 className="size-4" />
                           <span>Edit</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => setResetPasswordTarget(item)}
-                          className="flex-1 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-card text-xs font-medium text-foreground hover:bg-muted transition-colors"
+                          className="flex-1 inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-border bg-card text-xs sm:text-sm font-medium text-foreground hover:bg-muted transition-colors cursor-pointer"
                         >
-                          <KeyRound className="size-3.5" />
+                          <KeyRound className="size-4" />
                           <span>Password</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => setRevokeSessionsTarget(item)}
-                          className="flex size-9 items-center justify-center rounded-lg border border-destructive/20 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+                          className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-destructive/20 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors cursor-pointer"
                           title="Putus Sesi"
+                          aria-label={`Putus sesi ${item.name}`}
                         >
-                          <LogOut className="size-3.5" />
+                          <LogOut className="size-4" />
                         </button>
                       </div>
                     </div>
@@ -607,13 +612,14 @@ export default function UsersPage() {
             className="fixed inset-0 bg-background/80 backdrop-blur-xs"
             onClick={() => !isSubmittingAdd && setIsAddModalOpen(false)}
           />
-          <div className="relative w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <h2 className="text-base font-bold text-foreground">Tambah Pengguna Baru</h2>
+          <div className="relative w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex items-center justify-between gap-3 border-b border-border pb-4">
+              <h2 className="text-lg font-semibold text-foreground">Tambah Pengguna Baru</h2>
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="text-muted-foreground hover:text-foreground"
+                className="flex size-10 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
+                aria-label="Tutup"
               >
                 <X className="size-5" />
               </button>
@@ -621,7 +627,7 @@ export default function UsersPage() {
 
             <form onSubmit={handleAddUser} className="mt-4 space-y-4">
               <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">
+                <label className="mb-1.5 block text-xs sm:text-sm font-medium text-foreground">
                   Nama Lengkap
                 </label>
                 <input
@@ -630,12 +636,12 @@ export default function UsersPage() {
                   value={addForm.name}
                   onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
                   placeholder="Contoh: Danang Satria"
-                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs text-foreground focus:border-ring focus:outline-none"
+                  className="h-11 w-full rounded-xl border border-input bg-card px-3.5 text-base sm:text-sm text-foreground focus:border-ring focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">
+                <label className="mb-1.5 block text-xs sm:text-sm font-medium text-foreground">
                   Username
                 </label>
                 <input
@@ -644,12 +650,12 @@ export default function UsersPage() {
                   value={addForm.username}
                   onChange={(e) => setAddForm({ ...addForm, username: e.target.value })}
                   placeholder="Hanya huruf, angka, dan garis bawah"
-                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs text-foreground focus:border-ring focus:outline-none"
+                  className="h-11 w-full rounded-xl border border-input bg-card px-3.5 text-base sm:text-sm text-foreground focus:border-ring focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">
+                <label className="mb-1.5 block text-xs sm:text-sm font-medium text-foreground">
                   Email (Opsional)
                 </label>
                 <input
@@ -657,12 +663,12 @@ export default function UsersPage() {
                   value={addForm.email}
                   onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
                   placeholder="nama@email.com"
-                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs text-foreground focus:border-ring focus:outline-none"
+                  className="h-11 w-full rounded-xl border border-input bg-card px-3.5 text-base sm:text-sm text-foreground focus:border-ring focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">
+                <label className="mb-1.5 block text-xs sm:text-sm font-medium text-foreground">
                   Password Awal
                 </label>
                 <input
@@ -671,19 +677,19 @@ export default function UsersPage() {
                   value={addForm.password}
                   onChange={(e) => setAddForm({ ...addForm, password: e.target.value })}
                   placeholder="Minimal 8 karakter (huruf & angka)"
-                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs text-foreground focus:border-ring focus:outline-none"
+                  className="h-11 w-full rounded-xl border border-input bg-card px-3.5 text-base sm:text-sm text-foreground focus:border-ring focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">
+                <label className="mb-1.5 block text-xs sm:text-sm font-medium text-foreground">
                   Peran / Role
                 </label>
-                <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/40 px-3 py-2.5">
-                  <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+                <div className="flex items-center gap-2.5 rounded-xl border border-border bg-muted/40 px-3.5 py-3">
+                  <span className="inline-flex items-center rounded-md bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary shrink-0">
                     KASIR
                   </span>
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     Akun baru otomatis ditetapkan sebagai Kasir (kebijakan 1 Owner tunggal).
                   </span>
                 </div>
@@ -694,14 +700,14 @@ export default function UsersPage() {
                   type="button"
                   disabled={isSubmittingAdd}
                   onClick={() => setIsAddModalOpen(false)}
-                  className="h-10 rounded-lg border border-border px-4 text-xs font-semibold text-foreground hover:bg-muted"
+                  className="min-h-[44px] rounded-xl border border-border px-4 text-sm font-semibold text-foreground hover:bg-muted cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingAdd}
-                  className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 disabled:opacity-50"
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmittingAdd ? "Menyimpan..." : "Simpan Pengguna"}
                 </button>
@@ -718,15 +724,16 @@ export default function UsersPage() {
             className="fixed inset-0 bg-background/80 backdrop-blur-xs"
             onClick={() => !isSubmittingEdit && setEditingUser(null)}
           />
-          <div className="relative w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <h2 className="text-base font-bold text-foreground">
+          <div className="relative w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex items-center justify-between gap-3 border-b border-border pb-4">
+              <h2 className="text-lg font-semibold text-foreground">
                 Edit Pengguna: @{editingUser.username}
               </h2>
               <button
                 type="button"
                 onClick={() => setEditingUser(null)}
-                className="text-muted-foreground hover:text-foreground"
+                className="flex size-10 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
+                aria-label="Tutup"
               >
                 <X className="size-5" />
               </button>
@@ -734,7 +741,7 @@ export default function UsersPage() {
 
             <form onSubmit={handleUpdateUser} className="mt-4 space-y-4">
               <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">
+                <label className="mb-1.5 block text-xs sm:text-sm font-medium text-foreground">
                   Nama Lengkap
                 </label>
                 <input
@@ -742,12 +749,12 @@ export default function UsersPage() {
                   required
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs text-foreground focus:border-ring focus:outline-none"
+                  className="h-11 w-full rounded-xl border border-input bg-card px-3.5 text-base sm:text-sm text-foreground focus:border-ring focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">
+                <label className="mb-1.5 block text-xs sm:text-sm font-medium text-foreground">
                   Username
                 </label>
                 <input
@@ -755,41 +762,41 @@ export default function UsersPage() {
                   required
                   value={editForm.username}
                   onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
-                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs text-foreground focus:border-ring focus:outline-none"
+                  className="h-11 w-full rounded-xl border border-input bg-card px-3.5 text-base sm:text-sm text-foreground focus:border-ring focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">
+                <label className="mb-1.5 block text-xs sm:text-sm font-medium text-foreground">
                   Email (Opsional)
                 </label>
                 <input
                   type="email"
                   value={editForm.email}
                   onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs text-foreground focus:border-ring focus:outline-none"
+                  className="h-11 w-full rounded-xl border border-input bg-card px-3.5 text-base sm:text-sm text-foreground focus:border-ring focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">
+                <label className="mb-1.5 block text-xs sm:text-sm font-medium text-foreground">
                   Peran / Role
                 </label>
                 {editingUser.role === "OWNER" ? (
-                  <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/40 px-3 py-2.5">
-                    <span className="inline-flex items-center rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-600 dark:text-amber-400">
+                  <div className="flex items-center gap-2.5 rounded-xl border border-border bg-muted/40 px-3.5 py-3">
+                    <span className="inline-flex items-center rounded-md bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400 shrink-0">
                       OWNER
                     </span>
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       Akun Owner tunggal tidak dapat diubah perannya.
                     </span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/40 px-3 py-2.5">
-                    <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+                  <div className="flex items-center gap-2.5 rounded-xl border border-border bg-muted/40 px-3.5 py-3">
+                    <span className="inline-flex items-center rounded-md bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary shrink-0">
                       KASIR
                     </span>
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       Sistem menerapkan kebijakan 1 Owner tunggal. Akun tidak dapat dipromosikan.
                     </span>
                   </div>
@@ -807,18 +814,18 @@ export default function UsersPage() {
                     disabled={editingUser.role === "OWNER" || currentUser?.id === editingUser.id}
                     checked={editForm.isActive}
                     onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })}
-                    className="size-4 rounded border-input text-primary focus:ring-ring"
+                    className="size-4.5 rounded border-input text-primary focus:ring-ring"
                   />
-                  <span className="text-xs font-medium text-foreground">
+                  <span className="text-xs sm:text-sm font-medium text-foreground">
                     Akun Aktif (Dapat Login ke Sistem)
                   </span>
                 </label>
                 {editingUser.role === "OWNER" ? (
-                  <p className="mt-1 text-[11px] text-muted-foreground">
+                  <p className="mt-1.5 text-xs text-muted-foreground">
                     Akun Owner tunggal tidak dapat dinonaktifkan.
                   </p>
                 ) : currentUser?.id === editingUser.id ? (
-                  <p className="mt-1 text-[11px] text-muted-foreground">
+                  <p className="mt-1.5 text-xs text-muted-foreground">
                     Anda tidak dapat menonaktifkan akun Anda sendiri.
                   </p>
                 ) : null}
@@ -829,14 +836,14 @@ export default function UsersPage() {
                   type="button"
                   disabled={isSubmittingEdit}
                   onClick={() => setEditingUser(null)}
-                  className="h-10 rounded-lg border border-border px-4 text-xs font-semibold text-foreground hover:bg-muted"
+                  className="min-h-[44px] rounded-xl border border-border px-4 text-sm font-semibold text-foreground hover:bg-muted cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingEdit}
-                  className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 disabled:opacity-50"
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmittingEdit ? "Menyimpan..." : "Simpan Perubahan"}
                 </button>
@@ -853,15 +860,16 @@ export default function UsersPage() {
             className="fixed inset-0 bg-background/80 backdrop-blur-xs"
             onClick={() => !isSubmittingReset && setResetPasswordTarget(null)}
           />
-          <div className="relative w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <h2 className="text-base font-bold text-foreground">
+          <div className="relative w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex items-center justify-between gap-3 border-b border-border pb-4">
+              <h2 className="text-base sm:text-lg font-semibold text-foreground truncate">
                 Reset Password: @{resetPasswordTarget.username}
               </h2>
               <button
                 type="button"
                 onClick={() => setResetPasswordTarget(null)}
-                className="text-muted-foreground hover:text-foreground"
+                className="flex size-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
+                aria-label="Tutup"
               >
                 <X className="size-5" />
               </button>
@@ -869,7 +877,7 @@ export default function UsersPage() {
 
             <form onSubmit={handleResetPassword} className="mt-4 space-y-4">
               <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">
+                <label className="mb-1.5 block text-xs sm:text-sm font-medium text-foreground">
                   Password Baru
                 </label>
                 <input
@@ -878,11 +886,11 @@ export default function UsersPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Minimal 8 karakter kombinasi huruf & angka"
-                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-xs text-foreground focus:border-ring focus:outline-none"
+                  className="h-11 w-full rounded-xl border border-input bg-card px-3.5 text-base sm:text-sm text-foreground focus:border-ring focus:outline-none"
                 />
               </div>
 
-              <div className="rounded-lg bg-amber-500/10 p-3 text-[11px] leading-relaxed text-amber-600 dark:text-amber-400 border border-amber-500/20">
+              <div className="rounded-xl bg-amber-500/10 p-3.5 text-xs leading-relaxed text-amber-600 dark:text-amber-400 border border-amber-500/20">
                 Setelah password direset, seluruh sesi login aktif pengguna ini di Web dan Android akan otomatis
                 diputus seketika.
               </div>
@@ -892,14 +900,14 @@ export default function UsersPage() {
                   type="button"
                   disabled={isSubmittingReset}
                   onClick={() => setResetPasswordTarget(null)}
-                  className="h-10 rounded-lg border border-border px-4 text-xs font-semibold text-foreground hover:bg-muted"
+                  className="min-h-[44px] rounded-xl border border-border px-4 text-sm font-semibold text-foreground hover:bg-muted cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingReset}
-                  className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 disabled:opacity-50"
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmittingReset ? "Mereset..." : "Reset Password"}
                 </button>
@@ -916,14 +924,14 @@ export default function UsersPage() {
             className="fixed inset-0 bg-background/80 backdrop-blur-xs"
             onClick={() => !isRevokingSessions && setRevokeSessionsTarget(null)}
           />
-          <div className="relative w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-2xl">
-            <div className="flex size-11 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+          <div className="relative w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex size-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
               <ShieldAlert className="size-6" />
             </div>
-            <h3 className="mt-4 text-base font-bold text-foreground">
+            <h3 className="mt-4 text-base sm:text-lg font-semibold text-foreground">
               Putus Sesi: @{revokeSessionsTarget.username}
             </h3>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               Tindakan ini akan menaikkan versi token akun secara seketika dan mencabut seluruh sesi aktif
               pengguna di aplikasi Web maupun Android APK. Pengguna harus memasukkan password kembali untuk
               masuk.
@@ -934,7 +942,7 @@ export default function UsersPage() {
                 type="button"
                 disabled={isRevokingSessions}
                 onClick={() => setRevokeSessionsTarget(null)}
-                className="h-10 rounded-lg border border-border px-4 text-xs font-semibold text-foreground hover:bg-muted"
+                className="min-h-[44px] rounded-xl border border-border px-4 text-sm font-semibold text-foreground hover:bg-muted cursor-pointer"
               >
                 Batal
               </button>
@@ -942,7 +950,7 @@ export default function UsersPage() {
                 type="button"
                 disabled={isRevokingSessions}
                 onClick={handleRevokeSessions}
-                className="inline-flex h-10 items-center justify-center rounded-lg bg-destructive px-4 text-xs font-semibold text-destructive-foreground shadow-xs hover:bg-destructive/90 active:scale-95 disabled:opacity-50"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-destructive px-4 text-sm font-semibold text-destructive-foreground shadow-xs hover:bg-destructive/90 active:scale-95 disabled:opacity-50 cursor-pointer"
               >
                 {isRevokingSessions ? "Memutus..." : "Ya, Putus Sesi"}
               </button>

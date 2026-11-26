@@ -145,11 +145,11 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
   function getChargeTypeBadge(type: "FLAT" | "PER_QTY" | "PER_AREA") {
     switch (type) {
       case "FLAT":
-        return <span className="inline-flex rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-secondary-foreground">Biaya Tetap (Flat)</span>;
+        return <span className="inline-flex rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">Biaya Tetap (Flat)</span>;
       case "PER_QTY":
-        return <span className="inline-flex rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">Per Lembar / Qty</span>;
+        return <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">Per Lembar / Qty</span>;
       case "PER_AREA":
-        return <span className="inline-flex rounded-full bg-accent text-accent-foreground px-2 py-0.5 text-[10px] font-semibold">Per Luas (m²)</span>;
+        return <span className="inline-flex rounded-full bg-accent text-accent-foreground px-2.5 py-0.5 text-xs font-semibold">Per Luas (m²)</span>;
     }
   }
 
@@ -158,10 +158,10 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
       {/* Top action bar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-base font-bold text-foreground">
-            Daftar Layanan Finishing & Pasca Cetak
+          <h2 className="text-base sm:text-lg font-semibold text-foreground">
+            Daftar Layanan Finishing &amp; Pasca Cetak
           </h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
             Kelola opsi finishing tambahan seperti Mata Ayam, Selongsong, Laminasi Doff/Glossy, Jahit, dll.
           </p>
         </div>
@@ -170,7 +170,7 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
           <button
             type="button"
             onClick={handleOpenAdd}
-            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 transition-colors"
+            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 transition-colors cursor-pointer"
           >
             <Plus className="size-4" />
             Tambah Finishing
@@ -180,31 +180,31 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
 
       {/* Daftar Finishing */}
       {finishings.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card py-12 text-center">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card py-12 text-center px-4">
           <Scissors className="size-10 text-muted-foreground mb-2" />
-          <p className="text-sm font-semibold text-foreground">Belum Ada Opsi Finishing</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Tambahkan layanan finishing seperti mata ayam, laminasi, jahit tepi, dll.</p>
+          <p className="text-base font-semibold text-foreground">Belum Ada Opsi Finishing</p>
+          <p className="text-sm text-muted-foreground mt-1">Tambahkan layanan finishing seperti mata ayam, laminasi, jahit tepi, dll.</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border bg-card shadow-2xs">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-2xs">
           <div className="divide-y divide-border">
             {finishings.map((item) => (
               <div
                 key={item.id}
-                className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between hover:bg-muted/50 transition-colors"
+                className="flex flex-col gap-3 p-4 sm:p-5 sm:flex-row sm:items-center sm:justify-between hover:bg-muted/50 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Scissors className="size-4.5" />
+                <div className="flex items-center gap-3.5">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Scissors className="size-5" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-foreground">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm sm:text-base font-semibold text-foreground">
                         {item.name}
                       </span>
                       {getChargeTypeBadge(item.chargeType)}
                       <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                           item.isActive
                             ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                             : "bg-muted text-muted-foreground"
@@ -213,7 +213,7 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
                         {item.isActive ? "Aktif" : "Nonaktif"}
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                       Harga Standar:{" "}
                       <span className="font-semibold font-mono text-foreground tabular-nums">
                         Rp {item.defaultPrice.toLocaleString("id-ID")}
@@ -224,11 +224,11 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
                 </div>
 
                 {isOwner && (
-                  <div className="flex items-center gap-1.5 self-end sm:self-auto">
+                  <div className="flex items-center gap-2 self-end sm:self-auto">
                     <button
                       type="button"
                       onClick={() => handleOpenEdit(item)}
-                      className="inline-flex min-h-[38px] items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted transition-colors"
+                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted transition-colors cursor-pointer"
                     >
                       <Edit2 className="size-3.5" />
                       Edit
@@ -239,7 +239,7 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
                         setDeleteTarget(item);
                         setDeleteError(null);
                       }}
-                      className="inline-flex min-h-[38px] items-center gap-1 rounded-lg border border-destructive/20 bg-destructive/10 px-2.5 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/20 transition-colors"
+                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-destructive/20 bg-destructive/10 px-3.5 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/20 transition-colors cursor-pointer"
                     >
                       <Trash2 className="size-3.5" />
                       Hapus

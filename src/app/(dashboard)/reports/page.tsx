@@ -261,15 +261,15 @@ export default function ReportsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight text-foreground">
             Laporan Penjualan
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+          <p className="text-sm text-muted-foreground mt-1">
             Analisis omzet percetakan, arus kas harian, dan unduh data transaksi
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+        <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
           <Button
             type="button"
             onClick={handleExportCsv}
@@ -302,8 +302,8 @@ export default function ReportsPage() {
 
       {/* Filter Card */}
       <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border shadow-xs space-y-4">
-        <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-          <Filter className="size-3.5" />
+        <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          <Filter className="size-4" />
           <span>Filter Laporan</span>
         </div>
 
@@ -321,9 +321,9 @@ export default function ReportsPage() {
                 key={p}
                 type="button"
                 onClick={() => handlePresetChange(p)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors min-h-[38px] ${
+                className={`px-3.5 py-2 text-xs sm:text-sm font-medium rounded-xl border transition-colors min-h-10 cursor-pointer ${
                   selectedPreset === p
-                    ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                    ? "bg-primary text-primary-foreground border-primary font-semibold shadow-xs"
                     : "bg-muted/60 text-muted-foreground border-border hover:bg-muted hover:text-foreground"
                 }`}
               >
@@ -334,10 +334,10 @@ export default function ReportsPage() {
         </div>
 
         {/* Inputs Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-1">
           {/* Tanggal Mulai */}
           <div>
-            <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-1.5">
               Dari Tanggal
             </label>
             <input
@@ -347,13 +347,13 @@ export default function ReportsPage() {
                 setSelectedPreset("custom");
                 setStartDate(e.target.value);
               }}
-              className="w-full px-3 py-2 text-xs bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary min-h-[44px]"
+              className="h-11 w-full px-3.5 text-base sm:text-sm bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
             />
           </div>
 
           {/* Tanggal Sampai */}
           <div>
-            <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-1.5">
               Sampai Tanggal
             </label>
             <input
@@ -363,19 +363,19 @@ export default function ReportsPage() {
                 setSelectedPreset("custom");
                 setEndDate(e.target.value);
               }}
-              className="w-full px-3 py-2 text-xs bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary min-h-[44px]"
+              className="h-11 w-full px-3.5 text-base sm:text-sm bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
             />
           </div>
 
           {/* Filter Status Bayar */}
           <div>
-            <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-1.5">
               Status Pembayaran
             </label>
             <select
               value={paymentStatus}
               onChange={(e) => setPaymentStatus(e.target.value as any)}
-              className="w-full px-3 py-2 text-xs bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary min-h-[44px]"
+              className="h-11 w-full px-3.5 text-base sm:text-sm bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
             >
               <option value="ALL">Semua Status</option>
               <option value="PAID">LUNAS (Paid)</option>
@@ -387,13 +387,13 @@ export default function ReportsPage() {
           {/* Filter Kasir (Eksklusif Owner) */}
           {isOwner && (
             <div>
-              <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-1.5">
                 Filter Kasir
               </label>
               <select
                 value={selectedCashier}
                 onChange={(e) => setSelectedCashier(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary min-h-[44px]"
+                className="h-11 w-full px-3.5 text-base sm:text-sm bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
               >
                 <option value="">Semua Kasir Toko</option>
                 {cashierList.map((c) => (
@@ -412,16 +412,15 @@ export default function ReportsPage() {
 
       {/* Error Banner */}
       {isError && (
-        <div className="p-6 rounded-2xl bg-destructive/10 border border-destructive/20 text-center space-y-2">
-          <AlertCircle className="size-6 text-destructive mx-auto" />
-          <p className="text-xs text-destructive font-semibold">
+        <div className="p-6 rounded-2xl bg-destructive/10 border border-destructive/20 text-center space-y-2.5">
+          <AlertCircle className="size-7 text-destructive mx-auto" />
+          <p className="text-sm text-destructive font-semibold">
             Gagal memuat data laporan
           </p>
           <Button
             variant="destructive"
-            size="sm"
             onClick={() => refetch()}
-            className="min-h-[38px]"
+            className="min-h-10"
           >
             Coba Lagi
           </Button>
@@ -432,64 +431,64 @@ export default function ReportsPage() {
       {!isLoading && !isError && data && (
         <>
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
             {/* Total Omzet */}
-            <div className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-2">
-              <div className="flex items-center justify-between text-muted-foreground">
-                <span className="text-xs font-medium">Total Omzet Penjualan</span>
-                <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                  <TrendingUp className="size-4" />
+            <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
+              <div className="flex items-center justify-between gap-2.5 text-muted-foreground">
+                <span className="text-xs font-semibold uppercase tracking-wider leading-snug">Total Omzet Penjualan</span>
+                <div className="size-10 shrink-0 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <TrendingUp className="size-5" />
                 </div>
               </div>
-              <div className="text-2xl font-extrabold text-foreground tabular-nums">
+              <div className="text-2xl sm:text-3xl font-bold text-foreground tabular-nums">
                 {formatCurrency(data.summary.totalOmzet)}
               </div>
-              <div className="text-[11px] text-muted-foreground">
+              <div className="text-xs text-muted-foreground">
                 {data.summary.ordersCount} nota transaksi tercatat
               </div>
             </div>
 
             {/* Uang Masuk Aktual */}
-            <div className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-2">
-              <div className="flex items-center justify-between text-muted-foreground">
-                <span className="text-xs font-medium">Uang Masuk Aktual</span>
-                <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
-                  <Banknote className="size-4" />
+            <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
+              <div className="flex items-center justify-between gap-2.5 text-muted-foreground">
+                <span className="text-xs font-semibold uppercase tracking-wider leading-snug">Uang Masuk Aktual</span>
+                <div className="size-10 shrink-0 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                  <Banknote className="size-5" />
                 </div>
               </div>
-              <div className="text-2xl font-extrabold text-emerald-600 tabular-nums">
+              <div className="text-2xl sm:text-3xl font-bold text-emerald-600 tabular-nums">
                 {formatCurrency(data.summary.cashFlow.totalCashReceived)}
               </div>
-              <div className="text-[11px] text-muted-foreground">
-                Total penerimaan kas & transfer
+              <div className="text-xs text-muted-foreground">
+                Total penerimaan kas &amp; transfer
               </div>
             </div>
 
             {/* Sisa Piutang */}
-            <div className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-2">
-              <div className="flex items-center justify-between text-muted-foreground">
-                <span className="text-xs font-medium">Sisa Piutang Berjalan</span>
-                <div className="size-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
-                  <AlertCircle className="size-4" />
+            <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
+              <div className="flex items-center justify-between gap-2.5 text-muted-foreground">
+                <span className="text-xs font-semibold uppercase tracking-wider leading-snug">Sisa Piutang Berjalan</span>
+                <div className="size-10 shrink-0 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                  <AlertCircle className="size-5" />
                 </div>
               </div>
-              <div className="text-2xl font-extrabold text-amber-600 tabular-nums">
+              <div className="text-2xl sm:text-3xl font-bold text-amber-600 tabular-nums">
                 {formatCurrency(data.summary.totalRemaining)}
               </div>
-              <div className="text-[11px] text-muted-foreground">
+              <div className="text-xs text-muted-foreground">
                 Belum terlunasi atau uang muka
               </div>
             </div>
 
             {/* Arus Kas Per Metode */}
-            <div className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
-              <span className="text-xs font-medium text-muted-foreground">
+            <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-3">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
                 Rincian Arus Kas Masuk
               </span>
-              <div className="space-y-1.5 text-xs">
+              <div className="space-y-2 text-xs sm:text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground flex items-center gap-1.5">
-                    <DollarSign className="size-3.5 text-emerald-500" />
+                    <DollarSign className="size-4 text-emerald-500" />
                     Tunai (Cash):
                   </span>
                   <span className="font-semibold text-foreground tabular-nums">
@@ -498,7 +497,7 @@ export default function ReportsPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground flex items-center gap-1.5">
-                    <CreditCard className="size-3.5 text-blue-500" />
+                    <CreditCard className="size-4 text-blue-500" />
                     Transfer Bank:
                   </span>
                   <span className="font-semibold text-foreground tabular-nums">
@@ -507,7 +506,7 @@ export default function ReportsPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground flex items-center gap-1.5">
-                    <QrCode className="size-3.5 text-purple-500" />
+                    <QrCode className="size-4 text-purple-500" />
                     QRIS:
                   </span>
                   <span className="font-semibold text-foreground tabular-nums">
@@ -522,18 +521,18 @@ export default function ReportsPage() {
           <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-sm sm:text-base font-bold text-foreground">
+                <h2 className="text-base sm:text-lg font-semibold text-foreground">
                   Daftar Nota Transaksi
                 </h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                   Menampilkan {data.orders.length} nota pesanan sesuai filter
                 </p>
               </div>
             </div>
 
             {data.orders.length === 0 ? (
-              <div className="p-12 text-center text-xs text-muted-foreground space-y-2">
-                <Receipt className="size-8 mx-auto text-muted-foreground/60" />
+              <div className="p-12 text-center text-sm text-muted-foreground space-y-2">
+                <Receipt className="size-9 mx-auto text-muted-foreground/60" />
                 <p>
                   Tidak ada transaksi ditemukan pada periode atau filter yang
                   dipilih.
@@ -549,12 +548,12 @@ export default function ReportsPage() {
                       href={`/orders/detail?id=${ord.id}`}
                       className="block p-4 rounded-xl bg-muted/40 border border-border hover:bg-muted transition-colors space-y-2.5"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-primary tracking-wide">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-sm text-primary tracking-wide">
                           {ord.invoiceNumber}
                         </span>
                         <span
-                          className={`px-2 py-0.5 text-[10px] font-bold rounded ${
+                          className={`px-2.5 py-0.5 text-xs font-semibold rounded-md ${
                             ord.paymentStatus === "PAID"
                               ? "bg-emerald-500/10 text-emerald-600"
                               : ord.paymentStatus === "PARTIAL"
@@ -566,16 +565,16 @@ export default function ReportsPage() {
                         </span>
                       </div>
 
-                      <div className="text-xs text-foreground flex items-center justify-between">
+                      <div className="text-sm text-foreground flex items-center justify-between gap-2">
                         <span className="font-medium truncate">
                           {ord.customerNameSnapshot}
                         </span>
-                        <span className="font-bold tabular-nums">
+                        <span className="font-bold tabular-nums shrink-0">
                           {formatCurrency(ord.grandTotal)}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/40">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border/40">
                         <span>Kasir: {ord.cashierName || "-"}</span>
                         <span>
                           {new Date(ord.createdAt).toLocaleDateString("id-ID", {
@@ -592,26 +591,26 @@ export default function ReportsPage() {
 
                 {/* Desktop Table (>=640px) */}
                 <div className="hidden sm:block overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
+                  <table className="w-full text-left text-sm border-collapse">
                     <thead>
-                      <tr className="border-b border-border text-muted-foreground bg-muted/30">
-                        <th className="py-3 px-3 font-semibold">Nota</th>
-                        <th className="py-3 px-3 font-semibold">Tanggal</th>
-                        <th className="py-3 px-3 font-semibold">Pelanggan</th>
-                        <th className="py-3 px-3 font-semibold">Kasir</th>
-                        <th className="py-3 px-3 font-semibold text-right">
+                      <tr className="border-b border-border text-xs uppercase tracking-wider text-muted-foreground bg-muted/30">
+                        <th className="py-3.5 px-4 font-semibold">Nota</th>
+                        <th className="py-3.5 px-4 font-semibold">Tanggal</th>
+                        <th className="py-3.5 px-4 font-semibold">Pelanggan</th>
+                        <th className="py-3.5 px-4 font-semibold">Kasir</th>
+                        <th className="py-3.5 px-4 font-semibold text-right">
                           Grand Total
                         </th>
-                        <th className="py-3 px-3 font-semibold text-right">
+                        <th className="py-3.5 px-4 font-semibold text-right">
                           Dibayar
                         </th>
-                        <th className="py-3 px-3 font-semibold text-right">
+                        <th className="py-3.5 px-4 font-semibold text-right">
                           Piutang
                         </th>
-                        <th className="py-3 px-3 font-semibold text-center">
+                        <th className="py-3.5 px-4 font-semibold text-center">
                           Status
                         </th>
-                        <th className="py-3 px-3 font-semibold text-right">
+                        <th className="py-3.5 px-4 font-semibold text-right">
                           Aksi
                         </th>
                       </tr>
@@ -622,10 +621,10 @@ export default function ReportsPage() {
                           key={ord.id}
                           className="hover:bg-muted/20 transition-colors"
                         >
-                          <td className="py-3 px-3 font-bold text-primary font-mono">
+                          <td className="py-3.5 px-4 font-semibold text-primary font-mono">
                             {ord.invoiceNumber}
                           </td>
-                          <td className="py-3 px-3 text-muted-foreground">
+                          <td className="py-3.5 px-4 text-muted-foreground whitespace-nowrap">
                             {new Date(ord.createdAt).toLocaleDateString(
                               "id-ID",
                               {
@@ -635,26 +634,26 @@ export default function ReportsPage() {
                               }
                             )}
                           </td>
-                          <td className="py-3 px-3 font-medium text-foreground">
+                          <td className="py-3.5 px-4 font-medium text-foreground">
                             {ord.customerNameSnapshot}
                           </td>
-                          <td className="py-3 px-3 text-muted-foreground">
+                          <td className="py-3.5 px-4 text-muted-foreground">
                             {ord.cashierName || "-"}
                           </td>
-                          <td className="py-3 px-3 font-bold text-foreground tabular-nums text-right">
+                          <td className="py-3.5 px-4 font-semibold text-foreground tabular-nums text-right">
                             {formatCurrency(ord.grandTotal)}
                           </td>
-                          <td className="py-3 px-3 text-emerald-600 font-semibold tabular-nums text-right">
+                          <td className="py-3.5 px-4 text-emerald-600 font-semibold tabular-nums text-right">
                             {formatCurrency(ord.paidAmount)}
                           </td>
-                          <td className="py-3 px-3 text-amber-600 font-semibold tabular-nums text-right">
+                          <td className="py-3.5 px-4 text-amber-600 font-semibold tabular-nums text-right">
                             {ord.remainingAmount > 0
                               ? formatCurrency(ord.remainingAmount)
                               : "-"}
                           </td>
-                          <td className="py-3 px-3 text-center">
+                          <td className="py-3.5 px-4 text-center">
                             <span
-                              className={`px-2 py-0.5 text-[10px] font-bold rounded ${
+                              className={`px-2.5 py-0.5 text-xs font-semibold rounded-md ${
                                 ord.paymentStatus === "PAID"
                                   ? "bg-emerald-500/10 text-emerald-600"
                                   : ord.paymentStatus === "PARTIAL"
@@ -665,10 +664,10 @@ export default function ReportsPage() {
                               {ord.paymentStatus}
                             </span>
                           </td>
-                          <td className="py-3 px-3 text-right">
+                          <td className="py-3.5 px-4 text-right">
                             <Link
                               href={`/orders/detail?id=${ord.id}`}
-                              className="text-primary hover:underline font-semibold inline-flex items-center gap-1 min-h-[36px]"
+                              className="text-primary hover:underline font-semibold inline-flex items-center gap-1 min-h-9 px-2"
                             >
                               <span>Detail</span>
                               <ArrowRight className="size-3.5" />

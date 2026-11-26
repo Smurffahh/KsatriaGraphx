@@ -216,9 +216,9 @@ export default function SettingsPage() {
         </Badge>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-        <div className="rounded-xl border border-border bg-muted/40 p-3 space-y-1">
-          <span className="text-muted-foreground">Platform Lingkungan</span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+        <div className="rounded-xl border border-border bg-muted/40 p-3.5 space-y-1">
+          <span className="text-xs text-muted-foreground">Platform Lingkungan</span>
           <p className="font-semibold text-foreground">
             {isNative
               ? "Android APK (Capacitor Native)"
@@ -226,8 +226,8 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-border bg-muted/40 p-3 space-y-1">
-          <span className="text-muted-foreground">Status Versi</span>
+        <div className="rounded-xl border border-border bg-muted/40 p-3.5 space-y-1">
+          <span className="text-xs text-muted-foreground">Status Versi</span>
           <div className="flex items-center gap-2">
             {hasUpdate ? (
               <span className="font-semibold text-primary">
@@ -247,34 +247,32 @@ export default function SettingsPage() {
           href="https://github.com/Smurffahh/KsatriaGraphx/releases"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex min-h-10 items-center gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ExternalLink className="size-3.5" />
+          <ExternalLink className="size-4" />
           <span>Lihat Riwayat Rilis di GitHub</span>
         </a>
 
-        <div className="flex items-center gap-2 justify-end">
+        <div className="flex items-center gap-2.5 justify-end flex-wrap">
           {hasUpdate && (
             <Button
               type="button"
-              size="sm"
               onClick={() => setIsModalOpen(true)}
-              className="gap-1.5"
+              className="gap-2 min-h-10"
             >
               <ArrowUpCircle className="size-4" />
-              <span>Lihat & Unduh Pembaruan</span>
+              <span>Lihat &amp; Unduh Pembaruan</span>
             </Button>
           )}
           <Button
             type="button"
             variant="outline"
-            size="sm"
             disabled={isManualChecking}
             onClick={handleCheckUpdateClick}
-            className="gap-1.5"
+            className="gap-2 min-h-10"
           >
             <RefreshCw
-              className={`size-3.5 ${isManualChecking ? "animate-spin" : ""}`}
+              className={`size-4 ${isManualChecking ? "animate-spin" : ""}`}
             />
             <span>{isManualChecking ? "Memeriksa..." : "Periksa Pembaruan"}</span>
           </Button>
@@ -288,10 +286,10 @@ export default function SettingsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+          <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight text-foreground">
             Pengaturan Printer Kasir
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Konfigurasi koneksi printer thermal Bluetooth untuk mencetak nota transaksi kasir.
           </p>
         </div>
@@ -301,7 +299,7 @@ export default function SettingsPage() {
         {/* Titik 4 Versi untuk Kasir */}
         {VersionInfoCard}
 
-        <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-5 text-xs text-muted-foreground">
+        <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-5 text-xs sm:text-sm text-muted-foreground">
           <ShieldAlert className="size-5 shrink-0 text-amber-500" />
           <span>
             Pengaturan profil toko, rekening pembayaran, dan plafon diskon kasir dikunci khusus akun Owner.
@@ -316,17 +314,17 @@ export default function SettingsPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-          Pengaturan Toko & Format Nota
+        <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight text-foreground">
+          Pengaturan Toko &amp; Format Nota
         </h1>
-        <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           Atur identitas Ksatria Graphx, batas diskon kasir, dan pratinjau struk thermal 58mm/80mm.
         </p>
       </div>
 
       {statusMessage && (
         <div
-          className={`flex items-center gap-2 rounded-xl p-4 text-xs sm:text-sm font-medium ${
+          className={`flex items-center gap-2.5 rounded-xl p-4 text-sm font-medium ${
             statusMessage.type === "success"
               ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200"
               : "bg-rose-50 text-rose-800 dark:bg-rose-950/60 dark:text-rose-200"
@@ -347,16 +345,16 @@ export default function SettingsPage() {
         <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-6">
           {/* Card 1: Identitas Toko */}
           <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs space-y-4">
-            <div className="flex items-center gap-2.5 border-b border-border pb-3">
+            <div className="flex items-center gap-2.5 border-b border-border pb-3.5">
               <Store className="size-5 text-primary" />
-              <h2 className="text-sm font-bold text-foreground">
-                Profil Usaha & Kontak
+              <h2 className="text-base font-semibold text-foreground">
+                Profil Usaha &amp; Kontak
               </h2>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">
+                <label className="text-xs sm:text-sm font-medium text-foreground">
                   Nama Toko / Usaha <span className="text-destructive">*</span>
                 </label>
                 <input
@@ -367,12 +365,12 @@ export default function SettingsPage() {
                   }
                   required
                   placeholder="Ksatria Graphx"
-                  className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-hidden focus:ring-2 focus:ring-ring/20"
+                  className="h-11 w-full rounded-xl border border-input bg-background px-3.5 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-hidden focus:ring-2 focus:ring-ring/20"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">
+                <label className="text-xs sm:text-sm font-medium text-foreground">
                   Tagline / Deskripsi Singkat
                 </label>
                 <input
@@ -381,14 +379,14 @@ export default function SettingsPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, tagline: e.target.value })
                   }
-                  placeholder="Contoh: Digital Printing, Banner & Merchandise Berkualitas"
-                  className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-hidden focus:ring-2 focus:ring-ring/20"
+                  placeholder="Contoh: Digital Printing & Merchandise"
+                  className="h-11 w-full rounded-xl border border-input bg-background px-3.5 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-hidden focus:ring-2 focus:ring-ring/20"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground">
+                  <label className="text-xs sm:text-sm font-medium text-foreground">
                     No. Telepon / WhatsApp
                   </label>
                   <input
@@ -398,12 +396,12 @@ export default function SettingsPage() {
                       setFormData({ ...formData, phone: e.target.value })
                     }
                     placeholder="0812-3456-7890"
-                    className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-hidden focus:ring-2 focus:ring-ring/20"
+                    className="h-11 w-full rounded-xl border border-input bg-background px-3.5 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-hidden focus:ring-2 focus:ring-ring/20"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground">
+                  <label className="text-xs sm:text-sm font-medium text-foreground">
                     Prefix Nomor Nota <span className="text-destructive">*</span>
                   </label>
                   <input
@@ -418,16 +416,16 @@ export default function SettingsPage() {
                     }
                     required
                     placeholder="KGX"
-                    className="w-full font-mono uppercase text-base sm:text-sm rounded-xl border border-input bg-background px-3.5 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-hidden focus:ring-2 focus:ring-ring/20"
+                    className="h-11 w-full font-mono uppercase text-base sm:text-sm rounded-xl border border-input bg-background px-3.5 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-hidden focus:ring-2 focus:ring-ring/20"
                   />
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     Contoh format nota: {formData.invoicePrefix}-20261120-0001
                   </p>
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">
+                <label className="text-xs sm:text-sm font-medium text-foreground">
                   Alamat Workshop
                 </label>
                 <textarea
@@ -445,24 +443,24 @@ export default function SettingsPage() {
 
           {/* Card 2: Pengaturan Kasir & Plafon Diskon */}
           <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs space-y-4">
-            <div className="flex items-center gap-2.5 border-b border-border pb-3">
+            <div className="flex items-center gap-2.5 border-b border-border pb-3.5">
               <Percent className="size-5 text-primary" />
-              <h2 className="text-sm font-bold text-foreground">
+              <h2 className="text-base font-semibold text-foreground">
                 Kontrol Plafon Diskon Kasir
               </h2>
             </div>
 
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-foreground">
+                  <label className="text-xs sm:text-sm font-medium text-foreground block">
                     Batas Maksimal Diskon Kasir (%)
                   </label>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     Kasir tidak diizinkan memberikan diskon melebihi persentase ini saat transaksi POS.
                   </p>
                 </div>
-                <div className="flex items-center gap-1 font-mono font-bold text-base text-primary bg-primary/10 px-3 py-1 rounded-lg">
+                <div className="flex items-center gap-1 font-mono font-bold text-base text-primary bg-primary/10 px-3 py-1 rounded-xl shrink-0">
                   <span>{formData.maxCashierDiscountPercent}</span>
                   <span>%</span>
                 </div>
@@ -482,7 +480,7 @@ export default function SettingsPage() {
                 }
                 className="w-full accent-primary h-2 bg-muted rounded-lg cursor-pointer"
               />
-              <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
+              <div className="flex justify-between text-xs text-muted-foreground font-mono">
                 <span>0% (Tanpa Diskon)</span>
                 <span>25%</span>
                 <span>50%</span>
@@ -493,16 +491,16 @@ export default function SettingsPage() {
 
           {/* Card 3: Konfigurasi Pembayaran & Footer Nota */}
           <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs space-y-4">
-            <div className="flex items-center gap-2.5 border-b border-border pb-3">
+            <div className="flex items-center gap-2.5 border-b border-border pb-3.5">
               <Receipt className="size-5 text-primary" />
-              <h2 className="text-sm font-bold text-foreground">
-                Format Nota & Informasi Pembayaran
+              <h2 className="text-base font-semibold text-foreground">
+                Format Nota &amp; Informasi Pembayaran
               </h2>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">
+                <label className="text-xs sm:text-sm font-medium text-foreground block">
                   Lebar Kertas Thermal Default
                 </label>
                 <div className="grid grid-cols-2 gap-3">
@@ -511,7 +509,7 @@ export default function SettingsPage() {
                     onClick={() =>
                       setFormData({ ...formData, defaultPaperWidth: "MM_58" })
                     }
-                    className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-semibold transition-[color,background-color,border-color,box-shadow] ${
+                    className={`flex min-h-11 items-center justify-center gap-2 rounded-xl border p-3 text-xs sm:text-sm font-semibold transition-[color,background-color,border-color,box-shadow] cursor-pointer ${
                       formData.defaultPaperWidth === "MM_58"
                         ? "border-primary bg-primary/10 text-primary ring-2 ring-primary/20"
                         : "border-border bg-card text-foreground hover:bg-muted"
@@ -525,7 +523,7 @@ export default function SettingsPage() {
                     onClick={() =>
                       setFormData({ ...formData, defaultPaperWidth: "MM_80" })
                     }
-                    className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-semibold transition-[color,background-color,border-color,box-shadow] ${
+                    className={`flex min-h-11 items-center justify-center gap-2 rounded-xl border p-3 text-xs sm:text-sm font-semibold transition-[color,background-color,border-color,box-shadow] cursor-pointer ${
                       formData.defaultPaperWidth === "MM_80"
                         ? "border-primary bg-primary/10 text-primary ring-2 ring-primary/20"
                         : "border-border bg-card text-foreground hover:bg-muted"
@@ -538,7 +536,7 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">
+                <label className="text-xs sm:text-sm font-medium text-foreground">
                   Panduan Pembayaran (Ditampilkan di Bawah Nota)
                 </label>
                 <textarea
@@ -553,7 +551,7 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">
+                <label className="text-xs sm:text-sm font-medium text-foreground">
                   Catatan Kaki Nota (Receipt Footer)
                 </label>
                 <textarea
@@ -572,8 +570,9 @@ export default function SettingsPage() {
           <div className="flex justify-end">
             <Button
               type="submit"
+              size="lg"
               disabled={isSaving}
-              className="min-h-[44px] gap-2"
+              className="w-full sm:w-auto gap-2"
             >
               <Save className="size-4" />
               {isSaving ? "Menyimpan Pengaturan..." : "Simpan Pengaturan"}
@@ -584,12 +583,12 @@ export default function SettingsPage() {
         {/* Kolom Kanan: Live Receipt Thermal Preview (100% JSX Safe) & Card Versi */}
         <div className="lg:col-span-5 space-y-6">
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Live Preview Nota Thermal (
                 {formData.defaultPaperWidth === "MM_58" ? "58mm" : "80mm"})
               </span>
-              <span className="text-[11px] text-muted-foreground font-mono">
+              <span className="text-xs text-muted-foreground font-mono shrink-0">
                 Real-Time
               </span>
             </div>
@@ -597,58 +596,58 @@ export default function SettingsPage() {
             {/* Struk Thermal Mockup */}
             <div className="mx-auto flex justify-center">
               <div
-                className={`rounded-2xl border border-border bg-card p-5 text-foreground shadow-lg font-mono text-xs transition-[width,border-color,box-shadow] ${
+                className={`rounded-2xl border border-border bg-card p-5 text-foreground shadow-lg font-mono text-xs transition-[width,border-color,box-shadow] max-w-full ${
                   formData.defaultPaperWidth === "MM_58"
-                    ? "w-[280px]"
+                    ? "w-[300px]"
                     : "w-[360px]"
                 }`}
               >
                 {/* Header Nota */}
-                <div className="text-center space-y-0.5 border-b border-dashed border-border pb-3">
+                <div className="text-center space-y-1 border-b border-dashed border-border pb-3">
                   <h3 className="font-bold text-sm uppercase tracking-wide">
                     {formData.storeName || "KSATRIA GRAPHX"}
                   </h3>
                   {formData.tagline && (
-                    <p className="text-[10px] text-muted-foreground leading-tight">
+                    <p className="text-xs text-muted-foreground leading-snug">
                       {formData.tagline}
                     </p>
                   )}
                   {formData.address && (
-                    <p className="text-[10px] text-muted-foreground leading-tight">
+                    <p className="text-xs text-muted-foreground leading-snug">
                       {formData.address}
                     </p>
                   )}
                   {formData.phone && (
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       Telp: {formData.phone}
                     </p>
                   )}
                 </div>
 
                 {/* Info Nota */}
-                <div className="py-2.5 border-b border-dashed border-border text-[11px] space-y-1">
-                  <div className="flex justify-between">
+                <div className="py-2.5 border-b border-dashed border-border text-xs space-y-1">
+                  <div className="flex justify-between gap-2">
                     <span>No: {formData.invoicePrefix}-20261120-0001</span>
                     <span>20/11/26 14:30</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span>Kasir: {user?.name || "Kasir Utama"}</span>
                     <span>Pelanggan: Umum</span>
                   </div>
                 </div>
 
                 {/* Sample Order Items */}
-                <div className="py-2.5 border-b border-dashed border-border text-[11px] space-y-2">
+                <div className="py-2.5 border-b border-dashed border-border text-xs space-y-2.5">
                   <div>
                     <div className="flex justify-between font-semibold">
                       <span>Banner Flexi 280gr</span>
                       <span className="tabular-nums">Rp 75.000</span>
                     </div>
-                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                    <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
                       <span>3.00m x 1.00m (3.00m²) x 1 pcs</span>
                       <span>@Rp 25.000</span>
                     </div>
-                    <div className="text-[10px] text-muted-foreground/80 italic">
+                    <div className="text-xs text-muted-foreground/80 italic mt-0.5">
                       + Mata Ayam 4 Sudut (Rp 5.000)
                     </div>
                   </div>
@@ -658,14 +657,14 @@ export default function SettingsPage() {
                       <span>Stiker Vinyl Glossy</span>
                       <span className="tabular-nums">Rp 30.000</span>
                     </div>
-                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                    <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
                       <span>2 pcs x @Rp 15.000</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Total Calculation */}
-                <div className="py-2.5 border-b border-dashed border-border text-[11px] space-y-1">
+                <div className="py-2.5 border-b border-dashed border-border text-xs space-y-1">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
                     <span className="tabular-nums">Rp 110.000</span>
@@ -674,31 +673,31 @@ export default function SettingsPage() {
                     <span>Diskon Promo (5%)</span>
                     <span className="tabular-nums">-Rp 5.500</span>
                   </div>
-                  <div className="flex justify-between font-bold text-xs pt-1 border-t border-border">
+                  <div className="flex justify-between font-bold text-sm pt-1.5 border-t border-border">
                     <span>TOTAL AKHIR</span>
                     <span className="tabular-nums">Rp 104.500</span>
                   </div>
-                  <div className="flex justify-between text-[11px] pt-1">
+                  <div className="flex justify-between text-xs pt-1">
                     <span>Bayar Tunai</span>
                     <span className="tabular-nums">Rp 110.000</span>
                   </div>
-                  <div className="flex justify-between text-[11px]">
+                  <div className="flex justify-between text-xs">
                     <span>Kembalian</span>
                     <span className="tabular-nums">Rp 5.500</span>
                   </div>
                 </div>
 
                 {/* Info Pembayaran & Footer */}
-                <div className="pt-3 text-center space-y-1.5 text-[10px] text-muted-foreground leading-snug">
+                <div className="pt-3 text-center space-y-1.5 text-xs text-muted-foreground leading-snug">
                   {formData.paymentInfo && (
-                    <p className="bg-muted p-1.5 rounded font-medium text-foreground">
+                    <p className="bg-muted p-2 rounded-lg font-medium text-foreground">
                       {formData.paymentInfo}
                     </p>
                   )}
                   {formData.receiptFooter && (
                     <p className="italic">{formData.receiptFooter}</p>
                   )}
-                  <p className="text-[9px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     --- Powered by Ksatria Graphx ---
                   </p>
                 </div>

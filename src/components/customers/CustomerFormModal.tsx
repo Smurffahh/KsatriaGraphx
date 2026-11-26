@@ -103,16 +103,16 @@ export function CustomerFormModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
       <div className="w-full max-w-lg bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-surface-muted/30">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-primary/10 text-primary">
+        <div className="flex items-center justify-between gap-3 px-5 py-4 sm:px-6 border-b border-border bg-surface-muted/30">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
               <User className="size-5" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-text">
+              <h2 className="text-base sm:text-lg font-semibold text-text">
                 {initialData ? "Ubah Data Pelanggan" : "Tambah Pelanggan Baru"}
               </h2>
-              <p className="text-xs text-text-muted">
+              <p className="text-xs sm:text-sm text-text-muted">
                 Simpan kontak untuk riwayat nota dan pesanan
               </p>
             </div>
@@ -120,7 +120,7 @@ export function CustomerFormModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-text-muted hover:text-text rounded-xl hover:bg-surface-muted transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="p-2 text-text-muted hover:text-text rounded-xl hover:bg-surface-muted transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 cursor-pointer"
             aria-label="Tutup modal"
           >
             <X className="size-5" />
@@ -128,15 +128,15 @@ export function CustomerFormModal({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 overflow-y-auto space-y-4">
           {errorMessage && (
-            <div className="p-3 text-xs text-danger bg-danger/10 border border-danger/20 rounded-xl">
+            <div className="p-3.5 text-sm text-danger bg-danger/10 border border-danger/20 rounded-xl">
               {errorMessage}
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-medium text-text-muted mb-1.5">
+            <label className="block text-xs sm:text-sm font-medium text-text-muted mb-1.5">
               Nama Lengkap / Instansi <span className="text-danger">*</span>
             </label>
             <div className="relative">
@@ -147,13 +147,13 @@ export function CustomerFormModal({
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Contoh: Budi Santoso / PT Maju Jaya"
                 required
-                className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm bg-surface-muted border border-border rounded-xl text-text placeholder:text-text-muted/60 focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary transition-[color,background-color,border-color,box-shadow]"
+                className="h-11 w-full pl-10 pr-4 text-base sm:text-sm bg-surface-muted border border-border rounded-xl text-text placeholder:text-text-muted/60 focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary transition-[color,background-color,border-color,box-shadow]"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-text-muted mb-1.5">
+            <label className="block text-xs sm:text-sm font-medium text-text-muted mb-1.5">
               Nomor WhatsApp
             </label>
             <div className="relative">
@@ -163,20 +163,20 @@ export function CustomerFormModal({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="08123456789 atau 628..."
-                className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm bg-surface-muted border border-border rounded-xl text-text placeholder:text-text-muted/60 focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary transition-[color,background-color,border-color,box-shadow]"
+                className="h-11 w-full pl-10 pr-4 text-base sm:text-sm bg-surface-muted border border-border rounded-xl text-text placeholder:text-text-muted/60 focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary transition-[color,background-color,border-color,box-shadow]"
               />
             </div>
-            <p className="mt-1 text-[11px] text-text-muted">
+            <p className="mt-1.5 text-xs text-text-muted">
               Format otomatis disesuaikan ke standar Indonesia (628...).
             </p>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-text-muted mb-1.5">
+            <label className="block text-xs sm:text-sm font-medium text-text-muted mb-1.5">
               Alamat
             </label>
             <div className="relative">
-              <MapPin className="absolute left-3.5 top-3 size-4 text-text-muted" />
+              <MapPin className="absolute left-3.5 top-3.5 size-4 text-text-muted" />
               <textarea
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
@@ -188,11 +188,11 @@ export function CustomerFormModal({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-text-muted mb-1.5">
+            <label className="block text-xs sm:text-sm font-medium text-text-muted mb-1.5">
               Catatan Khusus
             </label>
             <div className="relative">
-              <FileText className="absolute left-3.5 top-3 size-4 text-text-muted" />
+              <FileText className="absolute left-3.5 top-3.5 size-4 text-text-muted" />
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -209,14 +209,14 @@ export function CustomerFormModal({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2.5 text-sm font-medium text-text-muted hover:text-text rounded-xl hover:bg-surface-muted transition-colors min-h-[44px]"
+              className="px-4 py-2.5 text-sm font-medium text-text-muted hover:text-text rounded-xl hover:bg-surface-muted transition-colors min-h-[44px] cursor-pointer"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-primary hover:bg-primary-hover text-white rounded-xl shadow-xs transition-colors min-h-[44px] disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-primary hover:bg-primary-hover text-white rounded-xl shadow-xs transition-colors min-h-[44px] disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? (
                 <>

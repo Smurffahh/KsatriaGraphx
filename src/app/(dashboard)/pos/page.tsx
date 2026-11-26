@@ -232,16 +232,16 @@ export default function PosPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Calculator className="size-6 text-primary" />
-            <span>Kalkulator & Kasir POS</span>
+          <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight text-foreground flex items-center gap-2.5">
+            <Calculator className="size-6 sm:size-7 text-primary shrink-0" />
+            <span>Kalkulator &amp; Kasir POS</span>
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Pilih produk percetakan, hitung dimensi & finishing, lalu simpan nota
+          <p className="text-sm text-muted-foreground mt-1">
+            Pilih produk percetakan, hitung dimensi &amp; finishing, lalu simpan nota
           </p>
         </div>
 
@@ -249,16 +249,16 @@ export default function PosPage() {
           <button
             type="button"
             onClick={handleClearCart}
-            className="text-xs text-muted-foreground hover:text-destructive self-start sm:self-auto flex items-center gap-1 min-h-[44px]"
+            className="text-xs sm:text-sm font-medium text-muted-foreground hover:text-destructive self-start sm:self-auto flex items-center gap-1.5 min-h-[44px] px-2 cursor-pointer"
           >
-            <Trash2 className="size-3.5" />
+            <Trash2 className="size-4" />
             <span>Kosongkan Keranjang</span>
           </button>
         )}
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2">
+        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-center gap-2.5">
           <AlertCircle className="size-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -277,16 +277,16 @@ export default function PosPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Cari produk percetakan (Banner, Kaos, Brosur...)"
-                className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                className="h-11 w-full pl-10 pr-4 text-base sm:text-sm bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary"
               />
             </div>
 
             {categories.length > 0 && (
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
                 <button
                   type="button"
                   onClick={() => setSelectedCategory("ALL")}
-                  className={`px-3 py-1.5 rounded-xl font-medium shrink-0 transition-colors ${
+                  className={`min-h-10 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium shrink-0 transition-colors cursor-pointer ${
                     selectedCategory === "ALL"
                       ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                       : "bg-card border border-border text-muted-foreground hover:text-foreground"
@@ -299,7 +299,7 @@ export default function PosPage() {
                     key={c.id}
                     type="button"
                     onClick={() => setSelectedCategory(c.id)}
-                    className={`px-3 py-1.5 rounded-xl font-medium shrink-0 transition-colors ${
+                    className={`min-h-10 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium shrink-0 transition-colors cursor-pointer ${
                       selectedCategory === c.id
                         ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                         : "bg-card border border-border text-muted-foreground hover:text-foreground"
@@ -321,21 +321,21 @@ export default function PosPage() {
               <h3 className="text-base font-semibold text-foreground">
                 Produk Tidak Ditemukan
               </h3>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 Silakan periksa kata kunci pencarian atau tambah produk baru di Katalog Produk.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4">
               {filteredProducts.map((p) => (
                 <div
                   key={p.id}
                   onClick={() => handleOpenProduct(p)}
-                  className="group bg-card border border-border hover:border-primary/50 rounded-2xl p-3 shadow-xs hover:shadow-md motion-safe:hover:-translate-y-0.5 active:scale-[0.98] transition-[transform,border-color,box-shadow] duration-150 cursor-pointer flex flex-col justify-between"
+                  className="group bg-card border border-border hover:border-primary/50 rounded-2xl p-3.5 shadow-xs hover:shadow-md motion-safe:hover:-translate-y-0.5 active:scale-[0.98] transition-[transform,border-color,box-shadow] duration-150 cursor-pointer flex flex-col justify-between"
                 >
                   <div>
                     {/* Thumbnail Image */}
-                    <div className="w-full aspect-square rounded-xl bg-muted border border-border/40 overflow-hidden relative mb-2.5 flex items-center justify-center">
+                    <div className="w-full aspect-square rounded-xl bg-muted outline-1 -outline-offset-1 outline-black/10 dark:outline-white/10 overflow-hidden relative mb-3 flex items-center justify-center">
                       {p.imageUrl ? (
                         <Image
                           src={p.imageUrl}
@@ -347,25 +347,25 @@ export default function PosPage() {
                       ) : (
                         <Package className="size-8 text-muted-foreground/40" />
                       )}
-                      <span className="absolute top-2 left-2 px-1.5 py-0.5 text-[9px] font-bold rounded-md bg-black/60 text-white backdrop-blur-xs">
+                      <span className="absolute top-2 left-2 px-2 py-0.5 text-xs font-semibold rounded-md bg-black/65 text-white backdrop-blur-xs">
                         {p.pricingType}
                       </span>
                     </div>
 
-                    <h3 className="font-semibold text-xs text-foreground line-clamp-2 leading-snug">
+                    <h3 className="font-semibold text-sm text-foreground line-clamp-2 leading-snug">
                       {p.name}
                     </h3>
                   </div>
 
-                  <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between">
-                    <div>
-                      <div className="text-[10px] text-muted-foreground">Mulai dari</div>
-                      <div className="text-xs font-bold text-primary tabular-nums">
+                  <div className="mt-3 pt-2.5 border-t border-border/50 flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="text-xs text-muted-foreground">Mulai dari</div>
+                      <div className="text-sm sm:text-base font-bold text-primary tabular-nums truncate">
                         Rp {p.basePrice.toLocaleString("id-ID")}
                       </div>
                     </div>
-                    <div className="size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                      <Plus className="size-4" />
+                    <div className="size-9 shrink-0 rounded-xl bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      <Plus className="size-4.5" />
                     </div>
                   </div>
                 </div>
@@ -376,30 +376,30 @@ export default function PosPage() {
 
         {/* Desktop Cart Column (Right) */}
         <div className="hidden lg:block lg:col-span-5 xl:col-span-4 bg-card border border-border rounded-2xl shadow-xs overflow-hidden sticky top-20">
-          <div className="p-4 border-b border-border bg-muted/40 flex items-center justify-between">
+          <div className="p-4 sm:p-5 border-b border-border bg-muted/40 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ShoppingCart className="size-4 text-primary" />
-              <h2 className="text-sm font-bold text-foreground">Keranjang Nota</h2>
+              <ShoppingCart className="size-4.5 text-primary" />
+              <h2 className="text-base font-semibold text-foreground">Keranjang Nota</h2>
             </div>
             <m.span
               key={cart.length}
               initial={{ scale: 1.15 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.2 }}
-              className="text-xs text-muted-foreground tabular-nums inline-block"
+              className="text-xs sm:text-sm text-muted-foreground tabular-nums inline-block"
             >
               {cart.length} item ({totalCartQty} pcs)
             </m.span>
           </div>
 
           {/* Cart Item List */}
-          <div className="p-4 max-h-[calc(100dvh-320px)] overflow-y-auto space-y-3">
+          <div className="p-4 sm:p-5 max-h-[calc(100dvh-340px)] overflow-y-auto space-y-3">
             {cart.length === 0 ? (
               <div className="py-12 text-center text-muted-foreground">
-                <ShoppingCart className="size-8 mx-auto text-muted-foreground/40 mb-2" />
-                <p className="text-xs font-medium">Keranjang masih kosong</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  Klik produk di samping untuk menghitung harga & finishing
+                <ShoppingCart className="size-9 mx-auto text-muted-foreground/40 mb-2.5" />
+                <p className="text-sm font-medium text-foreground">Keranjang masih kosong</p>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Klik produk di samping untuk menghitung harga &amp; finishing
                 </p>
               </div>
             ) : (
@@ -411,12 +411,12 @@ export default function PosPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, x: 20, transition: { duration: 0.15, ease: EASE_EXIT } }}
                     transition={{ duration: 0.2, ease: EASE_SMOOTH }}
-                    className="p-3 rounded-xl bg-muted/30 border border-border/70 space-y-2 text-xs"
+                    className="p-3.5 rounded-xl bg-muted/30 border border-border/70 space-y-2.5 text-sm"
                   >
                   <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <span className="font-semibold text-foreground">{ci.product.name}</span>
-                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                    <div className="min-w-0">
+                      <span className="font-semibold text-foreground leading-snug block">{ci.product.name}</span>
+                      <div className="text-xs text-muted-foreground mt-1">
                         {ci.product.pricingType === "AREA" && (
                           <span>
                             {ci.width} × {ci.height} {ci.unit} ({ci.billedAreaM2} m²) •{" "}
@@ -432,33 +432,35 @@ export default function PosPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 shrink-0">
                       <button
                         type="button"
                         onClick={() => handleEditCartItem(ci)}
-                        className="p-1 text-muted-foreground hover:text-foreground rounded-md hover:bg-card"
+                        className="size-9 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-lg hover:bg-card transition-colors"
                         title="Ubah"
+                        aria-label="Ubah item"
                       >
-                        <Edit2 className="size-3.5" />
+                        <Edit2 className="size-4" />
                       </button>
                       <button
                         type="button"
                         onClick={() => handleRemoveCartItem(ci.cartItemId)}
-                        className="p-1 text-muted-foreground hover:text-destructive rounded-md hover:bg-card"
+                        className="size-9 flex items-center justify-center text-muted-foreground hover:text-destructive rounded-lg hover:bg-card transition-colors"
                         title="Hapus"
+                        aria-label="Hapus item"
                       >
-                        <Trash2 className="size-3.5" />
+                        <Trash2 className="size-4" />
                       </button>
                     </div>
                   </div>
 
                   {/* Finishing Tags */}
                   {ci.finishings.length > 0 && (
-                    <div className="flex flex-wrap gap-1 pt-1 border-t border-border/50 text-[10px]">
+                    <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border/50 text-xs">
                       {ci.finishings.map((f) => (
                         <span
                           key={f.finishingId}
-                          className="px-1.5 py-0.5 rounded bg-card border border-border/80 text-muted-foreground"
+                          className="px-2 py-0.5 rounded-md bg-card border border-border/80 text-muted-foreground"
                         >
                           {f.name} (Rp {f.subtotal.toLocaleString("id-ID")})
                         </span>
@@ -467,12 +469,12 @@ export default function PosPage() {
                   )}
 
                   {ci.itemNotes && (
-                    <div className="text-[10px] text-muted-foreground italic bg-muted/40 p-1.5 rounded">
+                    <div className="text-xs text-muted-foreground italic bg-muted/40 p-2 rounded-lg">
                       {ci.itemNotes}
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between pt-1 border-t border-border/50 font-medium">
+                  <div className="flex items-center justify-between pt-2 border-t border-border/50 font-medium text-sm">
                     <span className="text-muted-foreground">Subtotal Item:</span>
                     <span className="font-bold text-foreground tabular-nums">
                       Rp {ci.itemSubtotal.toLocaleString("id-ID")}
@@ -486,18 +488,19 @@ export default function PosPage() {
 
           {/* Cart Footer */}
           {cart.length > 0 && (
-            <div className="p-4 border-t border-border bg-muted/40 space-y-3">
+            <div className="p-4 sm:p-5 border-t border-border bg-muted/40 space-y-3.5">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground font-medium">Estimasi Subtotal:</span>
-                <span className="font-bold text-primary text-base tabular-nums">
+                <span className="font-bold text-primary text-lg tabular-nums">
                   Rp {cartSubtotal.toLocaleString("id-ID")}
                 </span>
               </div>
 
               <Button
                 type="button"
+                size="lg"
                 onClick={() => setCheckoutModalOpen(true)}
-                className="w-full min-h-[44px] gap-2 font-semibold"
+                className="w-full gap-2 font-semibold"
               >
                 <span>Proses Checkout Nota</span>
                 <ArrowRight className="size-4" />
@@ -509,20 +512,21 @@ export default function PosPage() {
 
       {/* Sticky Bottom Bar (Mobile Only) */}
       {cart.length > 0 && (
-        <div className="lg:hidden fixed bottom-16 left-0 right-0 p-3 bg-card border-t border-border shadow-lg flex items-center justify-between z-30">
+        <div className="lg:hidden fixed bottom-16 left-0 right-0 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-card/95 backdrop-blur-md border-t border-border shadow-lg flex items-center justify-between gap-3 z-30">
           <div>
-            <div className="text-[11px] text-muted-foreground">
+            <div className="text-xs text-muted-foreground">
               {cart.length} item ({totalCartQty} pcs)
             </div>
-            <div className="text-base font-bold text-primary tabular-nums">
+            <div className="text-lg font-bold text-primary tabular-nums">
               Rp {cartSubtotal.toLocaleString("id-ID")}
             </div>
           </div>
 
           <Button
             type="button"
+            size="lg"
             onClick={() => setCheckoutModalOpen(true)}
-            className="min-h-[44px] gap-2 px-5 font-semibold"
+            className="gap-2 px-5 font-semibold shrink-0"
           >
             <span>Checkout</span>
             <ArrowRight className="size-4" />

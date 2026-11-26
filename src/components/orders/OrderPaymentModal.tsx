@@ -103,15 +103,15 @@ export function OrderPaymentModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
       <div className="w-full max-w-md bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-surface-muted/30">
+        <div className="flex items-center justify-between gap-3 px-5 py-4 sm:px-6 border-b border-border bg-surface-muted/30">
           <div>
-            <h2 className="text-base font-bold text-text">Terima Pelunasan / Pembayaran</h2>
-            <p className="text-xs text-text-muted mt-0.5">Nota: {order.invoiceNumber}</p>
+            <h2 className="text-base sm:text-lg font-semibold text-text">Terima Pelunasan / Pembayaran</h2>
+            <p className="text-xs sm:text-sm text-text-muted mt-0.5">Nota: {order.invoiceNumber}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-text-muted hover:text-text rounded-xl hover:bg-surface-muted transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="p-2 text-text-muted hover:text-text rounded-xl hover:bg-surface-muted transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 cursor-pointer"
             aria-label="Tutup"
           >
             <X className="size-5" />
@@ -119,62 +119,62 @@ export function OrderPaymentModal({
         </div>
 
         {/* Body */}
-        <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 overflow-y-auto space-y-4">
           {errorMessage && (
-            <div className="p-3 text-xs text-danger bg-danger/10 border border-danger/20 rounded-xl flex items-center gap-2">
+            <div className="p-3.5 text-sm text-danger bg-danger/10 border border-danger/20 rounded-xl flex items-center gap-2.5">
               <AlertCircle className="size-4 shrink-0" />
               <span>{errorMessage}</span>
             </div>
           )}
 
           {/* Sisa Tagihan Info */}
-          <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between">
-            <span className="text-xs text-amber-700 font-medium">Sisa Tagihan Belum Lunas:</span>
-            <span className="text-base font-bold text-amber-600 tabular-nums">
+          <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-2">
+            <span className="text-xs sm:text-sm text-amber-700 dark:text-amber-400 font-medium">Sisa Tagihan Belum Lunas:</span>
+            <span className="text-base sm:text-lg font-bold text-amber-600 dark:text-amber-400 tabular-nums shrink-0">
               Rp {order.remainingAmount.toLocaleString("id-ID")}
             </span>
           </div>
 
           {/* Payment Method Switcher */}
           <div>
-            <label className="block text-xs font-medium text-text-muted mb-2">
+            <label className="block text-xs sm:text-sm font-medium text-text-muted mb-2">
               Metode Pembayaran
             </label>
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => setPaymentMethod("CASH")}
-                className={`py-2 text-xs font-medium rounded-xl border flex items-center justify-center gap-1.5 transition-colors ${
+                className={`min-h-10 py-2 text-xs sm:text-sm font-medium rounded-xl border flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
                   paymentMethod === "CASH"
                     ? "bg-primary text-white border-primary"
                     : "bg-surface border-border text-text-muted hover:text-text"
                 }`}
               >
-                <Banknote className="size-3.5" />
+                <Banknote className="size-4" />
                 <span>Tunai</span>
               </button>
               <button
                 type="button"
                 onClick={() => setPaymentMethod("TRANSFER")}
-                className={`py-2 text-xs font-medium rounded-xl border flex items-center justify-center gap-1.5 transition-colors ${
+                className={`min-h-10 py-2 text-xs sm:text-sm font-medium rounded-xl border flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
                   paymentMethod === "TRANSFER"
                     ? "bg-primary text-white border-primary"
                     : "bg-surface border-border text-text-muted hover:text-text"
                 }`}
               >
-                <CreditCard className="size-3.5" />
+                <CreditCard className="size-4" />
                 <span>Transfer</span>
               </button>
               <button
                 type="button"
                 onClick={() => setPaymentMethod("QRIS")}
-                className={`py-2 text-xs font-medium rounded-xl border flex items-center justify-center gap-1.5 transition-colors ${
+                className={`min-h-10 py-2 text-xs sm:text-sm font-medium rounded-xl border flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
                   paymentMethod === "QRIS"
                     ? "bg-primary text-white border-primary"
                     : "bg-surface border-border text-text-muted hover:text-text"
                 }`}
               >
-                <QrCode className="size-3.5" />
+                <QrCode className="size-4" />
                 <span>QRIS</span>
               </button>
             </div>
@@ -182,7 +182,7 @@ export function OrderPaymentModal({
 
           {/* Payment Amount */}
           <div>
-            <label className="block text-xs font-medium text-text-muted mb-1.5">
+            <label className="block text-xs sm:text-sm font-medium text-text-muted mb-1.5">
               Nominal yang Dibayarkan (Rp) <span className="text-danger">*</span>
             </label>
             <input
@@ -193,14 +193,14 @@ export function OrderPaymentModal({
               onChange={(e) =>
                 setAmount(e.target.value === "" ? "" : parseInt(e.target.value, 10))
               }
-              className="w-full px-3.5 py-2.5 text-base sm:text-sm bg-surface border border-border rounded-xl text-text font-bold tabular-nums focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary"
+              className="h-11 w-full px-3.5 text-base sm:text-sm bg-surface border border-border rounded-xl text-text font-bold tabular-nums focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary"
             />
           </div>
 
           {/* Cash Received if Cash */}
           {paymentMethod === "CASH" && (
             <div>
-              <label className="block text-xs font-medium text-text-muted mb-1.5">
+              <label className="block text-xs sm:text-sm font-medium text-text-muted mb-1.5">
                 Uang Diterima dari Pelanggan (Rp)
               </label>
               <input
@@ -210,10 +210,10 @@ export function OrderPaymentModal({
                 onChange={(e) =>
                   setCashReceived(e.target.value === "" ? "" : parseInt(e.target.value, 10))
                 }
-                className="w-full px-3.5 py-2.5 text-base sm:text-sm bg-surface border border-border rounded-xl text-text tabular-nums focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                className="h-11 w-full px-3.5 text-base sm:text-sm bg-surface border border-border rounded-xl text-text tabular-nums focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary"
               />
               {cashChange > 0 && (
-                <div className="mt-1 text-xs text-emerald-600 font-semibold tabular-nums">
+                <div className="mt-1.5 text-xs text-emerald-600 font-semibold tabular-nums">
                   Kembalian Tunai: Rp {cashChange.toLocaleString("id-ID")}
                 </div>
               )}
@@ -222,7 +222,7 @@ export function OrderPaymentModal({
 
           {/* Reference Note */}
           <div>
-            <label className="block text-xs font-medium text-text-muted mb-1.5">
+            <label className="block text-xs sm:text-sm font-medium text-text-muted mb-1.5">
               Catatan Referensi (Opsional)
             </label>
             <input
@@ -230,7 +230,7 @@ export function OrderPaymentModal({
               placeholder="Nomor rekening pengirim, kode ref QRIS..."
               value={referenceNote}
               onChange={(e) => setReferenceNote(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-base sm:text-sm bg-surface border border-border rounded-xl text-text placeholder:text-text-muted/60 focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary"
+              className="h-11 w-full px-3.5 text-base sm:text-sm bg-surface border border-border rounded-xl text-text placeholder:text-text-muted/60 focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary"
             />
           </div>
 
@@ -240,14 +240,14 @@ export function OrderPaymentModal({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2.5 text-sm font-medium text-text-muted hover:text-text rounded-xl hover:bg-surface-muted transition-colors min-h-[44px]"
+              className="px-4 py-2.5 text-sm font-medium text-text-muted hover:text-text rounded-xl hover:bg-surface-muted transition-colors min-h-[44px] cursor-pointer"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs transition-colors min-h-[44px] disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs transition-colors min-h-[44px] disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? (
                 <>

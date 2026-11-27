@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -12,11 +11,6 @@ import {
   ShoppingCart,
   Layers,
   Check,
-  Plus,
-  Minus,
-  Sparkles,
-  Package,
-  ChevronDown,
 } from "lucide-react";
 import {
   Sheet,
@@ -29,19 +23,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorStatePanel } from "@/components/ui/state-panels";
 import { apiClient } from "@/lib/api/client";
 import { m, AnimatePresence } from "motion/react";
 import {
   QuickCatalogPicker,
-  resolveProductImageUrl,
   type CatalogPickerCategory,
 } from "@/components/calculator/QuickCatalogPicker";
 import {
   calculateOrderItem,
-  type PricingType,
   type AreaDimensionUnit,
-  type AreaRounding,
-  type PriceTier,
   type FinishingItemCalculation,
   type CalculateItemResult,
 } from "@/lib/calculator/pricing";
@@ -52,35 +43,18 @@ import {
 } from "@/lib/calculator/estimate-text";
 import { queueCartItemForPos } from "@/lib/pos/cart-bridge";
 import type { CartItem } from "@/components/pos/PosItemCalculator";
+import {
+  QuickProductSlotCard,
+  type QuickCalcSlotProduct,
+} from "./QuickProductSlotCard";
+import {
+  QuickDimensionSection,
+  type QuickCalcFinishingOption,
+} from "./QuickDimensionSection";
+import { QuickResultSummary } from "./QuickResultSummary";
 
-export interface QuickCalcProduct {
-  id: string;
-  name: string;
-  sku?: string | null;
-  categoryId?: string | null;
-  categoryName?: string | null;
-  categorySlug?: string | null;
-  description?: string | null;
-  imageUrl?: string | null;
-  imageKey?: string | null;
-  pricingType: PricingType;
-  unitLabel: string;
-  basePrice: number;
-  minArea?: string | number | null;
-  areaRounding: AreaRounding;
-  tiers?: PriceTier[];
-  priceTiers?: PriceTier[];
-  isActive: boolean;
-}
-
-export interface QuickCalcFinishing {
-  id: string;
-  name: string;
-  chargeType: "FLAT" | "PER_QTY" | "PER_AREA";
-  defaultPrice: number;
-  unitLabel: string;
-  isActive: boolean;
-}
+export type QuickCalcProduct = QuickCalcSlotProduct;
+export type QuickCalcFinishing = QuickCalcFinishingOption;
 
 interface QuickCalculatorSheetProps {
   isOpen: boolean;
@@ -109,10 +83,10 @@ export function QuickCalculatorSheet({
     isLoading: isLoadingProducts,
     isError: isErrorProducts,
     refetch: refetchProducts,
-  } = useQuery<QuickCalcProduct[]>({
+  } = useQuery<QuickCalcSlotProduct[]>({
     queryKey: ["products", "active"],
     queryFn: async () => {
-      const res = await apiClient<QuickCalcProduct[]>("/api/products?includeInactive=false");
+      const res = await apiClient<QuickCalcSlotProduct[]>("/api/products?includeInactive=false");
       return (res.data || []).filter((p) => p.isActive);
     },
     staleTime: 60 * 1000,
@@ -130,10 +104,10 @@ export function QuickCalculatorSheet({
   const {
     data: finishings = [],
     isLoading: isLoadingFinishings,
-  } = useQuery<QuickCalcFinishing[]>({
+  } = useQuery<QuickCalcFinishingOption[]>({
     queryKey: ["quick-calc-finishings"],
     queryFn: async () => {
-      const res = await apiClient<QuickCalcFinishing[]>("/api/finishings");
+      const res = await apiClient<QuickCalcFinishingOption[]>("/api/finishings");
       return (res.data || []).filter((f) => f.isActive);
     },
     staleTime: 5 * 60 * 1000,
@@ -165,7 +139,6 @@ export function QuickCalculatorSheet({
   const [height, setHeight] = useState<number | "">(1);
   const [dimensionUnit, setDimensionUnit] = useState<AreaDimensionUnit>("m");
   const [quantity, setQuantity] = useState<number>(1);
-
   const [selectedFinishingIds, setSelectedFinishingIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -219,7 +192,7 @@ export function QuickCalculatorSheet({
     setQuantity(1);
     setSelectedFinishingIds([]);
     setIsComparisonMode(false);
-    toast.info("Input kalkulator telah direset ke default.");
+    toast.info("Input kalkulator dikembalikan ke bawaan.");
   };
 
   const calcFinishingInputs = useMemo<FinishingItemCalculation[]>(() => {
@@ -275,63 +248,59 @@ export function QuickCalculatorSheet({
   const handleCopyEstimate = async () => {
     if (!productA || !calcResultA) return;
 
-    let text = "";
     const storeName = storeInfo?.storeName || "Ksatria Graphx";
-
-    if (isComparisonMode && productB && calcResultB) {
-      const finishingsSummary = calcResultA.finishings.map(
-        (f) => `${f.name} (${formatRupiah(f.subtotal)})`
-      );
-      text = formatComparisonEstimateText({
-        storeName,
-        pricingType: productA.pricingType,
-        quantity: Math.max(1, Number(quantity) || 1),
-        unitLabel: productA.unitLabel,
-        width: productA.pricingType === "AREA" ? Number(width) || 0 : undefined,
-        height: productA.pricingType === "AREA" ? Number(height) || 0 : undefined,
-        dimensionUnit,
-        finishingsSummary,
-        productA: {
-          name: productA.name,
-          unitPrice: calcResultA.effectiveUnitPrice,
-          baseSubtotal: calcResultA.baseSubtotal,
-          finishingTotal: calcResultA.finishingTotal,
-          grandTotal: calcResultA.itemSubtotal,
-          billedAreaM2: calcResultA.billedAreaM2,
-          isMinAreaApplied: calcResultA.isMinAreaApplied,
-          minArea: productA.minArea,
-        },
-        productB: {
-          name: productB.name,
-          unitPrice: calcResultB.effectiveUnitPrice,
-          baseSubtotal: calcResultB.baseSubtotal,
-          finishingTotal: calcResultB.finishingTotal,
-          grandTotal: calcResultB.itemSubtotal,
-          billedAreaM2: calcResultB.billedAreaM2,
-          isMinAreaApplied: calcResultB.isMinAreaApplied,
-          minArea: productB.minArea,
-        },
-      });
-    } else {
-      text = formatSingleEstimateText({
-        storeName,
-        productName: productA.name,
-        pricingType: productA.pricingType,
-        quantity: Math.max(1, Number(quantity) || 1),
-        unitLabel: productA.unitLabel,
-        width: productA.pricingType === "AREA" ? Number(width) || 0 : undefined,
-        height: productA.pricingType === "AREA" ? Number(height) || 0 : undefined,
-        dimensionUnit,
-        billedAreaM2: calcResultA.billedAreaM2,
-        isMinAreaApplied: calcResultA.isMinAreaApplied,
-        minArea: productA.minArea,
-        effectiveUnitPrice: calcResultA.effectiveUnitPrice,
-        baseSubtotal: calcResultA.baseSubtotal,
-        finishings: calcResultA.finishings,
-        finishingTotal: calcResultA.finishingTotal,
-        grandTotal: calcResultA.itemSubtotal,
-      });
-    }
+    const text =
+      isComparisonMode && productB && calcResultB
+        ? formatComparisonEstimateText({
+            storeName,
+            pricingType: productA.pricingType,
+            quantity: Math.max(1, Number(quantity) || 1),
+            unitLabel: productA.unitLabel,
+            width: productA.pricingType === "AREA" ? Number(width) || 0 : undefined,
+            height: productA.pricingType === "AREA" ? Number(height) || 0 : undefined,
+            dimensionUnit,
+            finishingsSummary: calcResultA.finishings.map(
+              (f) => `${f.name} (${formatRupiah(f.subtotal)})`
+            ),
+            productA: {
+              name: productA.name,
+              unitPrice: calcResultA.effectiveUnitPrice,
+              baseSubtotal: calcResultA.baseSubtotal,
+              finishingTotal: calcResultA.finishingTotal,
+              grandTotal: calcResultA.itemSubtotal,
+              billedAreaM2: calcResultA.billedAreaM2,
+              isMinAreaApplied: calcResultA.isMinAreaApplied,
+              minArea: productA.minArea,
+            },
+            productB: {
+              name: productB.name,
+              unitPrice: calcResultB.effectiveUnitPrice,
+              baseSubtotal: calcResultB.baseSubtotal,
+              finishingTotal: calcResultB.finishingTotal,
+              grandTotal: calcResultB.itemSubtotal,
+              billedAreaM2: calcResultB.billedAreaM2,
+              isMinAreaApplied: calcResultB.isMinAreaApplied,
+              minArea: productB.minArea,
+            },
+          })
+        : formatSingleEstimateText({
+            storeName,
+            productName: productA.name,
+            pricingType: productA.pricingType,
+            quantity: Math.max(1, Number(quantity) || 1),
+            unitLabel: productA.unitLabel,
+            width: productA.pricingType === "AREA" ? Number(width) || 0 : undefined,
+            height: productA.pricingType === "AREA" ? Number(height) || 0 : undefined,
+            dimensionUnit,
+            billedAreaM2: calcResultA.billedAreaM2,
+            isMinAreaApplied: calcResultA.isMinAreaApplied,
+            minArea: productA.minArea,
+            effectiveUnitPrice: calcResultA.effectiveUnitPrice,
+            baseSubtotal: calcResultA.baseSubtotal,
+            finishings: calcResultA.finishings,
+            finishingTotal: calcResultA.finishingTotal,
+            grandTotal: calcResultA.itemSubtotal,
+          });
 
     let success = false;
     try {
@@ -340,7 +309,7 @@ export function QuickCalculatorSheet({
         success = true;
       }
     } catch {
-      // Fallback for WebView contexts lacking navigator.clipboard
+      // Fallback textarea untuk WebView tanpa clipboard API
     }
 
     if (!success) {
@@ -349,7 +318,6 @@ export function QuickCalculatorSheet({
         textArea.value = text;
         textArea.style.position = "fixed";
         textArea.style.left = "-999999px";
-        textArea.style.top = "-999999px";
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
@@ -363,16 +331,14 @@ export function QuickCalculatorSheet({
     if (success) {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 1500);
-      toast.success("Estimasi harga siap ditempel ke WhatsApp", {
-        description: "Format teks rapi berhasil disalin ke papan klip.",
-      });
+      toast.success("Perkiraan harga siap ditempel ke WhatsApp.");
     } else {
-      toast.error("Gagal menyalin teks ke papan klip.");
+      toast.error("Gagal menyalin teks perkiraan harga.");
     }
   };
 
   const handleHandoffToPos = (
-    targetProduct: QuickCalcProduct,
+    targetProduct: QuickCalcSlotProduct,
     calcResult: CalculateItemResult
   ) => {
     const safeQty = Math.max(1, Number(quantity) || 1);
@@ -398,7 +364,7 @@ export function QuickCalculatorSheet({
       unitPrice: calcResult.effectiveUnitPrice,
       isPriceOverridden: false,
       itemNotes: isComparisonMode
-        ? `Dipilih dari perbandingan kalkulator cepat`
+        ? "Dipilih dari perbandingan kalkulator cepat"
         : undefined,
       finishings: calcResult.finishings.map((f) => ({
         finishingId: f.finishingId || "",
@@ -426,11 +392,10 @@ export function QuickCalculatorSheet({
         side={isMobile ? "bottom" : "right"}
         className={`${
           isMobile
-            ? "max-h-[92dvh] rounded-t-2xl p-4 sm:p-6"
+            ? "max-h-[92dvh] rounded-t-3xl p-4 sm:p-6"
             : "sm:max-w-xl lg:max-w-2xl p-6"
         } flex flex-col gap-0 overflow-hidden bg-card text-card-foreground border-border`}
       >
-        {/* Header Panel */}
         <SheetHeader className="pb-4 border-b border-border space-y-1 text-left shrink-0 pr-12">
           <div className="flex items-start sm:items-center justify-between gap-2.5 min-w-0">
             <div className="flex items-center gap-3 min-w-0">
@@ -440,12 +405,12 @@ export function QuickCalculatorSheet({
               <div className="min-w-0">
                 <SheetTitle className="text-base sm:text-lg font-semibold tracking-tight text-foreground flex flex-wrap items-center gap-2">
                   <span>Kalkulator Cepat &amp; Perbandingan</span>
-                  <Badge variant="outline" className="text-xs font-mono px-2 py-0.5 shrink-0">
+                  <Badge variant="outline" className="text-xs font-mono shrink-0">
                     Instan
                   </Badge>
                 </SheetTitle>
                 <SheetDescription className="text-xs sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1">
-                  Cek harga percetakan, bandingkan 2 bahan, dan salin ke WhatsApp
+                  Hitung perkiraan biaya cetak, bandingkan 2 bahan, lalu kirim ke WA atau POS
                 </SheetDescription>
               </div>
             </div>
@@ -455,7 +420,7 @@ export function QuickCalculatorSheet({
               variant="ghost"
               size="sm"
               onClick={handleReset}
-              className="h-9 px-2.5 gap-1.5 text-xs text-muted-foreground hover:text-foreground shrink-0"
+              className="gap-1.5 text-muted-foreground hover:text-foreground shrink-0"
               title="Reset Input"
             >
               <RotateCcw className="size-3.5" />
@@ -464,7 +429,6 @@ export function QuickCalculatorSheet({
           </div>
         </SheetHeader>
 
-        {/* Isi Scrollable */}
         <div className="flex-1 overflow-y-auto py-4 space-y-5 scrollbar-thin">
           {isLoadingProducts ? (
             <div className="space-y-4">
@@ -473,27 +437,26 @@ export function QuickCalculatorSheet({
               <Skeleton className="h-24 w-full rounded-xl" />
             </div>
           ) : isErrorProducts || products.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border bg-muted/40 p-6 text-center space-y-3">
-              <p className="text-sm font-semibold text-foreground">
-                Data produk belum tersedia
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Pastikan terdapat produk aktif pada Katalog Produk.
-              </p>
-              <Button size="sm" variant="outline" onClick={() => refetchProducts()}>
-                Coba Lagi
-              </Button>
-            </div>
+            <ErrorStatePanel
+              title="Data produk belum tersedia"
+              description="Pastikan ada produk aktif di Katalog Produk lalu muat ulang."
+              onRetry={() => refetchProducts()}
+              retryLabel="Coba Lagi"
+            />
           ) : (
             <>
-              {/* Seksi 1: Pemilihan Bahan Utama (Opsi A) */}
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between gap-2">
-                  <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                    Bahan Utama (Opsi A) <span className="text-destructive">*</span>
-                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex size-6 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary tabular-nums">
+                      1
+                    </span>
+                    <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                      Pilih Produk / Bahan <span className="text-destructive">*</span>
+                    </label>
+                  </div>
                   {productA && (
-                    <Badge variant="secondary" className="font-mono text-xs px-2 py-0.5">
+                    <Badge variant="secondary" className="font-mono text-xs">
                       {productA.pricingType === "AREA" ? "Meteran (m²)" : "Satuan (pcs)"}
                     </Badge>
                   )}
@@ -512,72 +475,22 @@ export function QuickCalculatorSheet({
                     onClose={productA ? () => setIsPickerAOpen(false) : undefined}
                   />
                 ) : (
-                  <div className="group relative flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-3.5 shadow-2xs hover:border-primary/50 transition-colors">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="relative size-12 shrink-0 overflow-hidden rounded-lg outline-1 -outline-offset-1 outline-black/10 dark:outline-white/10 bg-muted/60">
-                        {resolveProductImageUrl(productA.imageUrl) ? (
-                          <Image
-                            src={resolveProductImageUrl(productA.imageUrl)!}
-                            alt={productA.name}
-                            fill
-                            sizes="48px"
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-muted-foreground/60">
-                            <Package className="size-6" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <p className="text-sm font-semibold text-foreground truncate" title={productA.name}>
-                            {productA.name}
-                          </p>
-                          {productA.categoryName && (
-                            <span className="text-xs font-medium text-muted-foreground">
-                              • {productA.categoryName}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                          <span className="font-mono text-sm font-bold text-primary tabular-nums">
-                            {formatRupiah(productA.basePrice)}
-                            <span className="text-xs font-normal text-muted-foreground">
-                              {productA.pricingType === "AREA" ? "/m²" : `/${productA.unitLabel || "pcs"}`}
-                            </span>
-                          </span>
-                          {(productA.tiers?.length || 0) > 0 && (
-                            <Badge variant="outline" className="text-xs px-2 py-0 text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
-                              Grosir
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsPickerAOpen(true)}
-                      className="h-9 px-3 shrink-0 text-xs gap-1.5 border-primary/30 hover:bg-primary/5 hover:text-primary"
-                    >
-                      <span>Ganti</span>
-                      <ChevronDown className="size-3.5 opacity-70" />
-                    </Button>
-                  </div>
+                  <QuickProductSlotCard
+                    product={productA}
+                    onChangeProduct={() => setIsPickerAOpen(true)}
+                  />
                 )}
               </div>
 
-              {/* Seksi 2: Toggle Bandingkan 2 Bahan */}
               <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 p-3.5 sm:p-4">
                 <div className="flex items-center gap-3 min-w-0">
                   <Layers className="size-4.5 text-primary shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground">Bandingkan 2 Bahan</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      Bandingkan 2 Bahan
+                    </p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Bandingkan bahan alternatif dengan ukuran &amp; finishing sama
+                      Lihat selisih harga bahan alternatif untuk ukuran yang sama
                     </p>
                   </div>
                 </div>
@@ -588,7 +501,6 @@ export function QuickCalculatorSheet({
                 />
               </div>
 
-              {/* Seksi 3: Pemilihan Bahan Pembanding (Opsi B) jika Toggle Aktif */}
               {isComparisonMode && (
                 <div className="space-y-2.5 rounded-xl border border-primary/20 bg-primary/5 p-3.5 sm:p-4">
                   <div className="flex items-center justify-between gap-2">
@@ -602,7 +514,7 @@ export function QuickCalculatorSheet({
 
                   {availableProductsB.length === 0 ? (
                     <p className="text-xs text-muted-foreground italic">
-                      Tidak ada produk lain dengan tipe perhitungan yang sama untuk dibandingkan.
+                      Belum ada produk lain dengan tipe hitung yang sama.
                     </p>
                   ) : isPickerBOpen || !productB ? (
                     <QuickCatalogPicker
@@ -619,440 +531,45 @@ export function QuickCalculatorSheet({
                       onClose={productB ? () => setIsPickerBOpen(false) : undefined}
                     />
                   ) : (
-                    <div className="group relative flex items-center justify-between gap-3 rounded-xl border border-primary/30 bg-background p-3.5 shadow-2xs hover:border-primary transition-colors">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="relative size-12 shrink-0 overflow-hidden rounded-lg outline-1 -outline-offset-1 outline-black/10 dark:outline-white/10 bg-muted/60">
-                          {resolveProductImageUrl(productB.imageUrl) ? (
-                            <Image
-                              src={resolveProductImageUrl(productB.imageUrl)!}
-                              alt={productB.name}
-                              fill
-                              sizes="48px"
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center text-muted-foreground/60">
-                              <Package className="size-6" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <p className="text-sm font-semibold text-foreground truncate" title={productB.name}>
-                              {productB.name}
-                            </p>
-                            {productB.categoryName && (
-                              <span className="text-xs font-medium text-muted-foreground">
-                                • {productB.categoryName}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                            <span className="font-mono text-sm font-bold text-primary tabular-nums">
-                              {formatRupiah(productB.basePrice)}
-                              <span className="text-xs font-normal text-muted-foreground">
-                                {productB.pricingType === "AREA" ? "/m²" : `/${productB.unitLabel || "pcs"}`}
-                              </span>
-                            </span>
-                            {(productB.tiers?.length || 0) > 0 && (
-                              <Badge variant="outline" className="text-xs px-2 py-0 text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
-                                Grosir
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsPickerBOpen(true)}
-                        className="h-9 px-3 shrink-0 text-xs gap-1.5 border-primary/30 hover:bg-primary/5 hover:text-primary"
-                      >
-                        <span>Ganti</span>
-                        <ChevronDown className="size-3.5 opacity-70" />
-                      </Button>
-                    </div>
+                    <QuickProductSlotCard
+                      product={productB}
+                      highlighted
+                      onChangeProduct={() => setIsPickerBOpen(true)}
+                    />
                   )}
                 </div>
               )}
 
-              {/* Seksi 4: Input Dimensi (jika AREA) atau Qty (jika UNIT) */}
-              {productA && productA.pricingType === "AREA" ? (
-                <div className="space-y-3.5 rounded-xl border border-border bg-card p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-sm font-semibold text-foreground">
-                      Dimensi Cetak (Ukuran)
-                    </span>
-                    <div className="inline-flex rounded-xl border border-border p-1 bg-muted/60 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => setDimensionUnit("m")}
-                        className={`min-h-9 whitespace-nowrap rounded-lg px-3 py-1 text-xs font-semibold transition-colors cursor-pointer ${
-                          dimensionUnit === "m"
-                            ? "bg-primary text-primary-foreground shadow-xs"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        Meter (m)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDimensionUnit("cm")}
-                        className={`min-h-9 whitespace-nowrap rounded-lg px-3 py-1 text-xs font-semibold transition-colors cursor-pointer ${
-                          dimensionUnit === "cm"
-                            ? "bg-primary text-primary-foreground shadow-xs"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        Centimeter (cm)
-                      </button>
-                    </div>
-                  </div>
+              <QuickDimensionSection
+                product={productA}
+                width={width}
+                height={height}
+                dimensionUnit={dimensionUnit}
+                quantity={quantity}
+                billedResult={calcResultA}
+                finishings={finishings}
+                selectedFinishingIds={selectedFinishingIds}
+                isLoadingFinishings={isLoadingFinishings}
+                onWidthChange={setWidth}
+                onHeightChange={setHeight}
+                onUnitChange={setDimensionUnit}
+                onQuantityChange={setQuantity}
+                onApplyPreset={handleApplyPreset}
+                onToggleFinishing={handleToggleFinishing}
+              />
 
-                  <div className="grid grid-cols-2 gap-3.5">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground block">
-                        Panjang ({dimensionUnit})
-                      </label>
-                      <input
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        value={width}
-                        onChange={(e) => setWidth(e.target.value === "" ? "" : parseFloat(e.target.value))}
-                        className="h-11 w-full rounded-xl border border-input bg-background px-3.5 text-base sm:text-sm font-mono font-medium text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-                        placeholder="Contoh: 3"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground block">
-                        Lebar ({dimensionUnit})
-                      </label>
-                      <input
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        value={height}
-                        onChange={(e) => setHeight(e.target.value === "" ? "" : parseFloat(e.target.value))}
-                        className="h-11 w-full rounded-xl border border-input bg-background px-3.5 text-base sm:text-sm font-mono font-medium text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-                        placeholder="Contoh: 1"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Preset Cepat Ukuran Populer */}
-                  <div className="space-y-2 pt-1">
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
-                      Preset Ukuran Populer:
-                    </span>
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        { label: "1 × 1 m", w: 1, h: 1 },
-                        { label: "2 × 1 m", w: 2, h: 1 },
-                        { label: "3 × 1 m", w: 3, h: 1 },
-                        { label: "4 × 1 m", w: 4, h: 1 },
-                      ].map((preset) => (
-                        <button
-                          key={preset.label}
-                          type="button"
-                          onClick={() => handleApplyPreset(preset.w, preset.h)}
-                          className="min-h-9 rounded-lg border border-border bg-muted/60 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted hover:border-primary/40 active:scale-95 transition-colors cursor-pointer"
-                        >
-                          {preset.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Jumlah Pcs */}
-                  <div className="pt-3 border-t border-border flex items-center justify-between">
-                    <span className="text-sm font-semibold text-foreground">
-                      Jumlah Cetak (Pcs)
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                        className="flex size-10 items-center justify-center rounded-xl border border-border bg-card text-foreground hover:bg-muted active:scale-95 transition-colors cursor-pointer"
-                        aria-label="Kurangi jumlah"
-                      >
-                        <Minus className="size-4" />
-                      </button>
-                      <span className="w-10 text-center font-mono text-base font-bold text-foreground tabular-nums">
-                        {quantity}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setQuantity((q) => q + 1)}
-                        className="flex size-10 items-center justify-center rounded-xl border border-border bg-card text-foreground hover:bg-muted active:scale-95 transition-colors cursor-pointer"
-                        aria-label="Tambah jumlah"
-                      >
-                        <Plus className="size-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Informasi Luas & Minimum */}
-                  {calcResultA?.billedAreaM2 !== undefined && (
-                    <div className="rounded-xl bg-muted/50 p-3 text-xs sm:text-sm text-muted-foreground flex items-center justify-between">
-                      <span>Total Luas Tertagih:</span>
-                      <span className="font-mono font-bold text-foreground tabular-nums">
-                        {calcResultA.billedAreaM2} m²
-                        {calcResultA.isMinAreaApplied && (
-                          <span className="ml-1.5 text-xs text-amber-600 dark:text-amber-400 font-semibold">
-                            (Min. {productA.minArea} m²)
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                /* Jika UNIT (Kaos, Mug, Stiker per Lembar, dll.) */
-                <div className="space-y-3 rounded-xl border border-border bg-card p-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <div>
-                      <span className="text-sm font-semibold text-foreground block">
-                        Jumlah Pesanan ({productA?.unitLabel || "pcs"})
-                      </span>
-                      {productA?.tiers && productA.tiers.length > 0 && (
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          Tersedia harga grosir bertingkat
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                        className="flex size-10 items-center justify-center rounded-xl border border-border bg-card text-foreground hover:bg-muted active:scale-95 transition-colors cursor-pointer"
-                        aria-label="Kurangi jumlah"
-                      >
-                        <Minus className="size-4" />
-                      </button>
-                      <input
-                        type="number"
-                        min="1"
-                        value={quantity}
-                        onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
-                        className="h-10 w-16 rounded-xl border border-input bg-background text-center font-mono text-base sm:text-sm font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-ring tabular-nums"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setQuantity((q) => q + 1)}
-                        className="flex size-10 items-center justify-center rounded-xl border border-border bg-card text-foreground hover:bg-muted active:scale-95 transition-colors cursor-pointer"
-                        aria-label="Tambah jumlah"
-                      >
-                        <Plus className="size-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Seksi 5: Pilihan Finishing Tambahan */}
-              {isLoadingFinishings ? (
-                <Skeleton className="h-14 w-full rounded-xl" />
-              ) : finishings.length > 0 ? (
-                <div className="space-y-2.5">
-                  <span className="text-xs font-semibold text-foreground uppercase tracking-wider block">
-                    Finishing Tambahan
-                  </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {finishings.map((f) => {
-                      const isSelected = selectedFinishingIds.includes(f.id);
-                      return (
-                        <button
-                          key={f.id}
-                          type="button"
-                          onClick={() => handleToggleFinishing(f.id)}
-                          className={`flex items-center justify-between p-3 rounded-xl border text-left transition-colors min-h-[44px] cursor-pointer ${
-                            isSelected
-                              ? "border-primary bg-primary/10 text-primary"
-                              : "border-border bg-card hover:bg-muted text-foreground"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div
-                              className={`flex size-4.5 shrink-0 items-center justify-center rounded-sm border ${
-                                isSelected
-                                  ? "bg-primary border-primary text-primary-foreground"
-                                  : "border-muted-foreground/40"
-                              }`}
-                            >
-                              {isSelected && <Check className="size-3" />}
-                            </div>
-                            <span className="text-xs sm:text-sm font-medium truncate">{f.name}</span>
-                          </div>
-                          <span className="font-mono text-xs font-semibold tabular-nums ml-2 shrink-0">
-                            +{formatRupiah(f.defaultPrice)}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Seksi 6: Hasil Perhitungan (Mode 1 Bahan vs Mode Bandingkan 2 Bahan) */}
-              {isComparisonMode && productB && calcResultB ? (
-                /* TAMPILAN PERBANDINGAN 2 BAHAN */
-                <div className="space-y-3.5 pt-3 border-t border-border">
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <span className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                      <Sparkles className="size-4 text-primary" />
-                      <span>Hasil Perbandingan Bahan</span>
-                    </span>
-
-                    {/* Selisih Badge */}
-                    {calcResultA && calcResultB && (
-                      <Badge
-                        variant="secondary"
-                        className="font-mono text-xs font-semibold py-0.5 px-2.5 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
-                      >
-                        Selisih: {formatRupiah(Math.abs(calcResultA.itemSubtotal - calcResultB.itemSubtotal))}
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    {/* Kartu Opsi A */}
-                    {calcResultA && (
-                      <div
-                        className={`rounded-xl border p-4 flex flex-col justify-between space-y-3.5 bg-card shadow-xs ${
-                          calcResultA.itemSubtotal <= calcResultB.itemSubtotal
-                            ? "border-emerald-500/50 ring-1 ring-emerald-500/20"
-                            : "border-border"
-                        }`}
-                      >
-                        <div className="space-y-2">
-                          <div className="flex items-start justify-between gap-2">
-                            <span className="text-sm font-semibold text-foreground line-clamp-1">
-                              {productA?.name}
-                            </span>
-                            {calcResultA.itemSubtotal < calcResultB.itemSubtotal && (
-                              <Badge className="bg-emerald-600 text-white text-xs py-0.5 px-2 shrink-0">
-                                Lebih Hemat
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground font-mono">
-                            Dasar: {formatRupiah(calcResultA.effectiveUnitPrice)}
-                            {productA?.pricingType === "AREA" ? "/m²" : ""}
-                          </p>
-                          <div className="pt-2.5 border-t border-border/60">
-                            <span className="text-xs text-muted-foreground block">Total Estimasi:</span>
-                            <p className="font-mono text-xl font-bold text-foreground tabular-nums mt-0.5">
-                              {formatRupiah(calcResultA.itemSubtotal)}
-                            </p>
-                          </div>
-                        </div>
-
-                        <Button
-                          type="button"
-                          onClick={() => productA && handleHandoffToPos(productA, calcResultA)}
-                          className="w-full gap-2 text-xs sm:text-sm"
-                        >
-                          <ShoppingCart className="size-4" />
-                          <span>Pilih Opsi A ke POS</span>
-                        </Button>
-                      </div>
-                    )}
-
-                    {/* Kartu Opsi B */}
-                    <div
-                      className={`rounded-xl border p-4 flex flex-col justify-between space-y-3.5 bg-card shadow-xs ${
-                        calcResultB.itemSubtotal < (calcResultA?.itemSubtotal || 0)
-                          ? "border-emerald-500/50 ring-1 ring-emerald-500/20"
-                          : "border-border"
-                      }`}
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <span className="text-sm font-semibold text-foreground line-clamp-1">
-                            {productB.name}
-                          </span>
-                          {calcResultB.itemSubtotal < (calcResultA?.itemSubtotal || 0) && (
-                            <Badge className="bg-emerald-600 text-white text-xs py-0.5 px-2 shrink-0">
-                              Lebih Hemat
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground font-mono">
-                          Dasar: {formatRupiah(calcResultB.effectiveUnitPrice)}
-                          {productB.pricingType === "AREA" ? "/m²" : ""}
-                        </p>
-                        <div className="pt-2.5 border-t border-border/60">
-                          <span className="text-xs text-muted-foreground block">Total Estimasi:</span>
-                          <p className="font-mono text-xl font-bold text-primary tabular-nums mt-0.5">
-                            {formatRupiah(calcResultB.itemSubtotal)}
-                          </p>
-                        </div>
-                      </div>
-
-                      <Button
-                        type="button"
-                        variant={
-                          calcResultB.itemSubtotal < (calcResultA?.itemSubtotal || 0)
-                            ? "default"
-                            : "outline"
-                        }
-                        onClick={() => handleHandoffToPos(productB, calcResultB)}
-                        className="w-full gap-2 text-xs sm:text-sm"
-                      >
-                        <ShoppingCart className="size-4" />
-                        <span>Pilih Opsi B ke POS</span>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                /* TAMPILAN ESTIMASI 1 BAHAN TUNGGAL */
-                calcResultA && (
-                  <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
-                    <div className="flex items-center justify-between text-xs sm:text-sm">
-                      <span className="font-semibold text-muted-foreground">
-                        Rincian Perhitungan
-                      </span>
-                      <span className="font-mono text-muted-foreground">
-                        {calcResultA.quantity} pcs
-                      </span>
-                    </div>
-
-                    <div className="space-y-1.5 text-xs sm:text-sm">
-                      <div className="flex items-center justify-between text-muted-foreground">
-                        <span>Subtotal Bahan:</span>
-                        <span className="font-mono font-medium text-foreground tabular-nums">
-                          {formatRupiah(calcResultA.baseSubtotal)}
-                        </span>
-                      </div>
-                      {calcResultA.finishingTotal > 0 && (
-                        <div className="flex items-center justify-between text-muted-foreground">
-                          <span>Finishing Tambahan:</span>
-                          <span className="font-mono font-medium text-foreground tabular-nums">
-                            +{formatRupiah(calcResultA.finishingTotal)}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="pt-3 border-t border-primary/20 flex items-center justify-between">
-                      <span className="text-sm font-bold text-foreground">Estimasi Total:</span>
-                      <span className="font-mono text-2xl font-bold text-primary tabular-nums">
-                        {formatRupiah(calcResultA.itemSubtotal)}
-                      </span>
-                    </div>
-                  </div>
-                )
-              )}
+              <QuickResultSummary
+                isComparisonMode={isComparisonMode}
+                productA={productA}
+                productB={productB}
+                calcResultA={calcResultA}
+                calcResultB={calcResultB}
+                onHandoffToPos={handleHandoffToPos}
+              />
             </>
           )}
         </div>
 
-        {/* Footer Aksi Sticky */}
         <div className="pt-3.5 border-t border-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shrink-0 bg-card">
           <Button
             type="button"
@@ -1060,7 +577,7 @@ export function QuickCalculatorSheet({
             size="lg"
             onClick={handleCopyEstimate}
             disabled={!calcResultA}
-            className="gap-2 text-sm font-semibold min-w-[160px]"
+            className="gap-2 font-semibold min-w-[160px]"
           >
             <AnimatePresence mode="wait" initial={false}>
               {isCopied ? (
@@ -1095,9 +612,11 @@ export function QuickCalculatorSheet({
             <Button
               type="button"
               size="lg"
-              onClick={() => productA && calcResultA && handleHandoffToPos(productA, calcResultA)}
+              onClick={() =>
+                productA && calcResultA && handleHandoffToPos(productA, calcResultA)
+              }
               disabled={!calcResultA}
-              className="gap-2 text-sm font-semibold shadow-xs"
+              className="gap-2 font-semibold shadow-2xs"
             >
               <ShoppingCart className="size-4" />
               <span>Lanjut ke POS</span>

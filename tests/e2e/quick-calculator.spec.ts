@@ -79,25 +79,28 @@ test.describe("E2E: Quick Calculator & Material Comparison", () => {
     await expect(sheetTitle).toBeHidden({ timeout: 5000 });
   });
 
-  test("3. Mobile: Floating Action Button (FAB) adaptif dan bottom sheet responsif", async ({ page, isMobile }) => {
-    test.skip(!isMobile, "FAB mobile hanya aktif di viewport mobile (< 1024px)");
+  test("3. Mobile: Tombol Kalkulator di bottom bar dan bottom sheet responsif", async ({ page, isMobile }) => {
+    test.skip(!isMobile, "Bottom bar mobile hanya aktif di viewport mobile (< 1024px)");
 
     await page.goto("/dashboard");
     await page.waitForLoadState("domcontentloaded");
 
-    // Pastikan FAB muncul di mobile
-    const fab = page.locator('button[aria-label="Buka Kalkulator Cepat"]');
-    await expect(fab).toBeVisible({ timeout: 15000 });
+    // Pastikan tombol Kalkulator muncul di navigasi bawah mobile
+    const calcTrigger = page.locator('button[aria-label="Buka Kalkulator Cepat"]');
+    await expect(calcTrigger).toBeVisible({ timeout: 15000 });
 
-    // Ketuk FAB untuk membuka
-    await fab.click();
+    // Ketuk tombol Kalkulator untuk membuka sheet
+    await calcTrigger.click();
 
     // Pastikan sheet terbuka
     const sheetTitle = page.getByText(/Kalkulator Cepat & Perbandingan/i);
     await expect(sheetTitle).toBeVisible({ timeout: 10000 });
 
-    // FAB harus disembunyikan saat sheet aktif agar tidak menutupi dialog
-    await expect(fab).toBeHidden();
+    // Pastikan tidak ada horizontal overflow saat bottom sheet kalkulator aktif
+    const hasOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 2
+    );
+    expect(hasOverflow).toBe(false);
 
     // Verifikasi tombol Salin dan Lanjut ke POS tampil
     const copyBtn = page.getByRole("button", { name: /Salin Estimasi/i });

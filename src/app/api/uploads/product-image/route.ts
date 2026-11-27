@@ -24,6 +24,31 @@ export async function OPTIONS(request: Request) {
   return handleCorsPreflight(request);
 }
 
+const SAFE_IMAGE_KEY_REGEX = /^products\/[a-zA-Z0-9._-]+\.(?:webp|png|jpe?g)$/i;
+const SAFE_RASTER_MIME_TYPES = new Set(["image/webp", "image/png", "image/jpeg"]);
+
+function parseSafeImageKey(rawKey: string): string | null {
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(rawKey).trim();
+  } catch {
+    return null;
+  }
+
+  if (
+    !decoded ||
+    decoded.includes("\0") ||
+    decoded.includes("\\") ||
+    decoded.includes("..") ||
+    decoded.includes("//") ||
+    !SAFE_IMAGE_KEY_REGEX.test(decoded)
+  ) {
+    return null;
+  }
+
+  return decoded;
+}
+
 export async function GET(request: Request) {
   const origin = request.headers.get("origin");
   const corsHeaders = getCorsHeaders(origin);
@@ -38,13 +63,8 @@ export async function GET(request: Request) {
     );
   }
 
-  // Sanitasi & proteksi path traversal
-  const cleanKey = decodeURIComponent(rawKey).trim();
-  if (
-    cleanKey.includes("..") ||
-    cleanKey.includes("//") ||
-    !cleanKey.startsWith("products/")
-  ) {
+  const cleanKey = parseSafeImageKey(rawKey);
+  if (!cleanKey) {
     return NextResponse.json(
       { success: false, error: "Path gambar tidak valid" },
       { status: 400, headers: corsHeaders }
@@ -68,19 +88,24 @@ export async function GET(request: Request) {
       );
     }
 
-    return new NextResponse(result.stream as any, {
+    const rawMime = (result.blob.contentType || "").toLowerCase();
+    const safeMime = SAFE_RASTER_MIME_TYPES.has(rawMime) ? rawMime : "image/webp";
+
+    return new NextResponse(result.stream, {
       status: 200,
       headers: {
         ...corsHeaders,
-        "Content-Type": result.blob.contentType || "image/webp",
+        "Content-Type": safeMime,
+        "X-Content-Type-Options": "nosniff",
         "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
   } catch (err) {
-    console.error("[SERVE_PRODUCT_IMAGE_ERROR]", {
-      name: (err as any)?.name,
-      message: (err as any)?.message,
-    });
+    const errInfo =
+      err instanceof Error
+        ? { name: err.name, message: err.message }
+        : { name: "UnknownError", message: String(err) };
+    console.error("[SERVE_PRODUCT_IMAGE_ERROR]", errInfo);
     return NextResponse.json(
       { success: false, error: "Gagal memuat foto produk" },
       { status: 500, headers: corsHeaders }

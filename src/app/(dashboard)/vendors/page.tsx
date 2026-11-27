@@ -10,7 +10,6 @@ import {
   MessageCircle,
   Edit2,
   Trash2,
-  AlertCircle,
   Clock,
   Package,
   Power,
@@ -23,7 +22,9 @@ import {
 } from "@/components/vendors/VendorFormModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
+import { EmptyStatePanel, ErrorStatePanel } from "@/components/ui/state-panels";
 import { Button } from "@/components/ui/button";
+import { formatRupiah } from "@/lib/format";
 
 interface VendorListItem extends VendorData {
   productCount: number;
@@ -234,12 +235,11 @@ export default function VendorsPage() {
             Estimasi Sisa Tagihan Item Terkait
           </span>
           <span className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1 block">
-            Rp {totalPayable.toLocaleString("id-ID")}
+            {formatRupiah(totalPayable)}
           </span>
         </div>
       </div>
 
-      {/* Search & Filter */}
       <div className="p-4 rounded-2xl bg-card border border-border shadow-xs flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -275,27 +275,38 @@ export default function VendorsPage() {
         </div>
       </div>
 
-      {errorMsg && (
-        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-center gap-2.5">
-          <AlertCircle className="size-4 shrink-0" />
-          <span>{errorMsg}</span>
-        </div>
-      )}
-
       {isLoading ? (
         <VendorsSkeleton />
+      ) : errorMsg ? (
+        <ErrorStatePanel
+          title="Gagal Memuat Vendor Mitra"
+          description={errorMsg}
+          onRetry={fetchVendors}
+        />
       ) : vendorsList.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl bg-card border border-dashed border-border space-y-2.5">
-          <Building2 className="size-10 mx-auto text-muted-foreground/40" />
-          <h3 className="text-base font-semibold text-foreground">
-            {search ? "Vendor Tidak Ditemukan" : "Belum Ada Vendor Mitra"}
-          </h3>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            {search
-              ? "Coba kata kunci atau filter status lain."
-              : "Tambahkan percetakan atau konveksi rekanan untuk mengirim SPK WhatsApp 1-klik dan memantau setoran modal."}
-          </p>
-        </div>
+        <EmptyStatePanel
+          icon={Building2}
+          title={search ? "Vendor Tidak Ditemukan" : "Belum Ada Vendor Mitra"}
+          description={
+            search
+              ? "Coba kata kunci pencarian atau ubah filter status aktif."
+              : "Tambahkan percetakan atau konveksi rekanan untuk mengirim SPK WhatsApp 1-klik dan memantau setoran modal."
+          }
+          action={
+            !search ? (
+              <Button
+                onClick={() => {
+                  setEditingVendor(null);
+                  setModalOpen(true);
+                }}
+                className="gap-2 min-h-11"
+              >
+                <Plus className="size-4" />
+                <span>Tambah Vendor Pertama</span>
+              </Button>
+            ) : undefined
+          }
+        />
       ) : (
         <>
           {/* Mobile Cards */}
@@ -345,7 +356,7 @@ export default function VendorsPage() {
                     href={`https://wa.me/${v.whatsapp}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20"
                   >
                     <MessageCircle className="size-3.5" />
                     <span className="tabular-nums">+{v.whatsapp}</span>
@@ -358,7 +369,7 @@ export default function VendorsPage() {
                         setEditingVendor(v);
                         setModalOpen(true);
                       }}
-                      className="inline-flex min-h-10 items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted cursor-pointer"
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-border px-3.5 py-1.5 text-xs font-semibold text-foreground hover:bg-muted cursor-pointer"
                     >
                       <Edit2 className="size-3.5" />
                       <span>Edit</span>
@@ -367,10 +378,10 @@ export default function VendorsPage() {
                       type="button"
                       disabled={isMutating}
                       onClick={() => setDeleteTarget(v)}
-                      className="inline-flex min-h-10 items-center justify-center rounded-lg border border-destructive/20 bg-destructive/10 px-2.5 text-destructive hover:bg-destructive/20 cursor-pointer"
+                      className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-destructive/20 bg-destructive/10 px-3 text-destructive hover:bg-destructive/20 cursor-pointer"
                       aria-label={`Hapus ${v.name}`}
                     >
-                      <Trash2 className="size-3.5" />
+                      <Trash2 className="size-4" />
                     </button>
                   </div>
                 </div>
@@ -425,7 +436,7 @@ export default function VendorsPage() {
                       <td className="py-3.5 px-4 text-right tabular-nums font-semibold">
                         {v.remainingPayable > 0 ? (
                           <span className="text-amber-600 dark:text-amber-400">
-                            Rp {v.remainingPayable.toLocaleString("id-ID")}
+                            {formatRupiah(v.remainingPayable)}
                           </span>
                         ) : (
                           <span className="text-muted-foreground">Rp 0</span>

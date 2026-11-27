@@ -13,7 +13,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Receipt,
-  AlertCircle,
   Eye,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
@@ -24,7 +23,9 @@ import {
 } from "@/components/customers/CustomerFormModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
+import { EmptyStatePanel, ErrorStatePanel } from "@/components/ui/state-panels";
 import { Button } from "@/components/ui/button";
+import { formatRupiah } from "@/lib/format";
 
 interface CustomerListItem extends CustomerData {
   createdAt: string;
@@ -248,18 +249,11 @@ export default function CustomersPage() {
               Total Piutang di Halaman Ini
             </div>
             <div className="text-xl font-bold text-foreground tabular-nums">
-              Rp {totalPiutangSemua.toLocaleString("id-ID")}
+              {formatRupiah(totalPiutangSemua)}
             </div>
           </div>
         </div>
       </div>
-
-      {actionError && (
-        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-center gap-2">
-          <AlertCircle className="size-5 shrink-0" />
-          <span>{actionError}</span>
-        </div>
-      )}
 
       {/* Search Bar */}
       <div className="flex items-center gap-3">
@@ -281,18 +275,30 @@ export default function CustomersPage() {
       {/* Content: Mobile Cards + Desktop Table */}
       {isLoading ? (
         <CustomersSkeleton />
+      ) : actionError && customers.length === 0 ? (
+        <ErrorStatePanel
+          title="Gagal Memuat Data Pelanggan"
+          description={actionError}
+          onRetry={fetchCustomers}
+        />
       ) : customers.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl bg-card border border-border">
-          <Users className="size-10 mx-auto text-muted-foreground/40 mb-3" />
-          <h3 className="text-base font-semibold text-foreground">
-            Belum ada pelanggan ditemukan
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
-            {search
+        <EmptyStatePanel
+          icon={Users}
+          title="Belum ada pelanggan ditemukan"
+          description={
+            search
               ? "Tidak ada pelanggan yang cocok dengan kata kunci pencarian Anda."
-              : "Mulai catat pelanggan agar nama dan nomor WhatsApp otomatis tersimpan saat transaksi POS."}
-          </p>
-        </div>
+              : "Mulai catat pelanggan agar nama dan nomor WhatsApp otomatis tersimpan saat transaksi kasir."
+          }
+          action={
+            !search ? (
+              <Button onClick={handleOpenAddModal} className="gap-2 min-h-11">
+                <Plus className="size-4" />
+                <span>Tambah Pelanggan Pertama</span>
+              </Button>
+            ) : undefined
+          }
+        />
       ) : (
         <>
           {/* Mobile Card View (hidden on lg) */}
@@ -324,7 +330,7 @@ export default function CustomersPage() {
                       href={`https://wa.me/${c.phone.replace(/[^0-9]/g, "")}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="size-10 flex items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 transition-colors shrink-0"
+                      className="size-11 flex items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 transition-colors shrink-0"
                       title="Kirim pesan WhatsApp"
                       aria-label={`Chat WhatsApp ${c.name}`}
                     >
@@ -350,7 +356,7 @@ export default function CustomersPage() {
                   <div className="text-xs sm:text-sm flex items-center justify-between text-amber-600 font-medium">
                     <span>Sisa Piutang:</span>
                     <span className="font-bold tabular-nums">
-                      Rp {c.totalPiutang.toLocaleString("id-ID")}
+                      {formatRupiah(c.totalPiutang)}
                     </span>
                   </div>
                 )}
@@ -358,7 +364,7 @@ export default function CustomersPage() {
                 <div className="pt-2.5 border-t border-border/50 flex items-center justify-between gap-2">
                   <Link
                     href={`/customers/detail?id=${c.id}`}
-                    className="inline-flex min-h-10 items-center gap-1.5 px-2 -ml-2 text-xs sm:text-sm text-primary font-medium hover:underline"
+                    className="inline-flex min-h-11 items-center gap-1.5 px-2 -ml-2 text-xs sm:text-sm text-primary font-medium hover:underline"
                   >
                     <Eye className="size-4" />
                     <span>Lihat Riwayat</span>
@@ -368,7 +374,7 @@ export default function CustomersPage() {
                     <button
                       type="button"
                       onClick={() => handleOpenEditModal(c)}
-                      className="size-10 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                      className="size-11 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
                       title="Ubah Data"
                       aria-label={`Ubah data ${c.name}`}
                     >
@@ -378,7 +384,7 @@ export default function CustomersPage() {
                       <button
                         type="button"
                         onClick={() => setDeleteConfirmId(c.id!)}
-                        className="size-10 flex items-center justify-center rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                        className="size-11 flex items-center justify-center rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                         title="Hapus Pelanggan"
                         aria-label={`Hapus ${c.name}`}
                       >

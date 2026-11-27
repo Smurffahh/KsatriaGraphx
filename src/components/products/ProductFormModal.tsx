@@ -229,7 +229,7 @@ export function ProductFormModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex size-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95 transition-colors"
+            className="flex size-11 sm:size-9 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95 transition-colors cursor-pointer"
             aria-label="Tutup Dialog"
           >
             <X className="size-5" />
@@ -371,8 +371,12 @@ export function ProductFormModal({
               </div>
             )}
 
-            {/* Harga Produksi (Modal) vs Harga Jual (Ke Pelanggan) */}
-            <div className="sm:col-span-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2 grid grid-cols-1 gap-4 sm:grid-cols-2 rounded-xl border border-border bg-muted/25 p-4">
+              <div className="sm:col-span-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Modal Produksi &amp; Harga Jual Pelanggan
+                </h3>
+              </div>
               <div className="space-y-1.5">
                 <label className="text-xs sm:text-sm font-semibold text-foreground">
                   Harga Produksi / Vendor (Modal Rp)
@@ -497,7 +501,7 @@ export function ProductFormModal({
                 <button
                   type="button"
                   onClick={handleAddTier}
-                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 transition-colors cursor-pointer"
+                  className="inline-flex min-h-11 sm:min-h-9 items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 transition-colors cursor-pointer"
                 >
                   <Plus className="size-3.5" />
                   Tambah Tier
@@ -567,7 +571,7 @@ export function ProductFormModal({
                       <button
                         type="button"
                         onClick={() => handleRemoveTier(idx)}
-                        className="flex size-9 items-center justify-center rounded-lg text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                        className="flex size-11 sm:size-9 items-center justify-center rounded-lg text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                         aria-label="Hapus Baris Tier"
                       >
                         <Trash2 className="size-4" />

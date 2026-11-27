@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "fs";
 import { getCorsHeaders } from "../src/lib/api/cors";
 import { resolveApiUrl } from "../src/lib/api/client";

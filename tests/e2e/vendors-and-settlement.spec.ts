@@ -321,7 +321,7 @@ test.describe("E2E: Master Vendor Mitra, SPK WA Zero-Leak & Setoran Modal Vendor
       const versionRes = await anonContext.get("/api/app/version");
       expect(versionRes.status()).toBe(200);
       const versionJson = await versionRes.json();
-      expect(versionJson.currentServerVersion).toBe("1.6.0");
+      expect(versionJson.currentServerVersion).toBe("1.7.0");
     } finally {
       await anonContext.dispose();
     }

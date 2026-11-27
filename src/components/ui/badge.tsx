@@ -3,23 +3,23 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center whitespace-nowrap tabular-nums rounded-full border px-2.5 py-1 text-xs font-medium transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground shadow-xs hover:bg-primary/80",
+          "border-transparent bg-primary text-primary-foreground shadow-2xs hover:bg-primary/90",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/80",
+          "border-transparent bg-destructive text-destructive-foreground shadow-2xs hover:bg-destructive/90",
         outline: "text-foreground border-border",
         success:
-          "border-transparent bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
+          "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/25",
         warning:
-          "border-transparent bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20",
+          "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/25",
         info:
-          "border-transparent bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20",
+          "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/25",
       },
     },
     defaultVariants: {

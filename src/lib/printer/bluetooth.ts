@@ -61,26 +61,6 @@ function getNativeBluetooth(): NativeBluetoothSerial | null {
 }
 
 /**
- * Meminta izin Bluetooth di perangkat Android (Android 12+ BLUETOOTH_SCAN & BLUETOOTH_CONNECT).
- */
-export async function requestBluetoothPermissions(): Promise<boolean> {
-  if (!isNativeApp()) return false;
-
-  const bt = getNativeBluetooth();
-  if (bt?.requestPermissions) {
-    try {
-      const res = await bt.requestPermissions();
-      return Boolean(res.granted);
-    } catch (err) {
-      console.warn("[Bluetooth] Izin ditolak atau gagal:", err);
-      return false;
-    }
-  }
-
-  return true; // Fallback untuk Android <= 11
-}
-
-/**
  * Mendapatkan daftar printer Bluetooth thermal yang telah dipasangkan (paired) di HP Android.
  */
 export async function listPairedPrinters(): Promise<ThermalPrinterDevice[]> {

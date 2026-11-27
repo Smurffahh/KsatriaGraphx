@@ -69,9 +69,9 @@ export default function LoginPage() {
         } else if (response.status === 429) {
           errorMsg = "Terlalu banyak percobaan login. Silakan tunggu beberapa menit.";
         } else if (response.status === 403) {
-          errorMsg = "Akses ditolak oleh kebijakan keamanan server (kode 403).";
+          errorMsg = "Akses ditolak. Pastikan Anda login melalui perangkat yang diizinkan.";
         } else {
-          errorMsg = data.error || `Terjadi kesalahan saat masuk ke sistem (kode ${response.status}).`;
+          errorMsg = data.error || "Gagal masuk ke sistem. Silakan periksa data login Anda dan coba lagi.";
         }
         setErrorMessage(errorMsg);
         toast.error(errorMsg);
@@ -88,7 +88,7 @@ export default function LoginPage() {
             refreshToken: data.data.refreshToken,
           });
         } catch {
-          const storageMsg = "Gagal menyimpan sesi terenkripsi di perangkat (kode STORAGE).";
+          const storageMsg = "Gagal menyimpan sesi login di perangkat ini. Silakan coba lagi.";
           setErrorMessage(storageMsg);
           toast.error(storageMsg);
           setIsLoading(false);
@@ -105,7 +105,7 @@ export default function LoginPage() {
         targetUrl: "/dashboard",
       });
     } catch {
-      const netMsg = "Tidak dapat terhubung ke server. Periksa koneksi internet atau konfigurasi server (kode NET).";
+      const netMsg = "Tidak dapat terhubung ke server. Periksa koneksi internet Anda lalu coba lagi.";
       setErrorMessage(netMsg);
       toast.error(netMsg);
       setIsLoading(false);
@@ -119,7 +119,7 @@ export default function LoginPage() {
       {/* Splash Screen Pra-Login (hanya muncul di sesi awal) */}
       <PreLoginSplash onComplete={() => setIsSplashDone(true)} />
 
-      <main className="relative flex min-h-dvh flex-col items-center justify-center bg-background p-4 sm:p-6 text-foreground overflow-hidden">
+      <main className="relative flex min-h-dvh flex-col items-center justify-center bg-background px-4 py-10 sm:p-6 text-foreground overflow-y-auto">
         {/* Top Floating Theme Toggle */}
         <div className="absolute top-4 right-4 z-20">
           <ThemeToggle />

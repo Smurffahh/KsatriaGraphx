@@ -12,7 +12,6 @@ import {
   Package,
   ArrowRight,
   Calculator,
-  AlertCircle,
   Plus,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
@@ -27,6 +26,16 @@ import { PosSuccessModal } from "@/components/pos/PosSuccessModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
+import { EmptyStatePanel, ErrorStatePanel } from "@/components/ui/state-panels";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { formatRupiah } from "@/lib/format";
 import { m, AnimatePresence } from "motion/react";
 import { EASE_SMOOTH, EASE_EXIT } from "@/lib/motion";
 import {
@@ -98,6 +107,7 @@ export default function PosPage() {
   const [editingCartItem, setEditingCartItem] = useState<CartItem | null>(null);
 
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+  const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<{
     id: string;
@@ -205,11 +215,10 @@ export default function PosPage() {
     toast.info("Item dihapus dari keranjang");
   };
 
-  const handleClearCart = () => {
-    if (window.confirm("Kosongkan semua item di keranjang?")) {
-      setCart([]);
-      toast.info("Keranjang telah dikosongkan");
-    }
+  const handleClearCartConfirm = () => {
+    setCart([]);
+    setClearConfirmOpen(false);
+    toast.info("Keranjang telah dikosongkan");
   };
 
   const handleOrderSuccess = (orderResult: {
@@ -248,7 +257,7 @@ export default function PosPage() {
         {cart.length > 0 && (
           <button
             type="button"
-            onClick={handleClearCart}
+            onClick={() => setClearConfirmOpen(true)}
             className="text-xs sm:text-sm font-medium text-muted-foreground hover:text-destructive self-start sm:self-auto flex items-center gap-1.5 min-h-[44px] px-2 cursor-pointer"
           >
             <Trash2 className="size-4" />
@@ -258,10 +267,11 @@ export default function PosPage() {
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-center gap-2.5">
-          <AlertCircle className="size-4 shrink-0" />
-          <span>{error}</span>
-        </div>
+        <ErrorStatePanel
+          description={error}
+          onRetry={() => window.location.reload()}
+          retryLabel="Muat Ulang Halaman"
+        />
       )}
 
       {/* Main Grid: Catalog (Left) + Cart (Right Desktop) */}
@@ -286,9 +296,9 @@ export default function PosPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedCategory("ALL")}
-                  className={`min-h-10 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium shrink-0 transition-colors cursor-pointer ${
+                  className={`min-h-11 sm:min-h-10 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium shrink-0 transition-colors cursor-pointer ${
                     selectedCategory === "ALL"
-                      ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                      ? "bg-primary text-primary-foreground font-semibold shadow-2xs"
                       : "bg-card border border-border text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -299,9 +309,9 @@ export default function PosPage() {
                     key={c.id}
                     type="button"
                     onClick={() => setSelectedCategory(c.id)}
-                    className={`min-h-10 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium shrink-0 transition-colors cursor-pointer ${
+                    className={`min-h-11 sm:min-h-10 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium shrink-0 transition-colors cursor-pointer ${
                       selectedCategory === c.id
-                        ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                        ? "bg-primary text-primary-foreground font-semibold shadow-2xs"
                         : "bg-card border border-border text-muted-foreground hover:text-foreground"
                     }`}
                   >
@@ -316,15 +326,25 @@ export default function PosPage() {
           {isLoading ? (
             <PosCatalogSkeleton />
           ) : filteredProducts.length === 0 ? (
-            <div className="p-12 text-center rounded-2xl bg-card border border-border">
-              <Package className="size-10 mx-auto text-muted-foreground/40 mb-3" />
-              <h3 className="text-base font-semibold text-foreground">
-                Produk Tidak Ditemukan
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Silakan periksa kata kunci pencarian atau tambah produk baru di Katalog Produk.
-              </p>
-            </div>
+            <EmptyStatePanel
+              icon={Package}
+              title="Produk tidak ditemukan"
+              description="Periksa kata kunci pencarian atau pilih kategori lain untuk melihat produk aktif."
+              action={
+                (search || selectedCategory !== "ALL") ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setSearch("");
+                      setSelectedCategory("ALL");
+                    }}
+                  >
+                    Tampilkan Semua Produk
+                  </Button>
+                ) : undefined
+              }
+            />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4">
               {filteredProducts.map((p) => (
@@ -361,7 +381,7 @@ export default function PosPage() {
                     <div className="min-w-0">
                       <div className="text-xs text-muted-foreground">Mulai dari</div>
                       <div className="text-sm sm:text-base font-bold text-primary tabular-nums truncate">
-                        Rp {p.basePrice.toLocaleString("id-ID")}
+                        {formatRupiah(p.basePrice)}
                       </div>
                     </div>
                     <div className="size-9 shrink-0 rounded-xl bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
@@ -558,6 +578,25 @@ export default function PosPage() {
         onNewTransaction={() => setSuccessModalOpen(false)}
         orderData={completedOrder}
       />
+
+      <Dialog open={clearConfirmOpen} onOpenChange={setClearConfirmOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Kosongkan Keranjang Nota?</DialogTitle>
+            <DialogDescription>
+              Seluruh item yang sudah dihitung di keranjang akan dihapus. Anda perlu memilih ulang produk bila ingin membuat nota.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setClearConfirmOpen(false)}>
+              Batal
+            </Button>
+            <Button variant="destructive" onClick={handleClearCartConfirm}>
+              Ya, Kosongkan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

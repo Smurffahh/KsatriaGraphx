@@ -7,7 +7,6 @@ import {
   ShieldCheck,
   Filter,
   RotateCw,
-  AlertCircle,
   Monitor,
   Smartphone,
   ChevronLeft,
@@ -20,6 +19,7 @@ import { apiClient } from "@/lib/api/client";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
+import { EmptyStatePanel, ErrorStatePanel } from "@/components/ui/state-panels";
 import { Button } from "@/components/ui/button";
 
 interface AuditLogItem {
@@ -280,27 +280,18 @@ export default function AuditLogsPage() {
       {/* Loading Skeleton */}
       {isLoading && <AuditLogsSkeleton />}
 
-      {/* Error Banner */}
       {isError && (
-        <div className="p-6 rounded-2xl bg-destructive/10 border border-destructive/20 text-center space-y-2.5">
-          <AlertCircle className="size-7 text-destructive mx-auto" />
-          <p className="text-sm text-destructive font-semibold">
-            Gagal memuat log audit
-          </p>
-          <Button
-            variant="destructive"
-            onClick={() => refetch()}
-            className="min-h-10"
-          >
-            Coba Lagi
-          </Button>
-        </div>
+        <ErrorStatePanel
+          title="Gagal memuat log audit"
+          description="Periksa koneksi Anda lalu coba segarkan log aktivitas."
+          onRetry={() => refetch()}
+          retryLabel="Coba Lagi"
+        />
       )}
 
-      {/* Data Loaded */}
       {!isLoading && !isError && data && (
         <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-4">
-          <div className="flex items-center justify-between gap-2 flex-wrap text-xs sm:text-sm text-muted-foreground">
+          <div className="flex items-center justify-between gap-2 flex-wrap text-xs sm:text-sm text-muted-foreground tabular-nums">
             <span>
               Total <strong>{data.pagination.total}</strong> aktivitas tercatat
             </span>
@@ -310,10 +301,11 @@ export default function AuditLogsPage() {
           </div>
 
           {data.auditLogs.length === 0 ? (
-            <div className="p-12 text-center text-sm text-muted-foreground space-y-2">
-              <ShieldCheck className="size-9 mx-auto text-muted-foreground/60" />
-              <p>Tidak ada log aktivitas sesuai kriteria pencarian.</p>
-            </div>
+            <EmptyStatePanel
+              icon={ShieldCheck}
+              title="Belum ada aktivitas tercatat"
+              description="Tidak ada log aktivitas yang cocok dengan kriteria pencarian dan tanggal."
+            />
           ) : (
             <>
               {/* Mobile Card List (<640px) */}
@@ -373,7 +365,7 @@ export default function AuditLogsPage() {
                           <button
                             type="button"
                             onClick={() => setSelectedMetadata(log.metadata)}
-                            className="inline-flex min-h-9 items-center gap-1.5 px-3 py-1.5 text-xs text-primary bg-primary/10 hover:bg-primary/20 rounded-lg font-mono font-medium shrink-0 cursor-pointer"
+                            className="inline-flex min-h-11 items-center gap-1.5 px-3 py-1.5 text-xs text-primary bg-primary/10 hover:bg-primary/20 rounded-xl font-mono font-medium shrink-0 cursor-pointer"
                           >
                             <Code2 className="size-3.5" />
                             <span>JSON</span>
@@ -550,8 +542,8 @@ export default function AuditLogsPage() {
             <div className="flex justify-end pt-1">
               <Button
                 variant="outline"
-                size="sm"
                 onClick={() => setSelectedMetadata(null)}
+                className="min-h-11"
               >
                 Tutup
               </Button>

@@ -8,18 +8,17 @@ import {
   formatZodError,
   isValidVercelBlobUrl,
 } from "@/lib/validators/product";
-import { createCategorySchema, updateCategorySchema } from "@/lib/validators/category";
-import { createFinishingSchema, updateFinishingSchema } from "@/lib/validators/finishing";
-import { createCustomerSchema, updateCustomerSchema, normalizeIndonesianPhone } from "@/lib/validators/customer";
+import { createCategorySchema } from "@/lib/validators/category";
+import { createFinishingSchema } from "@/lib/validators/finishing";
+import { createCustomerSchema } from "@/lib/validators/customer";
 import { updateStoreSettingsSchema } from "@/lib/validators/settings";
-import { createUserSchema, updateUserSchema } from "@/lib/validators/user";
+import { createUserSchema } from "@/lib/validators/user";
 import {
   MissingBlobTokenError,
   PrivateBlobStoreError,
 } from "@/lib/storage/blob";
-import { handleGuardError, requireOwner } from "@/lib/auth/guard";
-import { NextRequest } from "next/server";
-import { detectMagicBytes, MAX_IMAGE_SIZE_BYTES } from "@/lib/security/image-validator";
+import { handleGuardError } from "@/lib/auth/guard";
+import { detectMagicBytes } from "@/lib/security/image-validator";
 
 describe("Audit Penuh Kontrak CRUD, Normalisasi Input & Error Handling (v1.1.2)", () => {
   const dummyUuid = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";

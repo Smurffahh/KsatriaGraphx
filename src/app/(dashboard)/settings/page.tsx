@@ -247,7 +247,7 @@ export default function SettingsPage() {
           href="https://github.com/Smurffahh/KsatriaGraphx/releases"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex min-h-10 items-center gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex min-h-11 sm:min-h-10 items-center gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ExternalLink className="size-4" />
           <span>Lihat Riwayat Rilis di GitHub</span>
@@ -258,7 +258,7 @@ export default function SettingsPage() {
             <Button
               type="button"
               onClick={() => setIsModalOpen(true)}
-              className="gap-2 min-h-10"
+              className="gap-2 min-h-11 sm:min-h-10"
             >
               <ArrowUpCircle className="size-4" />
               <span>Lihat &amp; Unduh Pembaruan</span>
@@ -269,7 +269,7 @@ export default function SettingsPage() {
             variant="outline"
             disabled={isManualChecking}
             onClick={handleCheckUpdateClick}
-            className="gap-2 min-h-10"
+            className="gap-2 min-h-11 sm:min-h-10"
           >
             <RefreshCw
               className={`size-4 ${isManualChecking ? "animate-spin" : ""}`}
@@ -327,13 +327,13 @@ export default function SettingsPage() {
           className={`flex items-center gap-2.5 rounded-xl p-4 text-sm font-medium ${
             statusMessage.type === "success"
               ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200"
-              : "bg-rose-50 text-rose-800 dark:bg-rose-950/60 dark:text-rose-200"
+              : "bg-destructive/10 text-destructive border border-destructive/20"
           }`}
         >
           {statusMessage.type === "success" ? (
             <CheckCircle2 className="size-5 shrink-0 text-emerald-600" />
           ) : (
-            <AlertCircle className="size-5 shrink-0 text-rose-600" />
+            <AlertCircle className="size-5 shrink-0 text-destructive" />
           )}
           <span>{statusMessage.text}</span>
         </div>

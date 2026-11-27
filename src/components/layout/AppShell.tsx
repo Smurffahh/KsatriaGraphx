@@ -3,28 +3,10 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  LayoutDashboard,
-  Calculator,
-  ClipboardList,
-  Package,
-  Users as UsersIcon,
-  BarChart3,
-  Settings,
-  UserCheck,
-  ShieldCheck,
-  LogOut,
-  Menu as MenuIcon,
-  Plus,
-  Printer,
-  ChevronRight,
-  ArrowUpCircle,
-  Building2,
-} from "lucide-react";
+import { Calculator, Plus, Printer, ArrowUpCircle } from "lucide-react";
 import { isNativeApp } from "@/lib/platform";
 import { apiClient } from "@/lib/api/client";
 import { secureStorage } from "@/lib/auth/secure-storage";
-import { formatVersionBadge, formatVersionLabel } from "@/lib/version";
 import { useAppUpdate } from "@/hooks/useAppUpdate";
 import { UpdateNoticeModal } from "./UpdateNoticeModal";
 import { QuickCalculatorSheet } from "@/components/calculator/QuickCalculatorSheet";
@@ -33,16 +15,8 @@ import { ThemeToggle } from "./ThemeToggle";
 import { AppShellSkeleton } from "./AppShellSkeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { m } from "motion/react";
 import { EASE_SMOOTH } from "@/lib/motion";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
 import {
   Dialog,
   DialogContent,
@@ -51,39 +25,14 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-
-interface AuthUserData {
-  id: string;
-  name: string;
-  username: string;
-  email: string | null;
-  role: "OWNER" | "KASIR";
-  platform: "WEB" | "APK";
-}
-
-interface NavItem {
-  label: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  ownerOnly?: boolean;
-  webOnly?: boolean;
-}
-
-const mainNavItems: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Kalkulator POS", href: "/pos", icon: Calculator },
-  { label: "Daftar Pesanan", href: "/orders", icon: ClipboardList },
-  { label: "Katalog Produk", href: "/products", icon: Package },
-  { label: "Pelanggan", href: "/customers", icon: UsersIcon },
-];
-
-const managementNavItems: NavItem[] = [
-  { label: "Laporan Omzet", href: "/reports", icon: BarChart3, ownerOnly: true },
-  { label: "Vendor Mitra", href: "/vendors", icon: Building2, ownerOnly: true },
-  { label: "Pengaturan Toko", href: "/settings", icon: Settings },
-  { label: "Kelola Pengguna", href: "/users", icon: UserCheck, ownerOnly: true, webOnly: true },
-  { label: "Audit Log", href: "/audit-logs", icon: ShieldCheck, ownerOnly: true },
-];
+import {
+  getPageMeta,
+  managementNavItems,
+  type AuthUserData,
+} from "./nav-config";
+import { SidebarNav } from "./SidebarNav";
+import { MobileBottomNav } from "./MobileBottomNav";
+import { MobileMenuDrawer } from "./MobileMenuDrawer";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -188,7 +137,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const isOwner = user?.role === "OWNER";
 
-  // Filter menu manajemen desktop
   const allowedManagementItems = useMemo(() => {
     return managementNavItems
       .filter((item) => {
@@ -207,42 +155,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       });
   }, [isOwner, isNative]);
 
-  // Judul dan subjudul halaman aktif untuk Top Bar
-  const pageMeta = useMemo(() => {
-    if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
-      return { title: "Dashboard", subtitle: "Ringkasan performa toko & penjualan" };
-    }
-    if (pathname === "/pos" || pathname.startsWith("/pos/")) {
-      return { title: "Kalkulator POS", subtitle: "Hitung otomatis & simpan nota kasir" };
-    }
-    if (pathname === "/orders" || pathname.startsWith("/orders/")) {
-      return { title: "Daftar Pesanan", subtitle: "Riwayat transaksi & status produksi" };
-    }
-    if (pathname === "/products" || pathname.startsWith("/products/")) {
-      return { title: "Katalog Produk", subtitle: "Pengelolaan produk, bahan & finishing" };
-    }
-    if (pathname === "/customers" || pathname.startsWith("/customers/")) {
-      return { title: "Data Pelanggan", subtitle: "Daftar kontak & riwayat pelanggan" };
-    }
-    if (pathname === "/reports" || pathname.startsWith("/reports/")) {
-      return { title: "Laporan Omzet", subtitle: "Rekapitulasi penjualan & arus kas" };
-    }
-    if (pathname === "/settings" || pathname.startsWith("/settings/")) {
-      return {
-        title: isOwner ? "Pengaturan Toko" : "Printer Bluetooth",
-        subtitle: isOwner
-          ? "Konfigurasi toko, nota & preferensi sistem"
-          : "Koneksi printer thermal kasir ESC/POS",
-      };
-    }
-    if (pathname === "/users" || pathname.startsWith("/users/")) {
-      return { title: "Kelola Pengguna", subtitle: "Manajemen akun & otorisasi kasir" };
-    }
-    if (pathname === "/audit-logs" || pathname.startsWith("/audit-logs/")) {
-      return { title: "Audit Log Forensik", subtitle: "Rekam jejak aktivitas sensitif sistem" };
-    }
-    return { title: "Ksatria Graphx", subtitle: "Sistem Manajemen Percetakan & POS" };
-  }, [pathname, isOwner]);
+  const pageMeta = useMemo(
+    () => getPageMeta(pathname, isOwner),
+    [pathname, isOwner]
+  );
 
   if (isLoading) {
     return <AppShellSkeleton />;
@@ -250,12 +166,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-dvh bg-background text-foreground antialiased flex flex-col">
-      {/* ========================================================= */}
-      {/* MOBILE TOP BAR (< 1024px) — 0 HAMBURGER                   */}
-      {/* ========================================================= */}
-      <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between border-b border-border bg-card/90 px-4 pt-[env(safe-area-inset-top,0px)] backdrop-blur-md lg:hidden">
+      <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between gap-2 border-b border-border bg-card/90 px-4 pt-[env(safe-area-inset-top,0px)] backdrop-blur-md lg:hidden">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary font-bold text-sm text-primary-foreground shadow-xs">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary font-bold text-sm text-primary-foreground shadow-2xs">
             KG
           </div>
           <div className="flex flex-col min-w-0">
@@ -273,11 +186,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
-              className="relative flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors hover:bg-primary/20"
+              className="relative flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors hover:bg-primary/20 cursor-pointer"
               title={`Pembaruan v${latestVersion} tersedia`}
               aria-label="Pembaruan Aplikasi Tersedia"
             >
-              <span className="absolute top-1.5 right-1.5 flex size-2">
+              <span className="absolute top-2 right-2 flex size-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex size-2 rounded-full bg-primary"></span>
               </span>
@@ -286,7 +199,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
           <Badge
             variant={isOwner ? "default" : "secondary"}
-            className="text-xs px-2.5 py-0.5 uppercase tracking-wider"
+            className="text-xs px-2.5 py-0.5 uppercase tracking-wider shrink-0"
           >
             {user?.role}
           </Badge>
@@ -294,155 +207,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      {/* ========================================================= */}
-      {/* DESKTOP + MAIN CONTAINER                                   */}
-      {/* ========================================================= */}
       <div className="flex flex-1 min-w-0">
-        {/* ======================================================= */}
-        {/* DESKTOP FIXED SIDEBAR (>= 1024px)                       */}
-        {/* ======================================================= */}
-        <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:shrink-0 lg:sticky lg:top-0 lg:h-dvh bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
-          {/* Brand Header */}
-          <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5 shrink-0">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-sidebar-primary font-bold text-sm text-sidebar-primary-foreground shadow-xs">
-              KG
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold tracking-tight text-sidebar-foreground leading-tight">
-                Ksatria Graphx
-              </span>
-              <span className="text-xs text-sidebar-foreground/70 mt-0.5 font-medium">
-                POS & Percetakan
-              </span>
-            </div>
-          </div>
+        <SidebarNav
+          pathname={pathname}
+          user={user}
+          allowedManagementItems={allowedManagementItems}
+          isNative={isNative}
+          hasUpdate={hasUpdate}
+          latestVersion={latestVersion}
+          onOpenUpdateModal={() => setIsModalOpen(true)}
+          onRequestLogout={() => setShowLogoutConfirm(true)}
+        />
 
-          {/* Navigation Links */}
-          <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-6">
-            {/* Navigasi Utama */}
-            <div className="space-y-1.5">
-              <span className="px-3.5 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/60">
-                Menu Utama
-              </span>
-              <nav className="mt-1.5 space-y-1">
-                {mainNavItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive =
-                    pathname === item.href || pathname.startsWith(`${item.href}/`);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium active:scale-[0.98] transition-[transform,color,background-color] min-h-11 ${
-                        isActive
-                          ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-xs"
-                          : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                      }`}
-                    >
-                      <Icon className="size-4.5 shrink-0" />
-                      <span>{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
-
-            {/* Navigasi Manajemen */}
-            <div className="space-y-1.5">
-              <span className="px-3.5 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/60">
-                Manajemen
-              </span>
-              <nav className="mt-1.5 space-y-1">
-                {allowedManagementItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive =
-                    pathname === item.href || pathname.startsWith(`${item.href}/`);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium active:scale-[0.98] transition-[transform,color,background-color] min-h-11 ${
-                        isActive
-                          ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-xs"
-                          : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                      }`}
-                    >
-                      <Icon className="size-4.5 shrink-0" />
-                      <span>{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
-          </div>
-
-          {/* Sidebar Footer Profile & Version */}
-          <div className="shrink-0 border-t border-sidebar-border p-3.5 bg-sidebar space-y-3">
-            <div className="flex items-center justify-between gap-2 rounded-xl bg-sidebar-accent/50 p-3">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-sidebar text-xs font-bold text-sidebar-foreground border border-sidebar-border shadow-xs">
-                  {user?.name ? user.name.slice(0, 2).toUpperCase() : "KG"}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-sidebar-foreground leading-tight">
-                    {user?.name}
-                  </p>
-                  <p className="text-xs text-sidebar-foreground/70 truncate uppercase font-medium mt-0.5">
-                    {user?.role}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowLogoutConfirm(true)}
-                className="flex size-9 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground/70 hover:bg-destructive/10 hover:text-destructive transition-colors"
-                title="Keluar Sesi"
-                aria-label="Keluar Sesi"
-              >
-                <LogOut className="size-4" />
-              </button>
-            </div>
-
-            {/* Titik 2: Badge Versi Single Source of Truth + Indikator Update */}
-            <div className="flex items-center justify-between px-1">
-              <span className="text-xs font-medium text-sidebar-foreground/70">
-                {formatVersionBadge(isNative)}
-              </span>
-              {hasUpdate && (
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(true)}
-                  className="flex items-center gap-1.5 rounded-full bg-sidebar-primary/15 px-2.5 py-0.5 text-xs font-semibold text-sidebar-primary hover:bg-sidebar-primary/25 transition-colors"
-                  title={`Pembaruan v${latestVersion} tersedia`}
-                >
-                  <span className="relative flex size-1.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sidebar-primary opacity-75"></span>
-                    <span className="relative inline-flex size-1.5 rounded-full bg-sidebar-primary"></span>
-                  </span>
-                  <span>Update</span>
-                </button>
-              )}
-            </div>
-          </div>
-        </aside>
-
-        {/* ======================================================= */}
-        {/* MAIN CONTENT AREA & DESKTOP TOP BAR                     */}
-        {/* ======================================================= */}
         <div className="flex flex-1 flex-col min-w-0">
-          {/* Desktop Sticky Topbar (>= 1024px) */}
           <header className="hidden h-16 items-center justify-between border-b border-border bg-background/85 px-6 lg:px-8 backdrop-blur-md lg:flex sticky top-0 z-30">
-            <div>
-              <p className="text-base font-semibold text-foreground leading-tight">
+            <div className="min-w-0">
+              <p className="text-base font-semibold text-foreground leading-tight truncate">
                 {pageMeta.title}
               </p>
-              <p className="text-xs text-muted-foreground leading-snug mt-0.5">
+              <p className="text-xs text-muted-foreground leading-snug mt-0.5 truncate">
                 {pageMeta.subtitle}
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 shrink-0">
               {hasUpdate && (
                 <Button
                   variant="outline"
@@ -460,7 +248,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 type="button"
                 variant="outline"
                 onClick={() => setIsQuickCalcOpen(true)}
-                className="gap-2 rounded-xl text-sm font-medium shadow-xs hover:bg-accent"
+                className="gap-2 rounded-xl text-sm font-medium shadow-2xs hover:bg-accent"
                 title="Buka Kalkulator Cepat (Alt+K)"
               >
                 <Calculator className="size-4 text-primary" />
@@ -471,7 +259,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Button>
               <ThemeToggle />
               <Link href="/pos">
-                <Button className="gap-2 rounded-xl font-semibold shadow-xs">
+                <Button className="gap-2 rounded-xl font-semibold shadow-2xs">
                   <Plus className="size-4" />
                   <span>Transaksi Baru</span>
                 </Button>
@@ -479,7 +267,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </header>
 
-          {/* Main Content Canvas */}
           <main
             className={`flex-1 min-w-0 bg-muted/40 dark:bg-background lg:pb-10 ${
               pathname === "/pos" ? "pb-36" : "pb-24"
@@ -499,283 +286,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      {/* ========================================================= */}
-      {/* MOBILE BOTTOM NAVIGATION BAR (< 1024px) — 5 SLOTS         */}
-      {/* ========================================================= */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 min-h-16 border-t border-border bg-card/95 pt-1 pb-[max(0.375rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden grid grid-cols-5 items-center px-1">
-        {/* 1. Dashboard */}
-        <Link
-          href="/dashboard"
-          className={`flex flex-col items-center justify-center gap-1 py-1.5 min-h-[44px] active:scale-95 transition-[transform,color,background-color] rounded-xl ${
-            pathname === "/dashboard"
-              ? "text-primary font-semibold"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <LayoutDashboard className="size-5" />
-          <span className="text-[11px] min-[370px]:text-xs tracking-tight">Dashboard</span>
-        </Link>
+      <MobileBottomNav
+        pathname={pathname}
+        isMenuOpen={isMenuSheetOpen}
+        isQuickCalcOpen={isQuickCalcOpen}
+        onOpenQuickCalc={() => setIsQuickCalcOpen(true)}
+        onOpenMenu={() => setIsMenuSheetOpen(true)}
+      />
 
-        {/* 2. POS (Disorot sebagai Aksi Kasir Utama) */}
-        <Link
-          href="/pos"
-          className={`flex flex-col items-center justify-center gap-1 py-1.5 min-h-[44px] active:scale-95 transition-[transform,color,background-color] rounded-xl ${
-            pathname === "/pos"
-              ? "text-primary font-semibold"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <div className={`p-1.5 rounded-lg ${pathname === "/pos" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
-            <Calculator className="size-4" />
-          </div>
-          <span className="text-[11px] min-[370px]:text-xs tracking-tight">POS</span>
-        </Link>
+      <MobileMenuDrawer
+        open={isMenuSheetOpen}
+        onOpenChange={setIsMenuSheetOpen}
+        pathname={pathname}
+        user={user}
+        isOwner={isOwner}
+        isNative={isNative}
+        hasUpdate={hasUpdate}
+        latestVersion={latestVersion}
+        onOpenUpdateModal={() => setIsModalOpen(true)}
+        onRequestLogout={() => setShowLogoutConfirm(true)}
+      />
 
-        {/* 3. Pesanan */}
-        <Link
-          href="/orders"
-          className={`flex flex-col items-center justify-center gap-1 py-1.5 min-h-[44px] active:scale-95 transition-[transform,color,background-color] rounded-xl ${
-            pathname.startsWith("/orders")
-              ? "text-primary font-semibold"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <ClipboardList className="size-5" />
-          <span className="text-[11px] min-[370px]:text-xs tracking-tight">Pesanan</span>
-        </Link>
-
-        {/* 4. Produk */}
-        <Link
-          href="/products"
-          className={`flex flex-col items-center justify-center gap-1 py-1.5 min-h-[44px] active:scale-95 transition-[transform,color,background-color] rounded-xl ${
-            pathname.startsWith("/products")
-              ? "text-primary font-semibold"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <Package className="size-5" />
-          <span className="text-[11px] min-[370px]:text-xs tracking-tight">Produk</span>
-        </Link>
-
-        {/* 5. Menu (Buka Bottom Sheet) */}
-        <button
-          type="button"
-          onClick={() => setIsMenuSheetOpen(true)}
-          className={`flex flex-col items-center justify-center gap-1 py-1.5 min-h-[44px] active:scale-95 transition-[transform,color,background-color] rounded-xl ${
-            isMenuSheetOpen || pathname === "/customers" || pathname === "/reports" || pathname === "/settings" || pathname === "/users" || pathname === "/audit-logs"
-              ? "text-primary font-semibold"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-          aria-label="Buka Menu Lainnya"
-        >
-          <MenuIcon className="size-5" />
-          <span className="text-[11px] min-[370px]:text-xs tracking-tight">Menu</span>
-        </button>
-      </nav>
-
-      {/* ========================================================= */}
-      {/* MOBILE FLOATING ACTION BUTTON (FAB) KALKULATOR CEPAT     */}
-      {/* ========================================================= */}
-      {!isQuickCalcOpen && (
-        <button
-          type="button"
-          onClick={() => setIsQuickCalcOpen(true)}
-          aria-label="Buka Kalkulator Cepat"
-          title="Buka Kalkulator Cepat"
-          className={`fixed right-4 z-40 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/20 active:scale-95 motion-safe:hover:scale-105 transition-[transform,color,background-color,opacity] duration-150 lg:hidden cursor-pointer ${
-            pathname === "/pos"
-              ? "bottom-[calc(9.5rem+env(safe-area-inset-bottom))]"
-              : "bottom-[calc(5rem+env(safe-area-inset-bottom))]"
-          }`}
-        >
-          <Calculator className="size-5.5" />
-        </button>
-      )}
-
-      {/* ========================================================= */}
-      {/* BOTTOM SHEET "MENU LAINNYA" (MOBILE ONLY)                 */}
-      {/* ========================================================= */}
-      <Sheet open={isMenuSheetOpen} onOpenChange={setIsMenuSheetOpen}>
-        <SheetContent side="bottom" className="p-5 sm:p-6 max-w-lg mx-auto space-y-4 rounded-t-2xl">
-          <SheetHeader className="text-left space-y-1 pr-12">
-            <SheetTitle className="text-lg font-semibold text-foreground">
-              Menu & Pengaturan
-            </SheetTitle>
-            <SheetDescription className="text-sm text-muted-foreground">
-              Akses cepat ke modul sekunder, pelanggan, laporan, dan preferensi toko
-            </SheetDescription>
-          </SheetHeader>
-
-          {/* User Info Card in Sheet */}
-          <div className="flex items-center gap-3 rounded-2xl bg-muted/60 p-3.5 border border-border/80">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-card text-sm font-bold text-foreground border border-border shadow-xs">
-              {user?.name ? user.name.slice(0, 2).toUpperCase() : "KG"}
-            </div>
-            <div className="min-w-0 flex-1 space-y-1">
-              <p className="truncate text-sm font-semibold text-foreground">
-                {user?.name}
-              </p>
-              <div className="flex flex-wrap items-center gap-2">
-                {user?.role && (
-                  <Badge
-                    variant={isOwner ? "default" : "secondary"}
-                    className="text-xs px-2.5 py-0.5 uppercase tracking-wider font-semibold shrink-0"
-                  >
-                    {user.role}
-                  </Badge>
-                )}
-                <span className="text-xs text-muted-foreground truncate">
-                  {isNative ? "Android APK Native" : "Web Desktop System"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Secondary Links List */}
-          <div className="space-y-1">
-            {/* Pelanggan */}
-            <Link
-              href="/customers"
-              onClick={() => setIsMenuSheetOpen(false)}
-              className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-sm font-medium text-foreground transition-colors min-h-[44px]"
-            >
-              <div className="flex items-center gap-3">
-                <UsersIcon className="size-4.5 text-primary" />
-                <span>Data Pelanggan</span>
-              </div>
-              <ChevronRight className="size-4 text-muted-foreground" />
-            </Link>
-
-            {isOwner && (
-              <Link
-                href="/vendors"
-                onClick={() => setIsMenuSheetOpen(false)}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-sm font-medium text-foreground transition-colors min-h-[44px]"
-              >
-                <div className="flex items-center gap-3">
-                  <Building2 className="size-4.5 text-primary" />
-                  <span>Vendor Mitra</span>
-                </div>
-                <ChevronRight className="size-4 text-muted-foreground" />
-              </Link>
-            )}
-
-            {isOwner && (
-              <Link
-                href="/reports"
-                onClick={() => setIsMenuSheetOpen(false)}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-sm font-medium text-foreground transition-colors min-h-[44px]"
-              >
-                <div className="flex items-center gap-3">
-                  <BarChart3 className="size-4.5 text-primary" />
-                  <span>Laporan Omzet Penjualan</span>
-                </div>
-                <ChevronRight className="size-4 text-muted-foreground" />
-              </Link>
-            )}
-
-            {/* Pengaturan / Printer Bluetooth */}
-            {(isOwner || isNative) && (
-              <Link
-                href="/settings"
-                onClick={() => setIsMenuSheetOpen(false)}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-sm font-medium text-foreground transition-colors min-h-[44px]"
-              >
-                <div className="flex items-center gap-3">
-                  {isNative && !isOwner ? (
-                    <Printer className="size-4.5 text-primary" />
-                  ) : (
-                    <Settings className="size-4.5 text-primary" />
-                  )}
-                  <span>{isNative && !isOwner ? "Printer Bluetooth Kasir" : "Pengaturan Toko & Nota"}</span>
-                </div>
-                <ChevronRight className="size-4 text-muted-foreground" />
-              </Link>
-            )}
-
-            {/* Audit Log (Owner Only) */}
-            {isOwner && (
-              <Link
-                href="/audit-logs"
-                onClick={() => setIsMenuSheetOpen(false)}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-sm font-medium text-foreground transition-colors min-h-[44px]"
-              >
-                <div className="flex items-center gap-3">
-                  <ShieldCheck className="size-4.5 text-primary" />
-                  <span>Audit Log Forensik</span>
-                </div>
-                <ChevronRight className="size-4 text-muted-foreground" />
-              </Link>
-            )}
-
-            {/* Kelola Pengguna (Owner + Web Only — 100% hidden in APK) */}
-            {isOwner && !isNative && (
-              <Link
-                href="/users"
-                onClick={() => setIsMenuSheetOpen(false)}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-sm font-medium text-foreground transition-colors min-h-[44px]"
-              >
-                <div className="flex items-center gap-3">
-                  <UserCheck className="size-4.5 text-primary" />
-                  <span>Kelola Akun Pengguna</span>
-                </div>
-                <ChevronRight className="size-4 text-muted-foreground" />
-              </Link>
-            )}
-          </div>
-
-          <Separator />
-
-          {/* Titik 3: Info Versi & Status Update di Bottom Sheet */}
-          <div className="pt-2 flex items-center justify-between gap-3">
-            <div className="flex flex-col">
-              <span className="text-xs font-medium text-muted-foreground">
-                {formatVersionLabel(isNative)}
-              </span>
-              {hasUpdate ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMenuSheetOpen(false);
-                    setIsModalOpen(true);
-                  }}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline text-left mt-1 min-h-8"
-                >
-                  <span className="size-1.5 rounded-full bg-primary animate-pulse" />
-                  Pembaruan v{latestVersion} Tersedia
-                </button>
-              ) : (
-                <span className="text-xs text-muted-foreground/80 mt-0.5">
-                  Versi terbaru aktif
-                </span>
-              )}
-            </div>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                setIsMenuSheetOpen(false);
-                setShowLogoutConfirm(true);
-              }}
-              className="gap-2 shrink-0"
-            >
-              <LogOut className="size-4" />
-              <span>Keluar Sesi</span>
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* ========================================================= */}
-      {/* LOGOUT CONFIRMATION DIALOG                                */}
-      {/* ========================================================= */}
       <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Konfirmasi Keluar Sesi</DialogTitle>
+            <DialogTitle>Keluar dari Sesi?</DialogTitle>
             <DialogDescription>
-              Apakah Anda yakin ingin mengakhiri sesi kerja ini? Anda perlu memasukkan kredensial login kembali untuk mengakses sistem kasir.
+              Anda perlu memasukkan username dan password kembali saat membuka aplikasi kasir.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
@@ -784,7 +321,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               disabled={isLoggingOut}
               onClick={() => setShowLogoutConfirm(false)}
             >
-              Batal
+              Tetap Masuk
             </Button>
             <Button
               variant="destructive"
@@ -797,16 +334,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </DialogContent>
       </Dialog>
 
-      {/* In-App Update Modal */}
       <UpdateNoticeModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onDismiss={() => dismissUpdate()}
-        versionData={versionData}
+        onDismiss={dismissUpdate}
         currentVersion={currentVersion}
+        versionData={versionData}
       />
 
-      {/* Kalkulator Cepat (Cek Harga & Komparasi Bahan) */}
       <QuickCalculatorSheet
         isOpen={isQuickCalcOpen}
         onClose={() => setIsQuickCalcOpen(false)}

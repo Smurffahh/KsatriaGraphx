@@ -3,7 +3,7 @@
  */
 
 export const APP_VERSION =
-  process.env.NEXT_PUBLIC_APP_VERSION || "1.6.0";
+  process.env.NEXT_PUBLIC_APP_VERSION || "1.7.0";
 
 export interface AppVersionResponse {
   currentServerVersion: string;

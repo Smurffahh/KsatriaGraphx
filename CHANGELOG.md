@@ -4,6 +4,24 @@ Semua pembaruan terstruktur untuk proyek **Ksatria Graphx** didokumentasikan dal
 
 ---
 
+## [v1.7.0] - 2026-11-27
+
+Pembaruan v1.7.0 menghadirkan perombakan antarmuka Mobile-First yang lebih lega dan mudah dipahami di seluruh halaman, modularisasi komponen, pembersihan kode mati, serta pengetatan 20 poin keamanan sistem:
+
+### Perombakan Antarmuka Mobile-First & Modularisasi Komponen
+- **Navigasi & Fondasi Sentuhan Nyaman**: Menambahkan token hover primer pada CSS OKLCH, memastikan input teks mobile berukuran minimal `16px` tanpa auto-zoom iOS, menjaga target sentuh tombol minimal `44x44px`, meniadakan overflow horizontal di layar `360px-430px`, serta mengganti tombol kalkulator mengambang di mobile menjadi tab **Kalkulator** ke-4 pada bilah navigasi bawah.
+- **Alur Bahasa Indonesia yang Jelas & Konsisten**: Menyeragamkan label status pembayaran dan produksi (`Lunas`, `Panjar (DP)`, `Belum Bayar`, `Antrean Cetak`, `Sedang Dikerjakan`), panel empty/error state terpusat, penomoran 3 langkah pada Kalkulator Cepat, kartu item stacked di Detail Pesanan pada layar kecil, serta pemisahan bagian Performa Penjualan dan Kesehatan Kas di Dashboard.
+- **Pemecahan Komponen Monolitik**: Memecah `AppShell`, `QuickCalculatorSheet`, `PosCheckoutModal`, `OrderVendorPanel`, `DashboardPage`, `ReportsPage`, dan `UsersPage` menjadi komponen terstruktur di `src/components/` dengan dialog Radix yang konsisten.
+
+### Pembersihan Kode Mati & Penyelarasan Tipe
+- **Konsolidasi Utilitas & Penghapusan Simbol Tak Terpakai**: Menyatukan helper pemformatan Rupiah dan tanggal di `src/lib/format.ts`, membersihkan ekspor yang tidak memiliki referensi (`successResponse`, `requestBluetoothPermissions`, dan varian animasi yang tidak terpakai), serta menghapus seluruh type cast `as any` pada `reports/page.tsx` dan `product-image/route.ts`.
+
+### Pengetatan 20 Poin Keamanan
+- **Integritas Environment & Error Allowlist**: Menghapus password default hardcoded dari `src/lib/env.ts` dan `src/db/seed.ts`, mewajibkan secret JWT produksi terkonfigurasi tanpa fallback dev, serta mengubah `handleApiError` untuk mengembalikan pesan generik terkendali pada seluruh kegagalan internal `status >= 500`.
+- **CSP Produksi & Sanitasi Endpoint Gambar**: Menghapus `'unsafe-eval'` dari direktif `script-src` CSP di build produksi `next.config.ts` serta memperketat `GET /api/uploads/product-image` terhadap malformed URI, path traversal, ekstensi non-raster, dan header `X-Content-Type-Options: nosniff`.
+
+---
+
 ## [v1.6.0] - 2026-11-27
 
 Pembaruan v1.6.0 melengkapi alur operasional makelar percetakan dan konveksi pada **Ksatria Graphx** dengan direktori vendor mitra, pengiriman SPK produksi zero-leak ke WhatsApp, dan pencatatan setoran modal ke vendor khusus Owner:

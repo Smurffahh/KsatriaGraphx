@@ -9,7 +9,6 @@ import {
   Clock,
   User,
   DollarSign,
-  AlertCircle,
   Ban,
   Banknote,
   Edit2,
@@ -25,6 +24,16 @@ import {
 import { ReceiptModal } from "@/components/receipt/ReceiptModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { ErrorStatePanel } from "@/components/ui/state-panels";
+import {
+  formatLongDateTimeId,
+  formatRupiah,
+  formatShortDateTimeId,
+} from "@/lib/format";
+import {
+  getPaymentStatusMeta,
+  getProductionStatusMeta,
+} from "@/lib/orders/status-labels";
 import type { VendorPaymentStatus } from "@/lib/vendors/settlement";
 
 interface OrderDetailItem extends OrderVendorItemData {
@@ -203,27 +212,29 @@ function OrderDetailContent() {
 
   if (error || !order) {
     return (
-      <div className="p-8 text-center max-w-md mx-auto rounded-2xl bg-card border border-border space-y-4">
-        <AlertCircle className="size-10 text-destructive mx-auto" />
-        <h2 className="text-lg font-semibold text-foreground">Terjadi Kendala</h2>
-        <p className="text-xs text-muted-foreground">
-          {error || "Data nota tidak ditemukan"}
-        </p>
-        <Button
-          variant="outline"
-          onClick={() => router.push("/orders")}
-          className="gap-2 min-h-[44px]"
-        >
-          <ArrowLeft className="size-4" />
-          <span>Kembali ke Daftar Pesanan</span>
-        </Button>
+      <div className="space-y-4">
+        <ErrorStatePanel
+          title="Rincian nota gagal dimuat"
+          description={error || "Data nota tidak ditemukan."}
+          onRetry={fetchOrderDetail}
+        />
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            onClick={() => router.push("/orders")}
+            className="gap-2 min-h-[44px]"
+          >
+            <ArrowLeft className="size-4" />
+            <span>Kembali ke Daftar Pesanan</span>
+          </Button>
+        </div>
       </div>
     );
   }
 
-  const isPaid = order.paymentStatus === "PAID";
-  const isPartial = order.paymentStatus === "PARTIAL";
   const isCancelled = order.productionStatus === "CANCELLED";
+  const paymentMeta = getPaymentStatusMeta(order.paymentStatus);
+  const productionMeta = getProductionStatusMeta(order.productionStatus);
 
   return (
     <div className="space-y-6">
@@ -288,15 +299,9 @@ function OrderDetailContent() {
               {order.invoiceNumber}
             </h1>
             <div className="flex flex-wrap items-center gap-2.5 text-xs sm:text-sm text-muted-foreground mt-1.5">
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1.5 tabular-nums">
                 <Clock className="size-4" />
-                {new Date(order.createdAt).toLocaleDateString("id-ID", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {formatLongDateTimeId(order.createdAt)}
               </span>
               <span>•</span>
               <span>Kasir: {order.cashierName || "Kasir"}</span>
@@ -309,19 +314,15 @@ function OrderDetailContent() {
 
           <div className="flex items-center gap-2 flex-wrap">
             <span
-              className={`px-3 py-1 text-xs font-semibold rounded-lg border ${
-                isPaid
-                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                  : isPartial
-                  ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                  : "bg-destructive/10 text-destructive border-destructive/20"
-              }`}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg border whitespace-nowrap ${paymentMeta.badgeClass}`}
             >
-              {order.paymentStatus}
+              {paymentMeta.label}
             </span>
 
-            <span className="px-3 py-1 text-xs font-semibold rounded-lg bg-muted text-foreground border border-border">
-              {order.productionStatus}
+            <span
+              className={`px-3 py-1 text-xs font-semibold rounded-lg border whitespace-nowrap ${productionMeta.badgeClass}`}
+            >
+              {productionMeta.label}
             </span>
           </div>
         </div>
@@ -414,15 +415,91 @@ function OrderDetailContent() {
         )}
       </div>
 
-      {/* Items Breakdown Table */}
+      {/* Items Breakdown Section */}
       <div className="bg-card border border-border rounded-2xl shadow-xs overflow-hidden">
-        <div className="p-4 sm:p-5 border-b border-border bg-muted/40">
+        <div className="p-4 sm:p-5 border-b border-border bg-muted/40 flex items-center justify-between gap-2">
           <h2 className="text-base font-semibold text-foreground">
             Daftar Item Percetakan
           </h2>
+          <span className="text-xs text-muted-foreground tabular-nums">
+            {order.items.length} item
+          </span>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Mobile Stacked Item Cards */}
+        <div className="divide-y divide-border/60 md:hidden">
+          {order.items.map((item) => (
+            <div key={item.id} className="p-4 space-y-2.5">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-semibold text-foreground text-sm leading-snug">
+                    {item.productNameSnapshot}
+                  </p>
+                  {item.isPriceOverridden && (
+                    <span className="inline-block px-2 py-0.5 mt-1 text-xs bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 rounded-md font-medium">
+                      Harga Khusus Owner
+                    </span>
+                  )}
+                </div>
+                <p className="font-bold text-foreground tabular-nums text-sm shrink-0">
+                  {formatRupiah(item.itemSubtotal)}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground tabular-nums">
+                <span>Qty: {item.quantity}</span>
+                {item.pricingTypeSnapshot === "AREA" && (
+                  <span>
+                    Ukuran: {item.widthM}m × {item.heightM}m ({item.billedAreaM2} m²)
+                  </span>
+                )}
+                <span>Satuan: {formatRupiah(item.unitPrice)}</span>
+              </div>
+
+              {item.finishings.length > 0 && (
+                <div className="rounded-lg bg-muted/40 p-2.5 space-y-1 text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground block">Finishing:</span>
+                  {item.finishings.map((f) => (
+                    <div key={f.id} className="tabular-nums">
+                      • {f.finishingNameSnapshot} ({f.quantity} × {formatRupiah(f.unitPrice)}) ={" "}
+                      {formatRupiah(f.subtotal)}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {item.itemNotes && (
+                <p className="text-xs text-muted-foreground italic">
+                  Catatan: {item.itemNotes}
+                </p>
+              )}
+
+              {currentUser?.role === "OWNER" &&
+                typeof item.productionSubtotal === "number" && (
+                  <div className="inline-flex flex-wrap items-center gap-2 rounded-lg border border-border/80 bg-muted/50 px-2.5 py-1 text-xs tabular-nums">
+                    <span className="text-muted-foreground">
+                      Modal Vendor: {formatRupiah(item.productionSubtotal)}
+                    </span>
+                    <span className="text-muted-foreground/60">•</span>
+                    <span
+                      className={`font-semibold ${
+                        (item.profitAmount ?? 0) < 0
+                          ? "text-destructive"
+                          : "text-emerald-600 dark:text-emerald-400"
+                      }`}
+                    >
+                      {(item.profitAmount ?? 0) < 0
+                        ? `Rugi: -${formatRupiah(Math.abs(item.profitAmount ?? 0))}`
+                        : `Laba: +${formatRupiah(item.profitAmount ?? 0)}`}
+                    </span>
+                  </div>
+                )}
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
@@ -455,11 +532,10 @@ function OrderDetailContent() {
                         {item.finishings.map((f) => (
                           <div
                             key={f.id}
-                            className="text-xs text-muted-foreground"
+                            className="text-xs text-muted-foreground tabular-nums"
                           >
-                            • {f.finishingNameSnapshot} ({f.quantity} × Rp{" "}
-                            {f.unitPrice.toLocaleString("id-ID")}) = Rp{" "}
-                            {f.subtotal.toLocaleString("id-ID")}
+                            • {f.finishingNameSnapshot} ({f.quantity} ×{" "}
+                            {formatRupiah(f.unitPrice)}) = {formatRupiah(f.subtotal)}
                           </div>
                         ))}
                       </div>
@@ -475,7 +551,7 @@ function OrderDetailContent() {
                       typeof item.productionSubtotal === "number" && (
                         <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-lg border border-border/80 bg-muted/50 px-2.5 py-1 text-xs tabular-nums">
                           <span className="text-muted-foreground">
-                            Modal Vendor: Rp {item.productionSubtotal.toLocaleString("id-ID")}
+                            Modal Vendor: {formatRupiah(item.productionSubtotal)}
                           </span>
                           <span className="text-muted-foreground/60">•</span>
                           <span
@@ -486,8 +562,8 @@ function OrderDetailContent() {
                             }`}
                           >
                             {(item.profitAmount ?? 0) < 0
-                              ? `Rugi: -Rp ${Math.abs(item.profitAmount ?? 0).toLocaleString("id-ID")}`
-                              : `Laba: +Rp ${(item.profitAmount ?? 0).toLocaleString("id-ID")}`}
+                              ? `Rugi: -${formatRupiah(Math.abs(item.profitAmount ?? 0))}`
+                              : `Laba: +${formatRupiah(item.profitAmount ?? 0)}`}
                           </span>
                         </div>
                       )}
@@ -513,11 +589,11 @@ function OrderDetailContent() {
                   </td>
 
                   <td className="py-4 px-4 text-right tabular-nums text-foreground">
-                    Rp {item.unitPrice.toLocaleString("id-ID")}
+                    {formatRupiah(item.unitPrice)}
                   </td>
 
                   <td className="py-4 px-4 text-right font-semibold text-foreground tabular-nums">
-                    Rp {item.itemSubtotal.toLocaleString("id-ID")}
+                    {formatRupiah(item.itemSubtotal)}
                   </td>
                 </tr>
               ))}
@@ -685,15 +761,9 @@ function OrderDetailContent() {
                       {p.paymentMethod}
                     </span>
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-xs text-muted-foreground tabular-nums">
                     Diterima oleh {p.receivedByUserName} •{" "}
-                    {new Date(p.paidAt).toLocaleDateString("id-ID", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    {formatShortDateTimeId(p.paidAt)}
                   </div>
                   {p.referenceNote && (
                     <div className="text-xs text-muted-foreground italic">

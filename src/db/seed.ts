@@ -17,7 +17,12 @@ export async function runSeed() {
   }
 
   const ownerUsername = process.env.DEFAULT_OWNER_USERNAME || "owner";
-  const ownerPassword = process.env.DEFAULT_OWNER_PASSWORD || "owner123456";
+  const ownerPassword = process.env.DEFAULT_OWNER_PASSWORD?.trim();
+  if (!ownerPassword || ownerPassword.length < 8) {
+    throw new Error(
+      "DEFAULT_OWNER_PASSWORD minimal 8 karakter wajib diisi pada environment lokal sebelum menjalankan bootstrap seed"
+    );
+  }
   const ownerName = process.env.DEFAULT_OWNER_NAME || "Owner Ksatria Graphx";
   const ownerEmail = process.env.DEFAULT_OWNER_EMAIL || "owner@ksatriagraphx.com";
 

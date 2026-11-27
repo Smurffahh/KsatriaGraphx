@@ -1,88 +1,24 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Download,
-  Filter,
-  TrendingUp,
-  Banknote,
-  AlertCircle,
-  Receipt,
-  ArrowRight,
-  RotateCw,
-  CreditCard,
-  QrCode,
-  DollarSign,
-  Wallet,
-} from "lucide-react";
+import { Download, Filter, RotateCw } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { toast } from "sonner";
-import { VendorStatusBadge } from "@/components/vendors/VendorStatusBadge";
 import type { VendorPaymentStatus } from "@/lib/vendors/settlement";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
+import { ErrorStatePanel } from "@/components/ui/state-panels";
 import { Button } from "@/components/ui/button";
-
-interface ReportSummary {
-  totalOmzet: number;
-  totalProductionCost: number;
-  totalGrossProfit: number;
-  profitMarginPercent: number;
-  totalVendorPaid?: number;
-  totalVendorPayable?: number;
-  totalPaid: number;
-  totalRemaining: number;
-  ordersCount: number;
-  cashFlow: {
-    totalCashReceived: number;
-    byMethod: {
-      CASH: number;
-      TRANSFER: number;
-      QRIS: number;
-    };
-  };
-}
-
-interface ReportOrder {
-  id: string;
-  invoiceNumber: string;
-  customerNameSnapshot: string;
-  customerPhoneSnapshot: string | null;
-  cashierId: string;
-  cashierName: string | null;
-  sourcePlatform: "WEB" | "APK";
-  subtotal: number;
-  designFee: number;
-  discountAmount: number;
-  grandTotal: number;
-  totalProductionCost: number;
-  grossProfit: number;
-  vendorPaidAmount?: number;
-  vendorPaymentStatus?: VendorPaymentStatus;
-  paidAmount: number;
-  remainingAmount: number;
-  paymentStatus: "UNPAID" | "PARTIAL" | "PAID";
-  productionStatus: string;
-  createdAt: string;
-}
-
-interface ReportResponse {
-  summary: ReportSummary;
-  orders: ReportOrder[];
-}
-
-interface UserListItem {
-  id: string;
-  name: string;
-  role: "OWNER" | "KASIR";
-}
-
-function formatCurrency(amount: number): string {
-  return `Rp ${amount.toLocaleString("id-ID")}`;
-}
+import { ReportsSummaryCards } from "@/components/reports/ReportsSummaryCards";
+import { ReportsOrdersList } from "@/components/reports/ReportsOrdersList";
+import type {
+  PaymentFilterStatus,
+  ReportPreset,
+  ReportResponse,
+  UserListItem,
+} from "@/components/reports/types";
 
 function ReportsSkeleton() {
   return (
@@ -122,21 +58,16 @@ export default function ReportsPage() {
     role: "OWNER" | "KASIR";
   } | null>(null);
   const [cashierList, setCashierList] = useState<UserListItem[]>([]);
-  const [selectedPreset, setSelectedPreset] = useState<
-    "today" | "7d" | "month" | "custom"
-  >("today");
+  const [selectedPreset, setSelectedPreset] = useState<ReportPreset>("today");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedCashier, setSelectedCashier] = useState("");
-  const [paymentStatus, setPaymentStatus] = useState<
-    "ALL" | "PAID" | "PARTIAL" | "UNPAID"
-  >("ALL");
+  const [paymentStatus, setPaymentStatus] = useState<PaymentFilterStatus>("ALL");
   const [vendorPaymentStatus, setVendorPaymentStatus] = useState<
     "ALL" | VendorPaymentStatus
   >("ALL");
   const [isExporting, setIsExporting] = useState(false);
 
-  // Set default filter to today
   useEffect(() => {
     const today = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Asia/Jakarta",
@@ -145,7 +76,6 @@ export default function ReportsPage() {
     setEndDate(today);
   }, []);
 
-  // Fetch current user & cashier list if owner, redirect if kasir
   useEffect(() => {
     apiClient<{ user: { role: "OWNER" | "KASIR" } }>("/api/auth/me")
       .then((res) => {
@@ -170,8 +100,7 @@ export default function ReportsPage() {
       .catch(() => {});
   }, [router]);
 
-  // Preset Date Handlers
-  const handlePresetChange = (preset: "today" | "7d" | "month" | "custom") => {
+  const handlePresetChange = (preset: ReportPreset) => {
     setSelectedPreset(preset);
     const now = new Date();
     const formatDate = (d: Date) =>
@@ -194,7 +123,6 @@ export default function ReportsPage() {
     }
   };
 
-  // Fetch reports data via TanStack Query
   const { data, isLoading, isError, refetch, isFetching } =
     useQuery<ReportResponse>({
       queryKey: [
@@ -210,10 +138,10 @@ export default function ReportsPage() {
         if (startDate) params.set("startDate", startDate);
         if (endDate) params.set("endDate", endDate);
         if (selectedCashier) params.set("cashierId", selectedCashier);
-        if (paymentStatus !== "ALL")
-          params.set("paymentStatus", paymentStatus);
-        if (vendorPaymentStatus !== "ALL")
+        if (paymentStatus !== "ALL") params.set("paymentStatus", paymentStatus);
+        if (vendorPaymentStatus !== "ALL") {
           params.set("vendorPaymentStatus", vendorPaymentStatus);
+        }
 
         const res = await apiClient.get<ReportResponse>(
           `/api/reports?${params.toString()}`
@@ -227,7 +155,6 @@ export default function ReportsPage() {
       staleTime: 60 * 1000,
     });
 
-  // Export to CSV Function
   const handleExportCsv = async () => {
     if (!data || data.orders.length === 0) {
       toast.error("Tidak ada data transaksi yang dapat diexport");
@@ -241,8 +168,9 @@ export default function ReportsPage() {
       if (endDate) params.set("endDate", endDate);
       if (selectedCashier) params.set("cashierId", selectedCashier);
       if (paymentStatus !== "ALL") params.set("paymentStatus", paymentStatus);
-      if (vendorPaymentStatus !== "ALL")
+      if (vendorPaymentStatus !== "ALL") {
         params.set("vendorPaymentStatus", vendorPaymentStatus);
+      }
       params.set("format", "csv");
 
       const endpoint = `/api/reports?${params.toString()}`;
@@ -279,14 +207,14 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6">
       <PageLoadingBanner isRefetching={isFetching && !isLoading} />
-      {/* Header */}
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight text-foreground">
             Laporan Penjualan
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Analisis omzet percetakan, arus kas harian, dan unduh data transaksi
+            Analisis omzet percetakan, kewajiban vendor, arus kas harian, dan unduh CSV
           </p>
         </div>
 
@@ -297,7 +225,7 @@ export default function ReportsPage() {
             disabled={
               isExporting || isLoading || (data?.orders.length ?? 0) === 0
             }
-            className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white min-h-[44px]"
+            className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white min-h-11"
           >
             <Download className="size-4" />
             <span>
@@ -311,7 +239,7 @@ export default function ReportsPage() {
             size="icon"
             onClick={() => refetch()}
             disabled={isFetching}
-            className="min-h-[44px] min-w-[44px]"
+            className="min-h-11 min-w-11"
             aria-label="Segarkan laporan"
           >
             <RotateCw
@@ -321,17 +249,15 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* Filter Card */}
       <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border shadow-xs space-y-4">
         <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           <Filter className="size-4" />
           <span>Filter Laporan</span>
         </div>
 
-        {/* Preset Buttons */}
         <div className="flex flex-wrap items-center gap-2">
           {(["today", "7d", "month", "custom"] as const).map((p) => {
-            const labels = {
+            const labels: Record<ReportPreset, string> = {
               today: "Hari Ini",
               "7d": "7 Hari Terakhir",
               month: "Bulan Ini",
@@ -342,7 +268,7 @@ export default function ReportsPage() {
                 key={p}
                 type="button"
                 onClick={() => handlePresetChange(p)}
-                className={`px-3.5 py-2 text-xs sm:text-sm font-medium rounded-xl border transition-colors min-h-10 cursor-pointer ${
+                className={`px-3.5 py-2 text-xs sm:text-sm font-medium rounded-xl border transition-colors min-h-11 sm:min-h-10 cursor-pointer ${
                   selectedPreset === p
                     ? "bg-primary text-primary-foreground border-primary font-semibold shadow-xs"
                     : "bg-muted/60 text-muted-foreground border-border hover:bg-muted hover:text-foreground"
@@ -354,9 +280,7 @@ export default function ReportsPage() {
           })}
         </div>
 
-        {/* Inputs Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 pt-1">
-          {/* Tanggal Mulai */}
           <div>
             <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-1.5">
               Dari Tanggal
@@ -372,7 +296,6 @@ export default function ReportsPage() {
             />
           </div>
 
-          {/* Tanggal Sampai */}
           <div>
             <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-1.5">
               Sampai Tanggal
@@ -388,24 +311,22 @@ export default function ReportsPage() {
             />
           </div>
 
-          {/* Filter Status Bayar */}
           <div>
             <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-1.5">
               Status Pembayaran
             </label>
             <select
               value={paymentStatus}
-              onChange={(e) => setPaymentStatus(e.target.value as any)}
+              onChange={(e) => setPaymentStatus(e.target.value as PaymentFilterStatus)}
               className="h-11 w-full px-3.5 text-base sm:text-sm bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
             >
               <option value="ALL">Semua Status</option>
-              <option value="PAID">LUNAS (Paid)</option>
-              <option value="PARTIAL">PANJAR (Partial)</option>
-              <option value="UNPAID">BELUM BAYAR (Unpaid)</option>
+              <option value="PAID">Lunas</option>
+              <option value="PARTIAL">Panjar (DP)</option>
+              <option value="UNPAID">Belum Bayar</option>
             </select>
           </div>
 
-          {/* Filter Kasir (Eksklusif Owner) */}
           {isOwner && (
             <div>
               <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-1.5">
@@ -450,425 +371,21 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* Loading Skeleton */}
       {isLoading && <ReportsSkeleton />}
 
-      {/* Error Banner */}
       {isError && (
-        <div className="p-6 rounded-2xl bg-destructive/10 border border-destructive/20 text-center space-y-2.5">
-          <AlertCircle className="size-7 text-destructive mx-auto" />
-          <p className="text-sm text-destructive font-semibold">
-            Gagal memuat data laporan
-          </p>
-          <Button
-            variant="destructive"
-            onClick={() => refetch()}
-            className="min-h-10"
-          >
-            Coba Lagi
-          </Button>
-        </div>
+        <ErrorStatePanel
+          title="Gagal memuat data laporan"
+          description="Periksa koneksi Anda lalu coba segarkan laporan."
+          onRetry={() => refetch()}
+          retryLabel="Coba Lagi"
+        />
       )}
 
-      {/* Report Loaded Content */}
       {!isLoading && !isError && data && (
         <>
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-            {/* Total Omzet */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
-              <div className="flex items-center justify-between gap-2.5 text-muted-foreground">
-                <span className="text-xs font-semibold uppercase tracking-wider leading-snug">Total Omzet Penjualan</span>
-                <div className="size-10 shrink-0 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                  <TrendingUp className="size-5" />
-                </div>
-              </div>
-              <div className="text-2xl sm:text-3xl font-bold text-foreground tabular-nums">
-                {formatCurrency(data.summary.totalOmzet)}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {data.summary.ordersCount} nota transaksi tercatat
-              </div>
-            </div>
-
-            {/* Uang Masuk Aktual */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
-              <div className="flex items-center justify-between gap-2.5 text-muted-foreground">
-                <span className="text-xs font-semibold uppercase tracking-wider leading-snug">Uang Masuk Aktual</span>
-                <div className="size-10 shrink-0 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
-                  <Banknote className="size-5" />
-                </div>
-              </div>
-              <div className="text-2xl sm:text-3xl font-bold text-emerald-600 tabular-nums">
-                {formatCurrency(data.summary.cashFlow.totalCashReceived)}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Total penerimaan kas &amp; transfer
-              </div>
-            </div>
-
-            {/* Sisa Piutang */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
-              <div className="flex items-center justify-between gap-2.5 text-muted-foreground">
-                <span className="text-xs font-semibold uppercase tracking-wider leading-snug">Sisa Piutang Berjalan</span>
-                <div className="size-10 shrink-0 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
-                  <AlertCircle className="size-5" />
-                </div>
-              </div>
-              <div className="text-2xl sm:text-3xl font-bold text-amber-600 tabular-nums">
-                {formatCurrency(data.summary.totalRemaining)}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Belum terlunasi atau uang muka
-              </div>
-            </div>
-
-            {/* Arus Kas Per Metode */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-3">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
-                Rincian Arus Kas Masuk
-              </span>
-              <div className="space-y-2 text-xs sm:text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1.5">
-                    <DollarSign className="size-4 text-emerald-500" />
-                    Tunai (Cash):
-                  </span>
-                  <span className="font-semibold text-foreground tabular-nums">
-                    {formatCurrency(data.summary.cashFlow.byMethod.CASH)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1.5">
-                    <CreditCard className="size-4 text-blue-500" />
-                    Transfer Bank:
-                  </span>
-                  <span className="font-semibold text-foreground tabular-nums">
-                    {formatCurrency(data.summary.cashFlow.byMethod.TRANSFER)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1.5">
-                    <QrCode className="size-4 text-purple-500" />
-                    QRIS:
-                  </span>
-                  <span className="font-semibold text-foreground tabular-nums">
-                    {formatCurrency(data.summary.cashFlow.byMethod.QRIS)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Ringkasan Modal Vendor, Setoran & Laba Kotor (Owner) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-            <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
-              <div className="flex items-center justify-between gap-2.5 text-muted-foreground">
-                <span className="text-xs font-semibold uppercase tracking-wider leading-snug">
-                  Total Modal Vendor (HPP Produksi)
-                </span>
-                <div className="size-10 shrink-0 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
-                  <Wallet className="size-5" />
-                </div>
-              </div>
-              <div className="text-2xl sm:text-3xl font-bold text-foreground tabular-nums">
-                {formatCurrency(data.summary.totalProductionCost ?? 0)}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Akumulasi modal vendor yang harus dibayar ke percetakan pada periode filter
-              </div>
-            </div>
-
-            <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
-              <div className="flex items-center justify-between gap-2.5 text-muted-foreground">
-                <span className="text-xs font-semibold uppercase tracking-wider leading-snug">
-                  Total Laba Kotor (Gross Profit)
-                </span>
-                <span
-                  className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums ${
-                    (data.summary.totalGrossProfit ?? 0) < 0
-                      ? "bg-destructive/10 text-destructive"
-                      : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-                  }`}
-                >
-                  Margin {data.summary.profitMarginPercent ?? 0}%
-                </span>
-              </div>
-              <div
-                className={`text-2xl sm:text-3xl font-bold tabular-nums ${
-                  (data.summary.totalGrossProfit ?? 0) < 0
-                    ? "text-destructive"
-                    : "text-emerald-600 dark:text-emerald-400"
-                }`}
-              >
-                {formatCurrency(data.summary.totalGrossProfit ?? 0)}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Pendapatan bersih setelah dikurangi modal vendor &amp; potongan diskon
-              </div>
-            </div>
-
-            <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
-              <div className="flex items-center justify-between gap-2.5 text-muted-foreground">
-                <span className="text-xs font-semibold uppercase tracking-wider leading-snug">
-                  Sudah Disetor ke Vendor
-                </span>
-                <div className="size-10 shrink-0 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
-                  <Banknote className="size-5" />
-                </div>
-              </div>
-              <div className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                {formatCurrency(data.summary.totalVendorPaid ?? 0)}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Realisasi setoran modal ke percetakan pada periode filter
-              </div>
-            </div>
-
-            <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
-              <div className="flex items-center justify-between gap-2.5 text-muted-foreground">
-                <span className="text-xs font-semibold uppercase tracking-wider leading-snug">
-                  Sisa Kewajiban Vendor
-                </span>
-                <div className="size-10 shrink-0 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
-                  <AlertCircle className="size-5" />
-                </div>
-              </div>
-              <div className="text-2xl sm:text-3xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">
-                {formatCurrency(data.summary.totalVendorPayable ?? 0)}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Total sisa modal wajib setor ke vendor dari nota terpilih
-              </div>
-            </div>
-          </div>
-
-          {/* Orders Table & Mobile Cards */}
-          <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-base sm:text-lg font-semibold text-foreground">
-                  Daftar Nota Transaksi
-                </h2>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                  Menampilkan {data.orders.length} nota pesanan sesuai filter
-                </p>
-              </div>
-            </div>
-
-            {data.orders.length === 0 ? (
-              <div className="p-12 text-center text-sm text-muted-foreground space-y-2">
-                <Receipt className="size-9 mx-auto text-muted-foreground/60" />
-                <p>
-                  Tidak ada transaksi ditemukan pada periode atau filter yang
-                  dipilih.
-                </p>
-              </div>
-            ) : (
-              <>
-                {/* Mobile Cards (<640px) */}
-                <div className="space-y-3 sm:hidden">
-                  {data.orders.map((ord) => (
-                    <Link
-                      key={ord.id}
-                      href={`/orders/detail?id=${ord.id}`}
-                      className="block p-4 rounded-xl bg-muted/40 border border-border hover:bg-muted transition-colors space-y-2.5"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold text-sm text-primary tracking-wide">
-                          {ord.invoiceNumber}
-                        </span>
-                        <span
-                          className={`px-2.5 py-0.5 text-xs font-semibold rounded-md ${
-                            ord.paymentStatus === "PAID"
-                              ? "bg-emerald-500/10 text-emerald-600"
-                              : ord.paymentStatus === "PARTIAL"
-                              ? "bg-amber-500/10 text-amber-600"
-                              : "bg-destructive/10 text-destructive"
-                          }`}
-                        >
-                          {ord.paymentStatus}
-                        </span>
-                      </div>
-
-                      <div className="text-sm text-foreground flex items-center justify-between gap-2">
-                        <span className="font-medium truncate">
-                          {ord.customerNameSnapshot}
-                        </span>
-                        <span className="font-bold tabular-nums shrink-0">
-                          {formatCurrency(ord.grandTotal)}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-2 text-xs tabular-nums text-muted-foreground">
-                        <span>Modal: {formatCurrency(ord.totalProductionCost ?? 0)}</span>
-                        <span
-                          className={`font-semibold ${
-                            (ord.grossProfit ?? 0) < 0
-                              ? "text-destructive"
-                              : "text-emerald-600 dark:text-emerald-400"
-                          }`}
-                        >
-                          Laba: {formatCurrency(ord.grossProfit ?? 0)}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-2 text-xs tabular-nums">
-                        <VendorStatusBadge status={ord.vendorPaymentStatus} />
-                        <span className="text-amber-600 dark:text-amber-400 font-medium">
-                          Sisa Setor:{" "}
-                          {formatCurrency(
-                            Math.max(
-                              0,
-                              (ord.totalProductionCost ?? 0) - (ord.vendorPaidAmount ?? 0)
-                            )
-                          )}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border/40">
-                        <span>Kasir: {ord.cashierName || "-"}</span>
-                        <span>
-                          {new Date(ord.createdAt).toLocaleDateString("id-ID", {
-                            day: "2-digit",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-
-                {/* Desktop Table (>=640px) */}
-                <div className="hidden sm:block overflow-x-auto">
-                  <table className="w-full text-left text-sm border-collapse">
-                    <thead>
-                      <tr className="border-b border-border text-xs uppercase tracking-wider text-muted-foreground bg-muted/30">
-                        <th className="py-3.5 px-4 font-semibold">Nota</th>
-                        <th className="py-3.5 px-4 font-semibold">Tanggal</th>
-                        <th className="py-3.5 px-4 font-semibold">Pelanggan</th>
-                        <th className="py-3.5 px-4 font-semibold">Kasir</th>
-                        <th className="py-3.5 px-4 font-semibold text-right">
-                          Grand Total
-                        </th>
-                        <th className="py-3.5 px-4 font-semibold text-right">
-                          Modal Vendor
-                        </th>
-                        <th className="py-3.5 px-4 font-semibold text-right">
-                          Laba
-                        </th>
-                        <th className="py-3.5 px-4 font-semibold text-right">
-                          Dibayar
-                        </th>
-                        <th className="py-3.5 px-4 font-semibold text-right">
-                          Sisa Piutang
-                        </th>
-                        <th className="py-3.5 px-4 font-semibold text-center">
-                          Setoran Vendor
-                        </th>
-                        <th className="py-3.5 px-4 font-semibold text-center">
-                          Status
-                        </th>
-                        <th className="py-3.5 px-4 font-semibold text-right">
-                          Aksi
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border/60">
-                      {data.orders.map((ord) => (
-                        <tr
-                          key={ord.id}
-                          className="hover:bg-muted/20 transition-colors"
-                        >
-                          <td className="py-3.5 px-4 font-semibold text-primary font-mono">
-                            {ord.invoiceNumber}
-                          </td>
-                          <td className="py-3.5 px-4 text-muted-foreground whitespace-nowrap">
-                            {new Date(ord.createdAt).toLocaleDateString(
-                              "id-ID",
-                              {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              }
-                            )}
-                          </td>
-                          <td className="py-3.5 px-4 font-medium text-foreground">
-                            {ord.customerNameSnapshot}
-                          </td>
-                          <td className="py-3.5 px-4 text-muted-foreground">
-                            {ord.cashierName || "-"}
-                          </td>
-                          <td className="py-3.5 px-4 font-semibold text-foreground tabular-nums text-right">
-                            {formatCurrency(ord.grandTotal)}
-                          </td>
-                          <td className="py-3.5 px-4 text-muted-foreground tabular-nums text-right">
-                            {formatCurrency(ord.totalProductionCost ?? 0)}
-                          </td>
-                          <td
-                            className={`py-3.5 px-4 font-semibold tabular-nums text-right ${
-                              (ord.grossProfit ?? 0) < 0
-                                ? "text-destructive"
-                                : "text-emerald-600 dark:text-emerald-400"
-                            }`}
-                          >
-                            {formatCurrency(ord.grossProfit ?? 0)}
-                          </td>
-                          <td className="py-3.5 px-4 text-emerald-600 font-semibold tabular-nums text-right">
-                            {formatCurrency(ord.paidAmount)}
-                          </td>
-                          <td className="py-3.5 px-4 text-amber-600 font-semibold tabular-nums text-right">
-                            {ord.remainingAmount > 0
-                              ? formatCurrency(ord.remainingAmount)
-                              : "-"}
-                          </td>
-                          <td className="py-3.5 px-4 text-center">
-                            <div className="flex flex-col items-center gap-1">
-                              <VendorStatusBadge status={ord.vendorPaymentStatus} />
-                              <span className="text-[11px] text-muted-foreground tabular-nums">
-                                Sisa:{" "}
-                                {formatCurrency(
-                                  Math.max(
-                                    0,
-                                    (ord.totalProductionCost ?? 0) -
-                                      (ord.vendorPaidAmount ?? 0)
-                                  )
-                                )}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-4 text-center">
-                            <span
-                              className={`px-2.5 py-0.5 text-xs font-semibold rounded-md ${
-                                ord.paymentStatus === "PAID"
-                                  ? "bg-emerald-500/10 text-emerald-600"
-                                  : ord.paymentStatus === "PARTIAL"
-                                  ? "bg-amber-500/10 text-amber-600"
-                                  : "bg-destructive/10 text-destructive"
-                              }`}
-                            >
-                              {ord.paymentStatus}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            <Link
-                              href={`/orders/detail?id=${ord.id}`}
-                              className="text-primary hover:underline font-semibold inline-flex items-center gap-1 min-h-9 px-2"
-                            >
-                              <span>Detail</span>
-                              <ArrowRight className="size-3.5" />
-                            </Link>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
-          </div>
+          <ReportsSummaryCards summary={data.summary} />
+          <ReportsOrdersList orders={data.orders} />
         </>
       )}
     </div>

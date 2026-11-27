@@ -42,7 +42,7 @@ export function PosSuccessModal({
         <div>
           <h2 className="text-xl font-semibold text-text">Transaksi Berhasil Disimpan!</h2>
           <p className="text-sm text-text-muted mt-1 leading-relaxed">
-            Nota pesanan telah tercatat ke dalam sistem database secara atomik
+            Nota sudah tercatat. Anda bisa mencetak struk atau langsung membuat transaksi baru.
           </p>
         </div>
 

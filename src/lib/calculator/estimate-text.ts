@@ -1,4 +1,7 @@
 import type { CalculatedFinishingItem } from "./pricing";
+import { formatRupiah } from "@/lib/format";
+
+export { formatRupiah };
 
 export interface SingleEstimateParams {
   storeName?: string;
@@ -50,11 +53,6 @@ export interface ComparisonEstimateParams {
     isMinAreaApplied?: boolean;
     minArea?: number | string | null;
   };
-}
-
-export function formatRupiah(amount: number): string {
-  const safe = Math.max(0, Math.round(amount || 0));
-  return `Rp ${safe.toLocaleString("id-ID")}`;
 }
 
 /**

@@ -9,7 +9,6 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
-  AlertCircle,
   Plus,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
@@ -18,6 +17,12 @@ import type { VendorPaymentStatus } from "@/lib/vendors/settlement";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
 import { Button } from "@/components/ui/button";
+import { EmptyStatePanel, ErrorStatePanel } from "@/components/ui/state-panels";
+import { formatRupiah, formatShortDateTimeId } from "@/lib/format";
+import {
+  getPaymentStatusMeta,
+  getProductionStatusMeta,
+} from "@/lib/orders/status-labels";
 
 interface OrderListItem {
   id: string;
@@ -210,37 +215,8 @@ function OrdersContent() {
     setPage(1);
   };
 
-  const getPaymentBadge = (status: "UNPAID" | "PARTIAL" | "PAID") => {
-    switch (status) {
-      case "PAID":
-        return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
-      case "PARTIAL":
-        return "bg-amber-500/10 text-amber-600 border-amber-500/20";
-      case "UNPAID":
-        return "bg-destructive/10 text-destructive border-destructive/20";
-    }
-  };
-
-  const getProductionBadge = (
-    status: "QUEUED" | "IN_PROGRESS" | "READY" | "COMPLETED" | "CANCELLED"
-  ) => {
-    switch (status) {
-      case "QUEUED":
-        return "bg-muted text-muted-foreground border-border";
-      case "IN_PROGRESS":
-        return "bg-amber-500/10 text-amber-600 border-amber-500/20";
-      case "READY":
-        return "bg-blue-500/10 text-blue-600 border-blue-500/20";
-      case "COMPLETED":
-        return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
-      case "CANCELLED":
-        return "bg-destructive/10 text-destructive border-destructive/20 line-through";
-    }
-  };
-
   return (
     <div className="space-y-5">
-      {/* Page Title & Action */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight text-foreground flex items-center gap-2.5">
@@ -248,7 +224,7 @@ function OrdersContent() {
             <span>Daftar Pesanan &amp; Transaksi</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Pantau status pembayaran nota, tahapan produksi, dan pelunasan DP
+            Pantau antrean pengerjaan, status pembayaran pelanggan, dan setoran modal vendor
           </p>
         </div>
 
@@ -261,10 +237,10 @@ function OrdersContent() {
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-center gap-2.5">
-          <AlertCircle className="size-4 shrink-0" />
-          <span>{error}</span>
-        </div>
+        <ErrorStatePanel
+          description={error}
+          onRetry={fetchOrders}
+        />
       )}
 
       {/* Filter Bar */}
@@ -392,99 +368,97 @@ function OrdersContent() {
       {isLoading ? (
         <OrdersSkeleton />
       ) : orders.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl bg-card border border-border">
-          <ClipboardList className="size-10 mx-auto text-muted-foreground/40 mb-3" />
-          <h3 className="text-base font-semibold text-foreground">
-            Tidak Ada Pesanan Ditemukan
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
-            Tidak ada transaksi yang cocok dengan filter. Gunakan menu Kalkulator POS untuk membuat nota baru.
-          </p>
-        </div>
+        <EmptyStatePanel
+          icon={ClipboardList}
+          title="Belum ada pesanan yang cocok"
+          description="Tidak ada transaksi yang sesuai filter saat ini. Buat transaksi baru dari Kasir POS atau reset filter pencarian."
+          action={
+            <div className="flex flex-wrap justify-center gap-2.5">
+              <Button variant="outline" onClick={handleResetFilter}>
+                Reset Filter
+              </Button>
+              <Link href="/pos">
+                <Button>Buka Kasir POS</Button>
+              </Link>
+            </div>
+          }
+        />
       ) : (
         <>
-          {/* Mobile Card View (hidden on lg) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:hidden">
-            {orders.map((o) => (
-              <div
-                key={o.id}
-                className="p-4 sm:p-5 rounded-2xl bg-card border border-border shadow-xs space-y-3"
-              >
-                <div className="flex items-start justify-between gap-2.5">
-                  <div>
-                    <Link
-                      href={`/orders/detail?id=${o.id}`}
-                      className="inline-flex min-h-9 items-center -my-1.5 font-semibold text-sm sm:text-base text-foreground hover:text-primary transition-colors tracking-wide"
-                    >
-                      {o.invoiceNumber}
-                    </Link>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      {new Date(o.createdAt).toLocaleDateString("id-ID", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+            {orders.map((o) => {
+              const payMeta = getPaymentStatusMeta(o.paymentStatus);
+              const prodMeta = getProductionStatusMeta(o.productionStatus);
+              return (
+                <div
+                  key={o.id}
+                  className="p-4 sm:p-5 rounded-2xl bg-card border border-border shadow-2xs space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-2.5">
+                    <div className="min-w-0">
+                      <Link
+                        href={`/orders/detail?id=${o.id}`}
+                        className="inline-flex min-h-11 items-center -my-2 font-semibold text-sm sm:text-base text-foreground hover:text-primary transition-colors tracking-wide"
+                      >
+                        {o.invoiceNumber}
+                      </Link>
+                      <p className="text-sm font-medium text-foreground truncate mt-0.5">
+                        {o.customerNameSnapshot}
+                      </p>
+                      <p className="text-xs text-muted-foreground tabular-nums mt-0.5">
+                        {formatShortDateTimeId(o.createdAt)}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      <span
+                        className={`px-2.5 py-0.5 text-xs font-medium rounded-md border whitespace-nowrap ${prodMeta.badgeClass}`}
+                      >
+                        {prodMeta.label}
+                      </span>
+                      <span
+                        className={`px-2.5 py-0.5 text-xs font-semibold rounded-md border whitespace-nowrap ${payMeta.badgeClass}`}
+                      >
+                        {payMeta.label}
+                      </span>
+                      {userRole === "OWNER" && o.vendorPaymentStatus && (
+                        <VendorStatusBadge status={o.vendorPaymentStatus} />
+                      )}
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-1.5">
-                    <span
-                      className={`px-2.5 py-0.5 text-xs font-semibold rounded-md border ${getPaymentBadge(
-                        o.paymentStatus
-                      )}`}
+                  <div className="pt-2.5 border-t border-border/50 flex items-center justify-between gap-2">
+                    <div className="text-xs">
+                      {o.remainingAmount > 0 ? (
+                        <span className="text-amber-600 dark:text-amber-400 font-semibold tabular-nums">
+                          Sisa Tagihan: {formatRupiah(o.remainingAmount)}
+                        </span>
+                      ) : (
+                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                          Tagihan Pelanggan Lunas
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-xs text-muted-foreground block">Total Nota</span>
+                      <p className="font-bold text-primary tabular-nums text-base">
+                        {formatRupiah(o.grandTotal)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-1 flex justify-end">
+                    <Link
+                      href={`/orders/detail?id=${o.id}`}
+                      className="inline-flex items-center gap-1.5 min-h-11 px-3 rounded-xl bg-muted/60 hover:bg-muted text-xs sm:text-sm text-primary font-semibold transition-colors"
                     >
-                      {o.paymentStatus}
-                    </span>
-                    <span
-                      className={`px-2.5 py-0.5 text-xs font-medium rounded-md border ${getProductionBadge(
-                        o.productionStatus
-                      )}`}
-                    >
-                      {o.productionStatus}
-                    </span>
-                    {userRole === "OWNER" && o.vendorPaymentStatus && (
-                      <VendorStatusBadge status={o.vendorPaymentStatus} />
-                    )}
+                      <span>Buka Detail Nota</span>
+                      <Eye className="size-4" />
+                    </Link>
                   </div>
                 </div>
-
-                <div className="pt-2.5 border-t border-border/50 text-xs sm:text-sm flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <span className="text-xs text-muted-foreground block">Pelanggan:</span>
-                    <p className="font-semibold text-foreground truncate">
-                      {o.customerNameSnapshot}
-                    </p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span className="text-xs text-muted-foreground block">Total:</span>
-                    <p className="font-bold text-primary tabular-nums text-base">
-                      Rp {o.grandTotal.toLocaleString("id-ID")}
-                    </p>
-                  </div>
-                </div>
-
-                {o.remainingAmount > 0 && (
-                  <div className="pt-2 border-t border-border/40 text-xs flex justify-between items-center text-amber-600 font-medium">
-                    <span>Sisa Piutang:</span>
-                    <span className="font-bold tabular-nums">
-                      Rp {o.remainingAmount.toLocaleString("id-ID")}
-                    </span>
-                  </div>
-                )}
-
-                <div className="pt-1 flex justify-end">
-                  <Link
-                    href={`/orders/detail?id=${o.id}`}
-                    className="inline-flex items-center gap-1.5 min-h-10 px-2 text-xs sm:text-sm text-primary font-semibold hover:underline"
-                  >
-                    <span>Lihat Rincian</span>
-                    <Eye className="size-4" />
-                  </Link>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Desktop Table View (hidden on < lg) */}
@@ -507,7 +481,10 @@ function OrdersContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60">
-                  {orders.map((o) => (
+                  {orders.map((o) => {
+                    const payMeta = getPaymentStatusMeta(o.paymentStatus);
+                    const prodMeta = getProductionStatusMeta(o.productionStatus);
+                    return (
                     <tr
                       key={o.id}
                       className="hover:bg-muted/20 transition-colors"
@@ -520,14 +497,8 @@ function OrdersContent() {
                           {o.invoiceNumber}
                         </Link>
                       </td>
-                      <td className="py-3.5 px-4 text-muted-foreground whitespace-nowrap">
-                        {new Date(o.createdAt).toLocaleDateString("id-ID", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                      <td className="py-3.5 px-4 text-muted-foreground whitespace-nowrap tabular-nums">
+                        {formatShortDateTimeId(o.createdAt)}
                       </td>
                       <td className="py-3.5 px-4 font-medium text-foreground">
                         {o.customerNameSnapshot}
@@ -539,20 +510,16 @@ function OrdersContent() {
                       </td>
                       <td className="py-3.5 px-4">
                         <span
-                          className={`px-2.5 py-0.5 text-xs font-semibold rounded-md border ${getPaymentBadge(
-                            o.paymentStatus
-                          )}`}
+                          className={`px-2.5 py-0.5 text-xs font-semibold rounded-md border whitespace-nowrap ${payMeta.badgeClass}`}
                         >
-                          {o.paymentStatus}
+                          {payMeta.label}
                         </span>
                       </td>
                       <td className="py-3.5 px-4">
                         <span
-                          className={`px-2.5 py-0.5 text-xs font-medium rounded-md border ${getProductionBadge(
-                            o.productionStatus
-                          )}`}
+                          className={`px-2.5 py-0.5 text-xs font-medium rounded-md border whitespace-nowrap ${prodMeta.badgeClass}`}
                         >
-                          {o.productionStatus}
+                          {prodMeta.label}
                         </span>
                       </td>
                       {userRole === "OWNER" && (
@@ -561,12 +528,12 @@ function OrdersContent() {
                         </td>
                       )}
                       <td className="py-3.5 px-4 text-right font-semibold text-foreground tabular-nums">
-                        Rp {o.grandTotal.toLocaleString("id-ID")}
+                        {formatRupiah(o.grandTotal)}
                       </td>
                       <td className="py-3.5 px-4 text-right tabular-nums">
                         {o.remainingAmount > 0 ? (
                           <span className="font-semibold text-amber-600">
-                            Rp {o.remainingAmount.toLocaleString("id-ID")}
+                            {formatRupiah(o.remainingAmount)}
                           </span>
                         ) : (
                           <span className="text-emerald-600 font-medium">
@@ -577,14 +544,15 @@ function OrdersContent() {
                       <td className="py-3.5 px-4 text-right">
                         <Link
                           href={`/orders/detail?id=${o.id}`}
-                          className="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                          className="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors min-h-10"
                         >
                           <Eye className="size-4" />
                           <span>Rincian</span>
                         </Link>
                       </td>
                     </tr>
-                  ))}
+                  );
+                  })}
                 </tbody>
               </table>
             </div>

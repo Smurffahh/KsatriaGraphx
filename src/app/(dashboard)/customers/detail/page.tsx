@@ -12,12 +12,17 @@ import {
   MessageCircle,
   Receipt,
   Clock,
-  AlertCircle,
   Calendar,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyStatePanel, ErrorStatePanel } from "@/components/ui/state-panels";
 import { Button } from "@/components/ui/button";
+import { formatRupiah, formatShortDateTimeId } from "@/lib/format";
+import {
+  getPaymentStatusMeta,
+  getProductionStatusMeta,
+} from "@/lib/orders/status-labels";
 
 interface CustomerDetailData {
   id: string;
@@ -126,20 +131,13 @@ function CustomerDetailContent() {
 
   if (error || !customer) {
     return (
-      <div className="p-8 text-center max-w-md mx-auto rounded-2xl bg-card border border-border space-y-4">
-        <AlertCircle className="size-10 text-destructive mx-auto" />
-        <h2 className="text-lg font-semibold text-foreground">Terjadi Kendala</h2>
-        <p className="text-xs text-muted-foreground">
-          {error || "Data pelanggan tidak ditemukan"}
-        </p>
-        <Button
-          variant="outline"
-          onClick={() => router.push("/customers")}
-          className="gap-2 min-h-[44px]"
-        >
-          <ArrowLeft className="size-4" />
-          <span>Kembali ke Daftar Pelanggan</span>
-        </Button>
+      <div className="py-6 space-y-4">
+        <ErrorStatePanel
+          title="Gagal Memuat Profil Pelanggan"
+          description={error || "Data pelanggan tidak ditemukan."}
+          onRetry={() => router.push("/customers")}
+          retryLabel="Kembali ke Daftar Pelanggan"
+        />
       </div>
     );
   }
@@ -239,7 +237,7 @@ function CustomerDetailContent() {
               Total Pembelanjaan
             </span>
             <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums mt-1">
-              Rp {customer.stats.totalSpent.toLocaleString("id-ID")}
+              {formatRupiah(customer.stats.totalSpent)}
             </div>
           </div>
 
@@ -254,13 +252,12 @@ function CustomerDetailContent() {
                   : "text-emerald-500"
               }`}
             >
-              Rp {customer.stats.totalPiutang.toLocaleString("id-ID")}
+              {formatRupiah(customer.stats.totalPiutang)}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Recent Orders Section */}
       <div className="space-y-3.5">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
@@ -273,14 +270,16 @@ function CustomerDetailContent() {
         </div>
 
         {customer.recentOrders.length === 0 ? (
-          <div className="p-8 text-center rounded-2xl bg-card border border-border text-muted-foreground text-sm">
-            Pelanggan ini belum memiliki riwayat transaksi nota.
-          </div>
+          <EmptyStatePanel
+            icon={Receipt}
+            title="Belum ada riwayat transaksi"
+            description="Pelanggan ini belum memiliki riwayat transaksi nota."
+          />
         ) : (
           <div className="space-y-3">
             {customer.recentOrders.map((order) => {
-              const isPaid = order.paymentStatus === "PAID";
-              const isPartial = order.paymentStatus === "PARTIAL";
+              const paymentMeta = getPaymentStatusMeta(order.paymentStatus);
+              const prodMeta = getProductionStatusMeta(order.productionStatus);
 
               return (
                 <div
@@ -291,45 +290,35 @@ function CustomerDetailContent() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <Link
                         href={`/orders/detail?id=${order.id}`}
-                        className="font-semibold text-sm sm:text-base text-foreground hover:text-primary transition-colors"
+                        className="font-mono font-semibold text-sm sm:text-base text-foreground hover:text-primary transition-colors"
                       >
                         {order.invoiceNumber}
                       </Link>
                       <span
-                        className={`px-2.5 py-0.5 text-xs font-semibold rounded-md ${
-                          isPaid
-                            ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
-                            : isPartial
-                            ? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
-                            : "bg-destructive/10 text-destructive border border-destructive/20"
-                        }`}
+                        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ${paymentMeta.badgeClass}`}
                       >
-                        {order.paymentStatus}
+                        {paymentMeta.label}
                       </span>
-                      <span className="px-2.5 py-0.5 text-xs font-medium rounded-md bg-muted text-muted-foreground border border-border">
-                        {order.productionStatus}
+                      <span
+                        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${prodMeta.badgeClass}`}
+                      >
+                        {prodMeta.label}
                       </span>
                     </div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <div className="text-xs text-muted-foreground flex items-center gap-1.5 tabular-nums">
                       <Clock className="size-3.5" />
-                      {new Date(order.createdAt).toLocaleDateString("id-ID", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {formatShortDateTimeId(order.createdAt)}
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-3 sm:pt-0 border-border/60">
                     <div className="text-left sm:text-right">
                       <div className="text-sm sm:text-base font-semibold text-foreground tabular-nums">
-                        Rp {order.grandTotal.toLocaleString("id-ID")}
+                        {formatRupiah(order.grandTotal)}
                       </div>
                       {order.remainingAmount > 0 && (
                         <div className="text-xs text-amber-500 font-medium tabular-nums">
-                          Sisa: Rp {order.remainingAmount.toLocaleString("id-ID")}
+                          Sisa: {formatRupiah(order.remainingAmount)}
                         </div>
                       )}
                     </div>

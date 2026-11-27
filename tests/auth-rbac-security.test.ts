@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { createUserSchema, updateUserSchema, resetPasswordSchema } from "@/lib/validators/user";
 import { signAccessToken, verifyAccessToken, generateOpaqueRefreshToken, hashRefreshToken } from "@/lib/auth/jwt";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";

@@ -154,7 +154,7 @@ export async function rotateSession(params: {
   } as const;
 }
 
-export async function revokeSession(sessionId: string) {
+async function revokeSession(sessionId: string) {
   await db
     .update(userSessions)
     .set({ revokedAt: new Date() })

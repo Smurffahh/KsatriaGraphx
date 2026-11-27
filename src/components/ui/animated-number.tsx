@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { formatRupiah } from "@/lib/utils";
+import { formatRupiah } from "@/lib/format";
 
 interface AnimatedNumberProps {
   value: number;

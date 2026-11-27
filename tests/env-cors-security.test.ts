@@ -5,11 +5,10 @@ vi.mock("server-only", () => ({}));
 import {
   isOriginAllowed,
   getCorsHeaders,
-  getAllowedOrigins,
   parseAllowedOrigins,
   handleCorsPreflight,
 } from "@/lib/api/cors";
-import { validateCsrfOrigin, getAppWebOrigin } from "@/lib/security/csrf";
+import { validateCsrfOrigin } from "@/lib/security/csrf";
 import { handleGuardError } from "@/lib/auth/guard";
 import { getServerEnv } from "@/lib/env";
 import { middleware } from "@/middleware";
@@ -144,6 +143,26 @@ describe("Validasi Konfigurasi Environment, CORS & 4-Layer Guard Produksi", () =
     it("harus menolak DATABASE_URL jika tidak menyertakan sslmode=require", () => {
       process.env.DATABASE_URL = "postgresql://dummy_user:dummy_pass@dummy-host.example.com/dummydb?sslmode=disable";
       expect(() => getServerEnv()).toThrowError(/sslmode=require/);
+    });
+
+    it("di NODE_ENV=production harus menolak jika JWT_ACCESS_SECRET atau JWT_REFRESH_SECRET kosong / dev fallback", () => {
+      (process.env as Record<string, string | undefined>).NODE_ENV = "production";
+      delete process.env.JWT_ACCESS_SECRET;
+      delete process.env.JWT_REFRESH_SECRET;
+      expect(() => getServerEnv()).toThrowError(/JWT_ACCESS_SECRET/);
+
+      process.env.JWT_ACCESS_SECRET = "dev-fallback-access-secret-min-32-chars-long";
+      process.env.JWT_REFRESH_SECRET = "refresh-prod-secret-min-32-chars-different-from-access";
+      expect(() => getServerEnv()).toThrowError(/dev fallback di produksi/);
+    });
+
+    it("DEFAULT_OWNER_PASSWORD harus bersifat opsional tanpa default hardcoded rahasia", () => {
+      delete process.env.DEFAULT_OWNER_PASSWORD;
+      process.env.JWT_ACCESS_SECRET = "access-secret-unique-random-hex-string-min-32-chars-long";
+      process.env.JWT_REFRESH_SECRET = "refresh-secret-unique-random-hex-string-min-32-chars-diff";
+
+      const env = getServerEnv();
+      expect(env.DEFAULT_OWNER_PASSWORD).toBeUndefined();
     });
   });
 

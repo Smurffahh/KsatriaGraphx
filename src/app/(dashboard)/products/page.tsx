@@ -24,6 +24,9 @@ import {
 import { CategoryTab, type CategoryItem } from "@/components/products/CategoryTab";
 import { FinishingTab, type FinishingItem } from "@/components/products/FinishingTab";
 import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
+import { EmptyStatePanel, ErrorStatePanel } from "@/components/ui/state-panels";
+import { Button } from "@/components/ui/button";
+import { formatRupiah } from "@/lib/format";
 import { calculateProfitMetrics } from "@/lib/calculator/pricing";
 
 interface ProductItem {
@@ -282,52 +285,52 @@ export default function ProductsPage() {
           </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex items-center rounded-xl border border-border bg-card p-1 shadow-2xs self-start sm:self-auto">
+        <div className="grid grid-cols-3 sm:flex sm:items-center rounded-xl border border-border bg-card p-1 shadow-2xs w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setActiveTab("products")}
-            className={`inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-[color,background-color,box-shadow] cursor-pointer ${
+            className={`inline-flex min-h-11 sm:min-h-10 items-center justify-center gap-1.5 rounded-lg px-2 sm:px-3.5 py-1.5 text-[11px] sm:text-sm font-medium whitespace-nowrap transition-[color,background-color,box-shadow] cursor-pointer ${
               activeTab === "products"
                 ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
-            <Package className="size-4" />
-            Produk ({productsList.length})
+            <Package className="size-3.5 sm:size-4 shrink-0" />
+            <span>Produk ({productsList.length})</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("categories")}
-            className={`inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-[color,background-color,box-shadow] cursor-pointer ${
+            className={`inline-flex min-h-11 sm:min-h-10 items-center justify-center gap-1.5 rounded-lg px-2 sm:px-3.5 py-1.5 text-[11px] sm:text-sm font-medium whitespace-nowrap transition-[color,background-color,box-shadow] cursor-pointer ${
               activeTab === "categories"
                 ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
-            <Layers className="size-4" />
-            Kategori ({categoriesList.length})
+            <Layers className="size-3.5 sm:size-4 shrink-0" />
+            <span>Kategori ({categoriesList.length})</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("finishings")}
-            className={`inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-[color,background-color,box-shadow] cursor-pointer ${
+            className={`inline-flex min-h-11 sm:min-h-10 items-center justify-center gap-1.5 rounded-lg px-2 sm:px-3.5 py-1.5 text-[11px] sm:text-sm font-medium whitespace-nowrap transition-[color,background-color,box-shadow] cursor-pointer ${
               activeTab === "finishings"
                 ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
-            <Scissors className="size-4" />
-            Finishing ({finishingsList.length})
+            <Scissors className="size-3.5 sm:size-4 shrink-0" />
+            <span>Finishing ({finishingsList.length})</span>
           </button>
         </div>
       </div>
 
       {pageError && (
-        <div className="flex items-center gap-2.5 rounded-xl bg-destructive/10 p-4 text-sm text-destructive">
-          <AlertCircle className="size-5 shrink-0" />
-          <span>{pageError}</span>
-        </div>
+        <ErrorStatePanel
+          title="Gagal Memuat Katalog Produk"
+          description={pageError}
+          onRetry={loadInitialData}
+        />
       )}
 
       {/* Konten Tab Aktif */}
@@ -376,12 +379,11 @@ export default function ProductsPage() {
             )}
           </div>
 
-          {/* Filter Pills Kategori */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
             <button
               type="button"
               onClick={() => setSelectedCategoryFilter("ALL")}
-              className={`min-h-10 shrink-0 rounded-xl px-4 py-1.5 text-xs sm:text-sm font-medium transition-[color,background-color,box-shadow] cursor-pointer ${
+              className={`min-h-11 sm:min-h-10 shrink-0 rounded-xl px-4 py-1.5 text-xs sm:text-sm font-medium transition-[color,background-color,box-shadow] cursor-pointer ${
                 selectedCategoryFilter === "ALL"
                   ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                   : "bg-secondary text-secondary-foreground hover:bg-muted"
@@ -394,7 +396,7 @@ export default function ProductsPage() {
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategoryFilter(cat.id)}
-                className={`min-h-10 shrink-0 rounded-xl px-4 py-1.5 text-xs sm:text-sm font-medium transition-[color,background-color,box-shadow] cursor-pointer ${
+                className={`min-h-11 sm:min-h-10 shrink-0 rounded-xl px-4 py-1.5 text-xs sm:text-sm font-medium transition-[color,background-color,box-shadow] cursor-pointer ${
                   selectedCategoryFilter === cat.id
                     ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                     : "bg-secondary text-secondary-foreground hover:bg-muted"
@@ -405,7 +407,6 @@ export default function ProductsPage() {
             ))}
           </div>
 
-          {/* Daftar Produk (Responsive: Cards on Mobile, Table on Desktop) */}
           {isLoading ? (
             <div className="space-y-4">
               <PageLoadingBanner message="Memuat katalog produk..." />
@@ -416,19 +417,27 @@ export default function ProductsPage() {
               </div>
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card py-16 text-center px-4">
-              <Package className="size-12 text-muted-foreground/40 mb-3" />
-              <p className="text-base font-semibold text-foreground">
-                {searchQuery || selectedCategoryFilter !== "ALL"
+            <EmptyStatePanel
+              icon={Package}
+              title={
+                searchQuery || selectedCategoryFilter !== "ALL"
                   ? "Tidak Ada Produk yang Cocok"
-                  : "Katalog Produk Masih Kosong"}
-              </p>
-              <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                {searchQuery || selectedCategoryFilter !== "ALL"
+                  : "Katalog Produk Masih Kosong"
+              }
+              description={
+                searchQuery || selectedCategoryFilter !== "ALL"
                   ? "Coba sesuaikan kata kunci pencarian atau ganti filter kategori."
-                  : "Mulai tambahkan produk percetakan meteran atau satuan dengan foto dan harga tier."}
-              </p>
-            </div>
+                  : "Mulai tambahkan produk percetakan meteran atau satuan dengan foto dan harga grosir."
+              }
+              action={
+                isOwner && !searchQuery && selectedCategoryFilter === "ALL" ? (
+                  <Button onClick={handleOpenAddProduct} className="gap-2 min-h-11">
+                    <Plus className="size-4" />
+                    <span>Tambah Produk Pertama</span>
+                  </Button>
+                ) : undefined
+              }
+            />
           ) : (
             <>
               {/* Tampilan Desktop (Table View) */}
@@ -500,7 +509,7 @@ export default function ProductsPage() {
                         <td className="py-3.5 px-4">
                           <div>
                             <span className="font-mono font-semibold text-foreground tabular-nums">
-                              Rp {p.basePrice.toLocaleString("id-ID")}
+                              {formatRupiah(p.basePrice)}
                             </span>
                             <span className="text-xs text-muted-foreground"> / {p.unitLabel}</span>
                           </div>
@@ -510,7 +519,7 @@ export default function ProductsPage() {
                             return (
                               <div className="mt-1 flex items-center gap-2 flex-wrap text-xs tabular-nums">
                                 <span className="text-muted-foreground">
-                                  Modal: Rp {p.productionPrice.toLocaleString("id-ID")}
+                                  Modal: {formatRupiah(p.productionPrice)}
                                 </span>
                                 <span
                                   className={`inline-flex items-center rounded-full px-2 py-0.5 font-semibold ${
@@ -520,8 +529,8 @@ export default function ProductsPage() {
                                   }`}
                                 >
                                   {isLoss
-                                    ? `Rugi -Rp ${Math.abs(metrics.profitPerUnit).toLocaleString("id-ID")}`
-                                    : `+Rp ${metrics.profitPerUnit.toLocaleString("id-ID")} (${metrics.marginPercent}%)`}
+                                    ? `Rugi -${formatRupiah(Math.abs(metrics.profitPerUnit))}`
+                                    : `+${formatRupiah(metrics.profitPerUnit)} (${metrics.marginPercent}%)`}
                                 </span>
                               </div>
                             );
@@ -633,7 +642,7 @@ export default function ProductsPage() {
 
                         <div className="mt-2 flex items-baseline gap-1 flex-wrap">
                           <span className="font-mono font-bold text-base text-foreground tabular-nums">
-                            Rp {p.basePrice.toLocaleString("id-ID")}
+                            {formatRupiah(p.basePrice)}
                           </span>
                           <span className="text-xs text-muted-foreground">/ {p.unitLabel}</span>
                         </div>
@@ -643,7 +652,7 @@ export default function ProductsPage() {
                           return (
                             <div className="mt-1 flex items-center gap-2 flex-wrap text-xs tabular-nums">
                               <span className="text-muted-foreground">
-                                Modal: Rp {p.productionPrice.toLocaleString("id-ID")}
+                                Modal: {formatRupiah(p.productionPrice)}
                               </span>
                               <span
                                 className={`inline-flex items-center rounded-full px-2 py-0.5 font-semibold ${
@@ -653,8 +662,8 @@ export default function ProductsPage() {
                                 }`}
                               >
                                 {isLoss
-                                  ? `-Rp ${Math.abs(metrics.profitPerUnit).toLocaleString("id-ID")}`
-                                  : `Laba +Rp ${metrics.profitPerUnit.toLocaleString("id-ID")}`}
+                                  ? `-${formatRupiah(Math.abs(metrics.profitPerUnit))}`
+                                  : `Laba +${formatRupiah(metrics.profitPerUnit)}`}
                               </span>
                             </div>
                           );
@@ -677,7 +686,7 @@ export default function ProductsPage() {
                           <button
                             type="button"
                             onClick={() => handleOpenEditProduct(p)}
-                            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted transition-colors cursor-pointer"
+                            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted transition-colors cursor-pointer"
                           >
                             <Edit2 className="size-3.5" />
                             Edit
@@ -688,7 +697,7 @@ export default function ProductsPage() {
                               setDeleteProductTarget(p);
                               setDeleteProductError(null);
                             }}
-                            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-destructive/20 bg-destructive/10 px-3.5 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/20 transition-colors cursor-pointer"
+                            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-destructive/20 bg-destructive/10 px-3.5 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/20 transition-colors cursor-pointer"
                           >
                             <Trash2 className="size-3.5" />
                             Hapus

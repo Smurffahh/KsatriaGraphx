@@ -5,14 +5,20 @@ import path from "path";
 const isMobileBuild = process.env.BUILD_TARGET === "mobile";
 const isProduction = process.env.NODE_ENV === "production";
 
-let appVersion = "1.2.1";
+let appVersion = process.env.npm_package_version || "0.0.0";
 try {
   const pkgPath = path.join(process.cwd(), "package.json");
   const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
-  if (pkg.version) appVersion = pkg.version;
+  if (typeof pkg.version === "string" && pkg.version.trim()) {
+    appVersion = pkg.version.trim();
+  }
 } catch {
-  // fallback default
+  // gunakan nilai npm_package_version bila pembacaan package.json gagal
 }
+
+const scriptSrcDirective = isProduction
+  ? "script-src 'self' 'unsafe-inline'"
+  : "script-src 'self' 'unsafe-eval' 'unsafe-inline'";
 
 const securityHeaders = [
   {
@@ -35,11 +41,14 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+      scriptSrcDirective,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.public.blob.vercel-storage.com https://*.private.blob.vercel-storage.com",
       "font-src 'self' data:",
       "connect-src 'self' https://*.public.blob.vercel-storage.com https://*.private.blob.vercel-storage.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
       "frame-ancestors 'none'",
     ].join("; "),
   },

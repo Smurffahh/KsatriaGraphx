@@ -11,23 +11,6 @@ export interface ApiResponse<T = unknown> {
   details?: Record<string, string[]>;
 }
 
-export function successResponse<T>(
-  data: T,
-  message?: string,
-  meta?: Record<string, unknown>,
-  status = 200
-) {
-  return NextResponse.json(
-    {
-      success: true,
-      data,
-      message,
-      meta,
-    },
-    { status }
-  );
-}
-
 export function jsonResponse<T>(
   data: T,
   status = 200,
@@ -93,27 +76,20 @@ export function handleApiError(err: unknown) {
     return errorResponse(guard.message, guard.status, { code: guard.code });
   }
 
-  const errorObj = err as { message?: string; status?: number };
-  const status = typeof errorObj?.status === "number" ? errorObj.status : 500;
-  let message = errorObj?.message || "Terjadi kesalahan pada server";
+  const errorObj = err as { message?: string; status?: number; name?: string; code?: string };
+  const rawStatus = typeof errorObj?.status === "number" ? errorObj.status : 500;
+  const status = rawStatus >= 400 && rawStatus <= 599 ? rawStatus : 500;
 
   if (status >= 500) {
-    const lower = message.toLowerCase();
-    if (
-      lower.includes("postgres") ||
-      lower.includes("drizzle") ||
-      lower.includes("relation") ||
-      lower.includes("syntax") ||
-      lower.includes("column") ||
-      lower.includes("database") ||
-      lower.includes("connection") ||
-      lower.includes("econnrefused") ||
-      lower.includes("password") ||
-      lower.includes("secret")
-    ) {
-      message = "Terjadi kesalahan internal pada server";
-    }
+    console.error("[API_INTERNAL_ERROR]", {
+      status,
+      name: errorObj?.name || (err instanceof Error ? err.name : "UnknownError"),
+      code: errorObj?.code,
+      message: errorObj?.message || (err instanceof Error ? err.message : String(err)),
+    });
+    return errorResponse("Terjadi kesalahan internal pada server", status);
   }
 
-  return errorResponse(message, status);
+  const safeClientMessage = errorObj?.message?.trim() || "Permintaan tidak dapat diproses";
+  return errorResponse(safeClientMessage, status);
 }

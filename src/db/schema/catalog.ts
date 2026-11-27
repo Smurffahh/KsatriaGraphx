@@ -23,6 +23,7 @@ export const products = pgTable("products", {
   imageKey: text("image_key"),
   pricingType: pricingTypeEnum("pricing_type").notNull(),
   unitLabel: text("unit_label").notNull(),
+  productionPrice: integer("production_price").default(0).notNull(),
   basePrice: integer("base_price").notNull(),
   minArea: numeric("min_area", { precision: 8, scale: 2 }).default("1.00"),
   areaRounding: areaRoundingEnum("area_rounding").default("EXACT").notNull(),
@@ -38,6 +39,7 @@ export const productPriceTiers = pgTable("product_price_tiers", {
     .notNull(),
   minQty: integer("min_qty").notNull(),
   maxQty: integer("max_qty"),
+  productionPrice: integer("production_price"),
   unitPrice: integer("unit_price").notNull(),
 });
 
@@ -45,6 +47,7 @@ export const finishings = pgTable("finishings", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   chargeType: chargeTypeEnum("charge_type").notNull(),
+  productionPrice: integer("production_price").default(0).notNull(),
   defaultPrice: integer("default_price").notNull(),
   unitLabel: text("unit_label").notNull(),
   isActive: boolean("is_active").default(true).notNull(),

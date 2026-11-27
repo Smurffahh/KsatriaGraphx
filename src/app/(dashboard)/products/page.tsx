@@ -20,6 +20,7 @@ import { ProductFormModal, type ProductFormData } from "@/components/products/Pr
 import { CategoryTab, type CategoryItem } from "@/components/products/CategoryTab";
 import { FinishingTab, type FinishingItem } from "@/components/products/FinishingTab";
 import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
+import { calculateProfitMetrics } from "@/lib/calculator/pricing";
 
 interface ProductItem {
   id: string;
@@ -33,6 +34,7 @@ interface ProductItem {
   imageKey: string | null;
   pricingType: "AREA" | "UNIT" | "CUSTOM";
   unitLabel: string;
+  productionPrice?: number;
   basePrice: number;
   minArea: number;
   areaRounding: "EXACT" | "ROUND_UP_0_5" | "ROUND_UP_1";
@@ -41,6 +43,7 @@ interface ProductItem {
     id: string;
     minQty: number;
     maxQty: number | null;
+    productionPrice?: number | null;
     unitPrice: number;
   }[];
 }
@@ -149,6 +152,7 @@ export default function ProductsPage() {
       imageKey: p.imageKey,
       pricingType: p.pricingType,
       unitLabel: p.unitLabel,
+      productionPrice: p.productionPrice ?? 0,
       basePrice: p.basePrice,
       minArea: p.minArea,
       areaRounding: p.areaRounding,
@@ -156,6 +160,7 @@ export default function ProductsPage() {
       tiers: p.priceTiers?.map((t) => ({
         minQty: t.minQty,
         maxQty: t.maxQty,
+        productionPrice: t.productionPrice ?? null,
         unitPrice: t.unitPrice,
       })) || [],
     });
@@ -413,7 +418,7 @@ export default function ProductsPage() {
                       <th className="py-3.5 px-4">Nama Produk &amp; SKU</th>
                       <th className="py-3.5 px-4">Kategori</th>
                       <th className="py-3.5 px-4">Tipe &amp; Satuan</th>
-                      <th className="py-3.5 px-4">Harga Dasar &amp; Tier</th>
+                      <th className="py-3.5 px-4">{isOwner ? "Harga Jual, Modal & Laba" : "Harga Dasar & Tier"}</th>
                       <th className="py-3.5 px-4">Status</th>
                       {isOwner && <th className="py-3.5 px-4 text-right">Aksi</th>}
                     </tr>
@@ -464,7 +469,7 @@ export default function ProductsPage() {
                           </div>
                         </td>
 
-                        {/* Harga Dasar & Tier */}
+                        {/* Harga Dasar, Modal & Tier */}
                         <td className="py-3.5 px-4">
                           <div>
                             <span className="font-mono font-semibold text-foreground tabular-nums">
@@ -472,6 +477,28 @@ export default function ProductsPage() {
                             </span>
                             <span className="text-xs text-muted-foreground"> / {p.unitLabel}</span>
                           </div>
+                          {isOwner && typeof p.productionPrice === "number" && (() => {
+                            const metrics = calculateProfitMetrics(p.productionPrice, p.basePrice);
+                            const isLoss = metrics.profitPerUnit < 0;
+                            return (
+                              <div className="mt-1 flex items-center gap-2 flex-wrap text-xs tabular-nums">
+                                <span className="text-muted-foreground">
+                                  Modal: Rp {p.productionPrice.toLocaleString("id-ID")}
+                                </span>
+                                <span
+                                  className={`inline-flex items-center rounded-full px-2 py-0.5 font-semibold ${
+                                    isLoss
+                                      ? "bg-destructive/10 text-destructive"
+                                      : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                                  }`}
+                                >
+                                  {isLoss
+                                    ? `Rugi -Rp ${Math.abs(metrics.profitPerUnit).toLocaleString("id-ID")}`
+                                    : `+Rp ${metrics.profitPerUnit.toLocaleString("id-ID")} (${metrics.marginPercent}%)`}
+                                </span>
+                              </div>
+                            );
+                          })()}
                           {p.pricingType === "UNIT" && p.priceTiers && p.priceTiers.length > 0 && (
                             <p className="mt-0.5 text-xs text-primary font-medium">
                               {p.priceTiers.length} tingkat harga grosir
@@ -572,12 +599,34 @@ export default function ProductsPage() {
                           {p.name}
                         </h3>
 
-                        <div className="mt-2 flex items-baseline gap-1">
+                        <div className="mt-2 flex items-baseline gap-1 flex-wrap">
                           <span className="font-mono font-bold text-base text-foreground tabular-nums">
                             Rp {p.basePrice.toLocaleString("id-ID")}
                           </span>
                           <span className="text-xs text-muted-foreground">/ {p.unitLabel}</span>
                         </div>
+                        {isOwner && typeof p.productionPrice === "number" && (() => {
+                          const metrics = calculateProfitMetrics(p.productionPrice, p.basePrice);
+                          const isLoss = metrics.profitPerUnit < 0;
+                          return (
+                            <div className="mt-1 flex items-center gap-2 flex-wrap text-xs tabular-nums">
+                              <span className="text-muted-foreground">
+                                Modal: Rp {p.productionPrice.toLocaleString("id-ID")}
+                              </span>
+                              <span
+                                className={`inline-flex items-center rounded-full px-2 py-0.5 font-semibold ${
+                                  isLoss
+                                    ? "bg-destructive/10 text-destructive"
+                                    : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                                }`}
+                              >
+                                {isLoss
+                                  ? `-Rp ${Math.abs(metrics.profitPerUnit).toLocaleString("id-ID")}`
+                                  : `Laba +Rp ${metrics.profitPerUnit.toLocaleString("id-ID")}`}
+                              </span>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
 

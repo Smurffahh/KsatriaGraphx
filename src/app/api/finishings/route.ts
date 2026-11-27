@@ -7,6 +7,7 @@ import { recordAuditLog } from "@/lib/security/audit";
 import { getClientIp } from "@/lib/security/client-ip";
 import { getCorsHeaders, handleCorsPreflight } from "@/lib/api/cors";
 import { createFinishingSchema } from "@/lib/validators/finishing";
+import { redactFinishingForRole } from "@/lib/security/cost-redaction";
 import { asc } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -20,12 +21,14 @@ export async function GET(request: Request) {
   const corsHeaders = getCorsHeaders(origin);
 
   try {
-    await requireAuth(request);
+    const session = await requireAuth(request);
 
-    const data = await db
+    const rows = await db
       .select()
       .from(finishings)
       .orderBy(asc(finishings.name));
+
+    const data = rows.map((row) => redactFinishingForRole(row, session.role));
 
     return NextResponse.json({ success: true, data }, { status: 200, headers: corsHeaders });
   } catch (error) {
@@ -74,13 +77,14 @@ export async function POST(request: Request) {
       );
     }
 
-    const { name, chargeType, defaultPrice, unitLabel, isActive } = parseResult.data;
+    const { name, chargeType, productionPrice, defaultPrice, unitLabel, isActive } = parseResult.data;
 
     const [newFinishing] = await db
       .insert(finishings)
       .values({
         name,
         chargeType,
+        productionPrice,
         defaultPrice,
         unitLabel,
         isActive,

@@ -29,6 +29,8 @@ export const orders = pgTable("orders", {
   discountValue: integer("discount_value").default(0).notNull(),
   discountAmount: integer("discount_amount").default(0).notNull(),
   grandTotal: integer("grand_total").notNull(),
+  totalProductionCost: integer("total_production_cost").default(0).notNull(),
+  grossProfit: integer("gross_profit").default(0).notNull(),
   paidAmount: integer("paid_amount").default(0).notNull(),
   remainingAmount: integer("remaining_amount").default(0).notNull(),
   paymentStatus: paymentStatusEnum("payment_status").default("UNPAID").notNull(),
@@ -56,6 +58,9 @@ export const orderItems = pgTable("order_items", {
   isPriceOverridden: boolean("is_price_overridden").default(false).notNull(),
   finishingTotal: integer("finishing_total").default(0).notNull(),
   itemSubtotal: integer("item_subtotal").notNull(),
+  productionUnitPriceSnapshot: integer("production_unit_price_snapshot").default(0).notNull(),
+  productionSubtotal: integer("production_subtotal").default(0).notNull(),
+  profitAmount: integer("profit_amount").default(0).notNull(),
   itemNotes: text("item_notes"),
 });
 

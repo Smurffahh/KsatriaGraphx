@@ -9,7 +9,16 @@ export type PaymentMethod = "CASH" | "TRANSFER" | "QRIS";
 export interface PriceTier {
   minQty: number;
   maxQty?: number | null;
+  productionPrice?: number | null;
   unitPrice: number;
+}
+
+export interface ProfitMetrics {
+  productionPrice: number;
+  sellingPrice: number;
+  profitPerUnit: number;
+  markupPercent: number | null;
+  marginPercent: number;
 }
 
 export interface FinishingItemCalculation {
@@ -17,6 +26,7 @@ export interface FinishingItemCalculation {
   name?: string;
   chargeType: ChargeType;
   unitPrice: number;
+  productionUnitPrice?: number;
   quantity?: number;
 }
 
@@ -25,8 +35,10 @@ export interface CalculatedFinishingItem {
   name: string;
   chargeType: ChargeType;
   unitPrice: number;
+  productionUnitPrice?: number;
   quantity: number;
   subtotal: number;
+  productionSubtotal?: number;
 }
 
 export interface CalculateAreaInput {
@@ -50,6 +62,7 @@ export interface CalculateItemInput {
   quantity: number;
   unitPrice?: number;
   basePrice?: number;
+  productionPrice?: number;
   priceTiers?: PriceTier[];
   overrideUnitPrice?: number;
   isPriceOverridden?: boolean;
@@ -65,15 +78,20 @@ export interface CalculateItemResult {
   pricingType: PricingType;
   quantity: number;
   effectiveUnitPrice: number;
+  productionUnitPrice: number;
   isPriceOverridden: boolean;
   widthM?: number;
   heightM?: number;
   billedAreaM2?: number;
   isMinAreaApplied?: boolean;
   baseSubtotal: number;
+  productionBaseSubtotal: number;
   finishings: CalculatedFinishingItem[];
   finishingTotal: number;
+  productionFinishingTotal: number;
   itemSubtotal: number;
+  productionSubtotal: number;
+  profitAmount: number;
 }
 
 export interface CalculateOrderInput {
@@ -86,6 +104,13 @@ export interface CalculateOrderInput {
   paymentMethod?: PaymentMethod;
 }
 
+/**
+ * Rumus laba kotor pesanan (tanpa PPN / pajak):
+ * grossProfit = grandTotal - totalProductionCost
+ * di mana grandTotal = max(0, subtotal + designFee - discountAmount) dan
+ * totalProductionCost = sum(item.productionSubtotal).
+ * Diskon atau override harga jual memotong laba tanpa mengurangi modal vendor.
+ */
 export interface CalculateOrderResult {
   subtotal: number;
   designFee: number;
@@ -95,6 +120,8 @@ export interface CalculateOrderResult {
   discountAmount: number;
   equivalentDiscountPercent: number;
   grandTotal: number;
+  totalProductionCost: number;
+  grossProfit: number;
   paidAmount: number;
   remainingAmount: number;
   changeAmount: number;
@@ -113,6 +140,34 @@ function sanitizePositiveInt(value: unknown, defaultValue = 0): number {
   const num = sanitizeNumber(value, defaultValue);
   if (num <= 0) return 0;
   return Math.min(Math.round(num), Number.MAX_SAFE_INTEGER);
+}
+
+/**
+ * Menghitung laba per satuan, persentase markup (laba / modal), dan margin (laba / harga jual).
+ */
+export function calculateProfitMetrics(
+  productionPriceInput: number,
+  sellingPriceInput: number
+): ProfitMetrics {
+  const productionPrice = sanitizePositiveInt(productionPriceInput, 0);
+  const sellingPrice = sanitizePositiveInt(sellingPriceInput, 0);
+  const profitPerUnit = sellingPrice - productionPrice;
+  const markupPercent =
+    productionPrice > 0
+      ? Math.round((profitPerUnit / productionPrice) * 1000) / 10
+      : null;
+  const marginPercent =
+    sellingPrice > 0
+      ? Math.round((profitPerUnit / sellingPrice) * 1000) / 10
+      : 0;
+
+  return {
+    productionPrice,
+    sellingPrice,
+    profitPerUnit,
+    markupPercent,
+    marginPercent,
+  };
 }
 
 export function applyAreaRounding(rawAreaM2: number, mode: AreaRounding = "EXACT"): number {
@@ -226,6 +281,7 @@ export function calculateFinishingSubtotal(
 export function calculateOrderItem(input: CalculateItemInput): CalculateItemResult {
   const safeQty = sanitizePositiveInt(input.quantity, 0);
   let effectiveUnitPrice = 0;
+  let productionUnitPrice = sanitizePositiveInt(input.productionPrice, 0);
   let isPriceOverridden = Boolean(input.isPriceOverridden);
 
   let widthM: number | undefined;
@@ -255,11 +311,16 @@ export function calculateOrderItem(input: CalculateItemInput): CalculateItemResu
       isPriceOverridden = false;
     }
   } else if (input.pricingType === "UNIT") {
+    const tierLookup = findActivePriceTier(input.priceTiers, safeQty, input.basePrice ?? input.unitPrice ?? 0);
+    const tierProdPrice = tierLookup.matchedTier?.productionPrice;
+    if (tierProdPrice !== null && tierProdPrice !== undefined) {
+      productionUnitPrice = sanitizePositiveInt(tierProdPrice, 0);
+    }
+
     if (input.overrideUnitPrice !== undefined && input.overrideUnitPrice !== null && input.isPriceOverridden) {
       effectiveUnitPrice = sanitizePositiveInt(input.overrideUnitPrice, 0);
       isPriceOverridden = true;
     } else {
-      const tierLookup = findActivePriceTier(input.priceTiers, safeQty, input.basePrice ?? input.unitPrice ?? 0);
       effectiveUnitPrice = tierLookup.unitPrice;
       isPriceOverridden = false;
     }
@@ -269,47 +330,68 @@ export function calculateOrderItem(input: CalculateItemInput): CalculateItemResu
   }
 
   let baseSubtotal = 0;
+  let productionBaseSubtotal = 0;
   if (safeQty > 0) {
     if (input.pricingType === "AREA") {
       baseSubtotal = Math.round((billedAreaM2 ?? 0) * effectiveUnitPrice * safeQty);
+      productionBaseSubtotal = Math.round((billedAreaM2 ?? 0) * productionUnitPrice * safeQty);
     } else {
       baseSubtotal = Math.round(effectiveUnitPrice * safeQty);
+      productionBaseSubtotal = Math.round(productionUnitPrice * safeQty);
     }
   }
 
   const calculatedFinishings: CalculatedFinishingItem[] = [];
   let finishingTotal = 0;
+  let productionFinishingTotal = 0;
 
   if (input.finishings && input.finishings.length > 0 && safeQty > 0) {
     for (const f of input.finishings) {
       const res = calculateFinishingSubtotal(f, safeQty, billedAreaM2 ?? 0);
+      const prodFinUnit = sanitizePositiveInt(f.productionUnitPrice, 0);
+      const prodRes = calculateFinishingSubtotal(
+        { ...f, unitPrice: prodFinUnit },
+        safeQty,
+        billedAreaM2 ?? 0
+      );
+
       calculatedFinishings.push({
         finishingId: f.finishingId,
         name: f.name || "Finishing",
         chargeType: f.chargeType,
         unitPrice: sanitizePositiveInt(f.unitPrice, 0),
+        productionUnitPrice: prodFinUnit,
         quantity: res.quantity,
         subtotal: res.subtotal,
+        productionSubtotal: prodRes.subtotal,
       });
       finishingTotal += res.subtotal;
+      productionFinishingTotal += prodRes.subtotal;
     }
   }
 
   const itemSubtotal = baseSubtotal + finishingTotal;
+  const productionSubtotal = productionBaseSubtotal + productionFinishingTotal;
+  const profitAmount = itemSubtotal - productionSubtotal;
 
   return {
     pricingType: input.pricingType,
     quantity: safeQty,
     effectiveUnitPrice,
+    productionUnitPrice,
     isPriceOverridden,
     widthM,
     heightM,
     billedAreaM2,
     isMinAreaApplied,
     baseSubtotal,
+    productionBaseSubtotal,
     finishings: calculatedFinishings,
     finishingTotal,
+    productionFinishingTotal,
     itemSubtotal,
+    productionSubtotal,
+    profitAmount,
   };
 }
 
@@ -330,6 +412,10 @@ export function isDiscountWithinCashierLimit(
 export function calculateOrder(input: CalculateOrderInput): CalculateOrderResult {
   const calculatedItems = (input.items || []).map((item) => calculateOrderItem(item));
   const subtotal = calculatedItems.reduce((acc, curr) => acc + curr.itemSubtotal, 0);
+  const totalProductionCost = calculatedItems.reduce(
+    (acc, curr) => acc + curr.productionSubtotal,
+    0
+  );
   const designFee = sanitizePositiveInt(input.designFee, 0);
   const subtotalPlusDesign = subtotal + designFee;
 
@@ -348,6 +434,7 @@ export function calculateOrder(input: CalculateOrderInput): CalculateOrderResult
   }
 
   const grandTotal = Math.max(0, subtotalPlusDesign - discountAmount);
+  const grossProfit = grandTotal - totalProductionCost;
 
   const equivalentDiscountPercent =
     subtotalPlusDesign > 0 ? Math.round((discountAmount / subtotalPlusDesign) * 10000) / 100 : 0;
@@ -394,6 +481,8 @@ export function calculateOrder(input: CalculateOrderInput): CalculateOrderResult
     discountAmount,
     equivalentDiscountPercent,
     grandTotal,
+    totalProductionCost,
+    grossProfit,
     paidAmount,
     remainingAmount,
     changeAmount,

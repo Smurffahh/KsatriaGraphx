@@ -134,6 +134,8 @@ export async function GET(request: NextRequest) {
     const [omzetRange] = await db
       .select({
         totalOmzet: sql<number>`cast(coalesce(sum(${orders.grandTotal}), 0) as integer)`,
+        totalProductionCost: sql<number>`cast(coalesce(sum(${orders.totalProductionCost}), 0) as integer)`,
+        totalGrossProfit: sql<number>`cast(coalesce(sum(${orders.grossProfit}), 0) as integer)`,
         totalOrders: sql<number>`cast(count(${orders.id}) as integer)`,
       })
       .from(orders)
@@ -143,6 +145,14 @@ export async function GET(request: NextRequest) {
           gte(orders.createdAt, rangeStartDate)
         )
       );
+
+    const totalOmzetValue = omzetRange?.totalOmzet ?? 0;
+    const totalProductionCostValue = omzetRange?.totalProductionCost ?? 0;
+    const totalGrossProfitValue = omzetRange?.totalGrossProfit ?? 0;
+    const profitMarginPercent =
+      totalOmzetValue > 0
+        ? Math.round((totalGrossProfitValue / totalOmzetValue) * 1000) / 10
+        : 0;
 
     const [actualPayments] = await db
       .select({
@@ -169,11 +179,13 @@ export async function GET(request: NextRequest) {
         )
       );
 
-    // 2. Tren Omzet Harian (WIB Asia/Jakarta)
+    // 2. Tren Omzet & Laba Harian (WIB Asia/Jakarta)
     const dailyTrendRaw = await db
       .select({
         dateKey: sql<string>`to_char(${orders.createdAt} AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD')`,
         omzet: sql<number>`cast(coalesce(sum(${orders.grandTotal}), 0) as integer)`,
+        modal: sql<number>`cast(coalesce(sum(${orders.totalProductionCost}), 0) as integer)`,
+        laba: sql<number>`cast(coalesce(sum(${orders.grossProfit}), 0) as integer)`,
         transaksi: sql<number>`cast(count(${orders.id}) as integer)`,
       })
       .from(orders)
@@ -229,7 +241,10 @@ export async function GET(request: NextRequest) {
       role: "OWNER",
       range: parsedQuery.range,
       kpi: {
-        totalOmzet: omzetRange?.totalOmzet ?? 0,
+        totalOmzet: totalOmzetValue,
+        totalProductionCost: totalProductionCostValue,
+        totalGrossProfit: totalGrossProfitValue,
+        profitMarginPercent,
         totalOrders: omzetRange?.totalOrders ?? 0,
         totalCashIn: actualPayments?.totalCashIn ?? 0,
         totalPiutang: piutangResult?.totalPiutang ?? 0,

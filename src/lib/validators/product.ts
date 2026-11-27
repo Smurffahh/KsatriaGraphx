@@ -31,11 +31,40 @@ export const areaRoundingEnum = z.enum(["EXACT", "ROUND_UP_0_5", "ROUND_UP_1"], 
   error: "Pembulatan luas harus berupa EXACT, ROUND_UP_0_5, atau ROUND_UP_1",
 });
 
+const optionalNonNegativeIntSchema = z
+  .union([z.number(), z.string(), z.null(), z.undefined()])
+  .transform((v) => {
+    if (v === "" || v === null || v === undefined) return null;
+    return typeof v === "number" ? v : Number(v);
+  })
+  .pipe(
+    z
+      .number({ error: "Harga produksi tier harus berupa angka" })
+      .int("Harga produksi tier harus bilangan bulat")
+      .min(0, "Harga produksi tier minimal 0")
+      .nullable()
+  )
+  .optional();
+
+const normalizedNonNegativeIntSchema = z
+  .union([z.number(), z.string(), z.undefined()])
+  .transform((v) => {
+    if (v === "" || v === undefined) return 0;
+    return typeof v === "number" ? v : Number(v);
+  })
+  .pipe(
+    z
+      .number({ error: "Harga produksi harus berupa angka" })
+      .int("Harga produksi harus bilangan bulat")
+      .min(0, "Harga produksi minimal 0")
+  );
+
 export const priceTierSchema = z
   .object({
     id: z.string().uuid().optional(),
     minQty: z.number().int("Min Qty harus bilangan bulat").min(1, "Min Qty minimal 1"),
     maxQty: z.number().int("Max Qty harus bilangan bulat").min(1, "Max Qty minimal 1").nullable().optional(),
+    productionPrice: optionalNonNegativeIntSchema,
     unitPrice: z.number().int("Harga satuan tier harus bilangan bulat").min(0, "Harga satuan tier minimal 0"),
   })
   .strict();
@@ -161,6 +190,7 @@ export const createProductSchema = z
       .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
     pricingType: pricingTypeEnum,
     unitLabel: z.string().trim().min(1, "Label satuan wajib diisi (misal: m², pcs, lembar)").max(30),
+    productionPrice: normalizedNonNegativeIntSchema.default(0),
     basePrice: z.coerce.number().int("Harga dasar harus bilangan bulat").min(0, "Harga dasar minimal 0"),
     minArea: z.coerce.number().min(0.01, "Minimal luas harus lebih dari 0").default(1.0),
     areaRounding: areaRoundingEnum.default("EXACT"),
@@ -198,6 +228,7 @@ export const updateProductSchema = z
       .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
     pricingType: pricingTypeEnum.optional(),
     unitLabel: z.string().trim().min(1, "Label satuan wajib diisi").max(30).optional(),
+    productionPrice: normalizedNonNegativeIntSchema.optional(),
     basePrice: z.coerce.number().int("Harga dasar harus bilangan bulat").min(0, "Harga dasar minimal 0").optional(),
     minArea: z.coerce.number().min(0.01, "Minimal luas harus lebih dari 0").optional(),
     areaRounding: areaRoundingEnum.optional(),

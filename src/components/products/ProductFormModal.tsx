@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { X, Plus, Trash2, AlertCircle, Save } from "lucide-react";
 import { ProductImageUploader } from "./ProductImageUploader";
 import { validatePriceTiers, type PriceTierInput } from "@/lib/validators/product";
+import { ProfitMarginBanner } from "./ProfitMarginBanner";
 
 export interface CategoryOption {
   id: string;
@@ -21,6 +22,7 @@ export interface ProductFormData {
   imageKey: string | null;
   pricingType: "AREA" | "UNIT" | "CUSTOM";
   unitLabel: string;
+  productionPrice: number;
   basePrice: number;
   minArea: number;
   areaRounding: "EXACT" | "ROUND_UP_0_5" | "ROUND_UP_1";
@@ -54,6 +56,7 @@ export function ProductFormModal({
     imageKey: null,
     pricingType: "UNIT",
     unitLabel: "pcs",
+    productionPrice: 0,
     basePrice: 0,
     minArea: 1.0,
     areaRounding: "EXACT",
@@ -76,6 +79,7 @@ export function ProductFormModal({
         imageKey: null,
         pricingType: "UNIT",
         unitLabel: "pcs",
+        productionPrice: 0,
         basePrice: 0,
         minArea: 1.0,
         areaRounding: "EXACT",
@@ -109,6 +113,7 @@ export function ProductFormModal({
         {
           minQty: nextMin,
           maxQty: null,
+          productionPrice: prev.productionPrice > 0 ? prev.productionPrice : null,
           unitPrice: prev.basePrice > 0 ? prev.basePrice : 0,
         },
       ],
@@ -163,11 +168,18 @@ export function ProductFormModal({
         imageKey: formData.imageKey?.trim() || null,
         pricingType: formData.pricingType,
         unitLabel: formData.unitLabel.trim() || (formData.pricingType === "AREA" ? "m²" : "pcs"),
+        productionPrice: Number(formData.productionPrice) || 0,
         basePrice: Number(formData.basePrice) || 0,
         minArea: formData.pricingType === "AREA" ? Number(formData.minArea) || 1.0 : 1.0,
         areaRounding: formData.pricingType === "AREA" ? formData.areaRounding : "EXACT",
         isActive: Boolean(formData.isActive),
-        tiers: formData.pricingType === "UNIT" ? formData.tiers : [],
+        tiers:
+          formData.pricingType === "UNIT"
+            ? formData.tiers.map((t) => ({
+                ...t,
+                productionPrice: t.productionPrice ?? null,
+              }))
+            : [],
       };
 
       await onSubmit(cleanPayload);
@@ -314,24 +326,65 @@ export function ProductFormModal({
               />
             </div>
 
-            {/* Harga Dasar (Rp) */}
-            <div className="space-y-1.5">
-              <label className="text-xs sm:text-sm font-semibold text-foreground">
-                Harga Dasar (Rp) <span className="text-destructive">*</span>
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={formData.basePrice || ""}
-                onChange={(e) => setFormData({ ...formData, basePrice: parseInt(e.target.value, 10) || 0 })}
-                required
-                placeholder="Contoh: 25000"
-                className="h-11 w-full font-mono text-base sm:text-sm tabular-nums rounded-xl border border-input bg-background px-3.5 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-              />
+            {/* Harga Produksi (Modal) vs Harga Jual (Ke Pelanggan) */}
+            <div className="sm:col-span-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="text-xs sm:text-sm font-semibold text-foreground">
+                  Harga Produksi / Vendor (Modal Rp)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.productionPrice || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      productionPrice: Math.max(0, parseInt(e.target.value, 10) || 0),
+                    })
+                  }
+                  placeholder="Contoh: 20000"
+                  className="h-11 w-full font-mono text-base sm:text-sm tabular-nums rounded-xl border border-input bg-background px-3.5 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Modal yang dibayar ke percetakan vendor (rahasia Owner).
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs sm:text-sm font-semibold text-foreground">
+                  Harga Jual (Ke Pelanggan Rp) <span className="text-destructive">*</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.basePrice || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      basePrice: Math.max(0, parseInt(e.target.value, 10) || 0),
+                    })
+                  }
+                  required
+                  placeholder="Contoh: 25000"
+                  className="h-11 w-full font-mono text-base sm:text-sm tabular-nums rounded-xl border border-input bg-background px-3.5 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Harga jual resmi yang muncul di kalkulator POS &amp; nota pelanggan.
+                </p>
+              </div>
+
+              {/* Kalkulator Margin Live */}
+              <div className="sm:col-span-2">
+                <ProfitMarginBanner
+                  productionPrice={formData.productionPrice || 0}
+                  sellingPrice={formData.basePrice || 0}
+                  unitLabel={formData.unitLabel || "satuan"}
+                />
+              </div>
             </div>
 
             {/* Status Aktif */}
-            <div className="flex items-center gap-3 pt-6">
+            <div className="sm:col-span-2 flex items-center gap-3 pt-1">
               <input
                 type="checkbox"
                 id="isActiveCheck"
@@ -438,8 +491,26 @@ export function ProductFormModal({
                           className="h-10 w-24 font-mono text-base sm:text-sm tabular-nums rounded-lg border border-input bg-background px-2.5 placeholder:text-xs text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
                         />
                       </div>
+                      <div className="flex items-center gap-1.5 min-w-[130px]">
+                        <span className="text-xs font-medium text-muted-foreground">Modal:</span>
+                        <input
+                          type="number"
+                          min="0"
+                          value={tier.productionPrice ?? ""}
+                          placeholder="Ikut dasar"
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            handleTierChange(
+                              idx,
+                              "productionPrice",
+                              raw === "" ? null : Math.max(0, parseInt(raw, 10) || 0)
+                            );
+                          }}
+                          className="h-10 w-28 font-mono text-base sm:text-sm tabular-nums rounded-lg border border-input bg-background px-2.5 placeholder:text-xs text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
+                        />
+                      </div>
                       <div className="flex items-center gap-1.5 flex-1 min-w-[140px]">
-                        <span className="text-xs font-medium text-muted-foreground">Rp:</span>
+                        <span className="text-xs font-medium text-muted-foreground">Jual Rp:</span>
                         <input
                           type="number"
                           min="0"

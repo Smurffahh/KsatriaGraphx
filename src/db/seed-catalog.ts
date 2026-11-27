@@ -15,30 +15,37 @@ export interface SeedCatalogResult {
   categoriesInserted: number;
   categoriesSkipped: number;
   productsInserted: number;
+  productsUpdated: number;
   productsSkipped: number;
   tiersInserted: number;
   finishingsInserted: number;
+  finishingsUpdated: number;
   finishingsSkipped: number;
 }
 
-export async function runCatalogSeed(): Promise<SeedCatalogResult> {
+export async function runCatalogSeed(options?: {
+  syncPrices?: boolean;
+}): Promise<SeedCatalogResult> {
   if (!process.env.DATABASE_URL) {
     throw new Error("DATABASE_URL is not defined in environment variables");
   }
+
+  const syncPrices = Boolean(options?.syncPrices);
 
   const result: SeedCatalogResult = {
     categoriesInserted: 0,
     categoriesSkipped: 0,
     productsInserted: 0,
+    productsUpdated: 0,
     productsSkipped: 0,
     tiersInserted: 0,
     finishingsInserted: 0,
+    finishingsUpdated: 0,
     finishingsSkipped: 0,
   };
 
   const categoryMap = new Map<string, string>();
 
-  // 1. Sinkronisasi Kategori (Idempotent)
   for (const cat of DEFAULT_CATEGORIES) {
     const existing = await db
       .select({ id: categories.id })
@@ -65,19 +72,21 @@ export async function runCatalogSeed(): Promise<SeedCatalogResult> {
     }
   }
 
-  // Ambil seluruh kategori yang tersimpan jika ada slug yang belum terpetakan
-  const allDbCategories = await db.select({ id: categories.id, slug: categories.slug }).from(categories);
+  const allDbCategories = await db
+    .select({ id: categories.id, slug: categories.slug })
+    .from(categories);
   for (const c of allDbCategories) {
     if (!categoryMap.has(c.slug)) {
       categoryMap.set(c.slug, c.id);
     }
   }
 
-  // 2. Sinkronisasi Produk & Tiers (Non-Destructive, Skip jika sudah ada)
   for (const prod of DEFAULT_PRODUCTS) {
     const categoryId = categoryMap.get(prod.categorySlug);
     if (!categoryId) {
-      console.warn(`[WARN] Kategori slug '${prod.categorySlug}' tidak ditemukan. Melewati produk ${prod.name}`);
+      console.warn(
+        `[WARN] Kategori slug '${prod.categorySlug}' tidak ditemukan. Melewati produk ${prod.name}`
+      );
       continue;
     }
 
@@ -93,17 +102,51 @@ export async function runCatalogSeed(): Promise<SeedCatalogResult> {
       .limit(1);
 
     if (existing.length > 0) {
-      if (!existing[0].isActive) {
-        await db
-          .update(products)
-          .set({ isActive: true })
-          .where(eq(products.id, existing[0].id));
+      const existingId = existing[0].id;
+      if (syncPrices) {
+        await db.transaction(async (tx) => {
+          await tx
+            .update(products)
+            .set({
+              productionPrice: prod.productionPrice,
+              basePrice: prod.basePrice,
+              isActive: true,
+              updatedAt: new Date(),
+            })
+            .where(eq(products.id, existingId));
+
+          if (prod.pricingType === "UNIT" && prod.tiers) {
+            await tx
+              .delete(productPriceTiers)
+              .where(eq(productPriceTiers.productId, existingId));
+
+            if (prod.tiers.length > 0) {
+              await tx.insert(productPriceTiers).values(
+                prod.tiers.map((tier) => ({
+                  productId: existingId,
+                  minQty: tier.minQty,
+                  maxQty: tier.maxQty ?? null,
+                  productionPrice: tier.productionPrice ?? prod.productionPrice,
+                  unitPrice: tier.unitPrice,
+                }))
+              );
+              result.tiersInserted += prod.tiers.length;
+            }
+          }
+        });
+        result.productsUpdated++;
+      } else {
+        if (!existing[0].isActive) {
+          await db
+            .update(products)
+            .set({ isActive: true })
+            .where(eq(products.id, existingId));
+        }
+        result.productsSkipped++;
       }
-      result.productsSkipped++;
       continue;
     }
 
-    // Insert produk dan tiers dalam transaksi atomik
     await db.transaction(async (tx) => {
       const [insertedProd] = await tx
         .insert(products)
@@ -114,6 +157,7 @@ export async function runCatalogSeed(): Promise<SeedCatalogResult> {
           description: prod.description,
           pricingType: prod.pricingType,
           unitLabel: prod.unitLabel,
+          productionPrice: prod.productionPrice,
           basePrice: prod.basePrice,
           minArea: prod.minArea ?? "1.00",
           areaRounding: prod.areaRounding ?? "EXACT",
@@ -127,6 +171,7 @@ export async function runCatalogSeed(): Promise<SeedCatalogResult> {
             productId: insertedProd.id,
             minQty: tier.minQty,
             maxQty: tier.maxQty ?? null,
+            productionPrice: tier.productionPrice ?? prod.productionPrice,
             unitPrice: tier.unitPrice,
           }))
         );
@@ -137,7 +182,6 @@ export async function runCatalogSeed(): Promise<SeedCatalogResult> {
     result.productsInserted++;
   }
 
-  // 3. Sinkronisasi Finishing (Non-Destructive, Skip jika sudah ada)
   for (const fin of DEFAULT_FINISHINGS) {
     const existing = await db
       .select({ id: finishings.id })
@@ -146,13 +190,25 @@ export async function runCatalogSeed(): Promise<SeedCatalogResult> {
       .limit(1);
 
     if (existing.length > 0) {
-      result.finishingsSkipped++;
+      if (syncPrices) {
+        await db
+          .update(finishings)
+          .set({
+            productionPrice: fin.productionPrice,
+            defaultPrice: fin.defaultPrice,
+          })
+          .where(eq(finishings.id, existing[0].id));
+        result.finishingsUpdated++;
+      } else {
+        result.finishingsSkipped++;
+      }
       continue;
     }
 
     await db.insert(finishings).values({
       name: fin.name,
       chargeType: fin.chargeType,
+      productionPrice: fin.productionPrice,
       defaultPrice: fin.defaultPrice,
       unitLabel: fin.unitLabel,
       isActive: true,
@@ -165,14 +221,25 @@ export async function runCatalogSeed(): Promise<SeedCatalogResult> {
 }
 
 if (process.argv[1]?.endsWith("seed-catalog.ts")) {
-  console.log("=== MEMULAI SEED KATALOG AMAN (NON-DESTRUCTIVE) ===");
-  runCatalogSeed()
+  const syncPrices = process.argv.includes("--sync-prices");
+  console.log(
+    syncPrices
+      ? "=== MEMULAI SEED & SINKRONISASI HARGA KATALOG (--sync-prices) ==="
+      : "=== MEMULAI SEED KATALOG AMAN (NON-DESTRUCTIVE) ==="
+  );
+  runCatalogSeed({ syncPrices })
     .then((res) => {
       console.log("\n=== HASIL EKSEKUSI SEED KATALOG ===");
-      console.log(`• Kategori   : ${res.categoriesInserted} ditambahkan, ${res.categoriesSkipped} dilewati (sudah ada)`);
-      console.log(`• Produk     : ${res.productsInserted} ditambahkan, ${res.productsSkipped} dilewati (sudah ada)`);
-      console.log(`• Price Tiers: ${res.tiersInserted} baris tier ditambahkan`);
-      console.log(`• Finishing  : ${res.finishingsInserted} ditambahkan, ${res.finishingsSkipped} dilewati (sudah ada)`);
+      console.log(
+        `• Kategori   : ${res.categoriesInserted} ditambahkan, ${res.categoriesSkipped} dilewati (sudah ada)`
+      );
+      console.log(
+        `• Produk     : ${res.productsInserted} ditambahkan, ${res.productsUpdated} diperbarui, ${res.productsSkipped} dilewati`
+      );
+      console.log(`• Price Tiers: ${res.tiersInserted} baris tier ditulis`);
+      console.log(
+        `• Finishing  : ${res.finishingsInserted} ditambahkan, ${res.finishingsUpdated} diperbarui, ${res.finishingsSkipped} dilewati`
+      );
       console.log("\nStatus: SELESAI DENGAN AMAN 100%");
       process.exit(0);
     })

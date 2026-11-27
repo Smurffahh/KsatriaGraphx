@@ -4,6 +4,25 @@ Semua pembaruan terstruktur untuk proyek **Ksatria Graphx** didokumentasikan dal
 
 ---
 
+## [v1.5.0] - 2026-11-27
+
+Pembaruan v1.5.0 menghadirkan sistem **Harga Produksi (Modal Vendor) vs Harga Jual (Markup Reseller)** serta kalkulasi laba bersih otomatis dengan isolasi keamanan RBAC khusus Pemilik Usaha (Owner):
+
+### Skema Database & Sinkronisasi Harga Katalog
+- **Kolom Modal Vendor & Snapshot Pesanan**: Menambahkan kolom zero-downtime `production_price` pada tabel `products`, `product_price_tiers`, dan `finishings`, serta snapshot `production_unit_price_snapshot`, `production_subtotal`, dan `profit_amount` pada `order_items` berikut `total_production_cost` dan `gross_profit` pada `orders` melalui migrasi `drizzle/0003_cultured_mole_man.sql`.
+- **Pemetaan Harga Jual Reseller (`catalog-defaults.ts`)**: Memperbarui daftar harga 13 produk inti (termasuk acuan Banner Flexi 280gr Modal `Rp 20.000` -> Jual `Rp 25.000`, Laba `Rp 5.000/m²`) beserta 29 tier grosir dan 5 opsi finishing, dilengkapi flag `--sync-prices` idempoten pada `src/db/seed-catalog.ts`.
+
+### Kalkulator Laba Bersih, Validasi & RBAC Zero-Leak
+- **Engine Kalkulasi Laba & Margin**: Memperluas `calculateOrderItem` dan `calculateOrder` (`grossProfit = grandTotal - totalProductionCost`) sehingga potongan diskon maupun override harga langsung memotong laba tanpa mengurangi tagihan modal ke percetakan vendor, ditambah helper `calculateProfitMetrics`.
+- **Proteksi API Khusus Owner (`cost-redaction.ts`)**: Menghapus field modal produksi dan laba dari seluruh respons produk, finishing, daftar/detail pesanan, pembayaran, serta ringkasan dashboard apabila pemanggil berperan `KASIR` (baik Cookie Web maupun Bearer Token APK).
+- **Laporan & Ekspor CSV Owner**: Menambahkan metrik Total Modal Vendor, Total Laba Kotor, Margin (%), serta kolom modal/laba pada ekspor CSV `GET /api/reports` yang dilindungi sanitasi anti-CSV injection.
+
+### Antarmuka Owner & Kerahasiaan Struk Pelanggan
+- **Form Produk & Finishing dengan Kalkulator Margin Live**: Menampilkan input Harga Produksi vs Harga Jual beserta indikator margin hijau/kuning/merah otomatis di `ProductFormModal` dan `FinishingTab`, serta rincian modal/laba khusus Owner pada tabel produk.
+- **Dashboard, Laporan & Detail Pesanan**: Menambahkan kartu Total Modal Vendor & Estimasi Laba Bersih pada Dashboard dan Laporan Owner serta kartu internal Owner di halaman Detail Pesanan, sementara `ReceiptView.tsx`, `escpos.ts`, dan teks WhatsApp tetap 100% statis dan bebas data modal.
+
+---
+
 ## [v1.4.0] - 2026-11-26
 
 Pembaruan v1.4.0 merombak proporsi tata letak, skala tipografi, serta kenyamanan sentuh di seluruh antarmuka **Ksatria Graphx** lintas Desktop, Tablet, dan Mobile/APK Android:

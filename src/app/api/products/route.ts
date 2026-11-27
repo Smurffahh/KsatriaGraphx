@@ -12,6 +12,7 @@ import {
   validatePriceTiers,
   formatZodError,
 } from "@/lib/validators/product";
+import { redactProductForRole } from "@/lib/security/cost-redaction";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +74,7 @@ export async function GET(request: Request) {
         imageKey: products.imageKey,
         pricingType: products.pricingType,
         unitLabel: products.unitLabel,
+        productionPrice: products.productionPrice,
         basePrice: products.basePrice,
         minArea: products.minArea,
         areaRounding: products.areaRounding,
@@ -110,11 +112,16 @@ export async function GET(request: Request) {
       tiersByProductId.set(tier.productId, list);
     }
 
-    const data = productRows.map((p) => ({
-      ...p,
-      minArea: p.minArea ? Number(p.minArea) : 1.0,
-      priceTiers: tiersByProductId.get(p.id) || [],
-    }));
+    const data = productRows.map((p) =>
+      redactProductForRole(
+        {
+          ...p,
+          minArea: p.minArea ? Number(p.minArea) : 1.0,
+          priceTiers: tiersByProductId.get(p.id) || [],
+        },
+        session.role
+      )
+    );
 
     return NextResponse.json({ success: true, data }, { status: 200, headers: corsHeaders });
   } catch (error) {
@@ -208,6 +215,7 @@ export async function POST(request: Request) {
           imageKey: payload.imageKey || null,
           pricingType: payload.pricingType,
           unitLabel: payload.unitLabel,
+          productionPrice: payload.productionPrice,
           basePrice: payload.basePrice,
           minArea: payload.minArea ? String(payload.minArea) : "1.00",
           areaRounding: payload.areaRounding,
@@ -225,6 +233,7 @@ export async function POST(request: Request) {
               productId: newProduct.id,
               minQty: t.minQty,
               maxQty: t.maxQty !== undefined ? t.maxQty : null,
+              productionPrice: t.productionPrice ?? null,
               unitPrice: t.unitPrice,
             }))
           )

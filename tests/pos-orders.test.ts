@@ -208,5 +208,40 @@ describe("POS, Kalkulator, Keamanan & Anti-Fraud Suite", () => {
 
       expect(invalidNoItems.success).toBe(false);
     });
+
+    it("kalkulasi pesanan menghitung total modal vendor dan laba kotor secara atomik dengan designFee & diskon", () => {
+      const res = calculateOrder({
+        items: [
+          {
+            pricingType: "AREA",
+            width: 2,
+            height: 1,
+            unit: "m",
+            quantity: 1,
+            productionPrice: 20000,
+            basePrice: 25000,
+            finishings: [
+              {
+                chargeType: "PER_QTY",
+                productionUnitPrice: 500,
+                unitPrice: 1000,
+                quantity: 4,
+                name: "Mata Ayam",
+              },
+            ],
+          },
+        ],
+        designFee: 20000,
+        discountType: "FIXED",
+        discountValue: 5000,
+      });
+
+      // Bahan jual 50.000 (modal 40.000) + finishing jual 4.000 (modal 2.000) + desain 20.000 - diskon 5.000 = 69.000
+      // Modal vendor = 42.000 -> Laba kotor = 69.000 - 42.000 = 27.000
+      expect(res.subtotal).toBe(54000);
+      expect(res.grandTotal).toBe(69000);
+      expect(res.totalProductionCost).toBe(42000);
+      expect(res.grossProfit).toBe(27000);
+    });
   });
 });

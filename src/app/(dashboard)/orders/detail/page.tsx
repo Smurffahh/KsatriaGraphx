@@ -33,6 +33,9 @@ interface OrderDetailItem {
   unitPrice: number;
   isPriceOverridden: boolean;
   itemSubtotal: number;
+  productionUnitPriceSnapshot?: number;
+  productionSubtotal?: number;
+  profitAmount?: number;
   itemNotes: string | null;
   finishings: {
     id: string;
@@ -75,6 +78,8 @@ interface OrderDetailData {
   discountType: "NONE" | "FIXED" | "PERCENT";
   discountAmount: number;
   grandTotal: number;
+  totalProductionCost?: number;
+  grossProfit?: number;
   paidAmount: number;
   remainingAmount: number;
   paymentStatus: "UNPAID" | "PARTIAL" | "PAID";
@@ -461,6 +466,27 @@ function OrderDetailContent() {
                         Catatan: {item.itemNotes}
                       </div>
                     )}
+
+                    {currentUser?.role === "OWNER" &&
+                      typeof item.productionSubtotal === "number" && (
+                        <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-lg border border-border/80 bg-muted/50 px-2.5 py-1 text-xs tabular-nums">
+                          <span className="text-muted-foreground">
+                            Modal Vendor: Rp {item.productionSubtotal.toLocaleString("id-ID")}
+                          </span>
+                          <span className="text-muted-foreground/60">•</span>
+                          <span
+                            className={`font-semibold ${
+                              (item.profitAmount ?? 0) < 0
+                                ? "text-destructive"
+                                : "text-emerald-600 dark:text-emerald-400"
+                            }`}
+                          >
+                            {(item.profitAmount ?? 0) < 0
+                              ? `Rugi: -Rp ${Math.abs(item.profitAmount ?? 0).toLocaleString("id-ID")}`
+                              : `Laba: +Rp ${(item.profitAmount ?? 0).toLocaleString("id-ID")}`}
+                          </span>
+                        </div>
+                      )}
                   </td>
 
                   <td className="py-4 px-4 text-center tabular-nums text-foreground">
@@ -546,6 +572,77 @@ function OrderDetailContent() {
           )}
         </div>
       </div>
+
+      {/* Owner-Only Production Cost & Profit Summary (Never printed on ReceiptView) */}
+      {currentUser?.role === "OWNER" &&
+        typeof order.totalProductionCost === "number" &&
+        typeof order.grossProfit === "number" && (() => {
+          const marginPercent =
+            order.grandTotal > 0
+              ? Math.round((order.grossProfit / order.grandTotal) * 1000) / 10
+              : 0;
+          const isLoss = order.grossProfit < 0;
+          return (
+            <div className="bg-card border border-border rounded-2xl shadow-xs overflow-hidden">
+              <div className="p-4 sm:p-5 border-b border-border bg-muted/40 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-base font-semibold text-foreground">
+                    Ringkasan Modal Vendor &amp; Keuntungan (Internal Owner)
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Data rahasia ini hanya terlihat oleh Owner dan tidak pernah dicetak di nota pelanggan.
+                  </p>
+                </div>
+                <span
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold tabular-nums ${
+                    isLoss
+                      ? "bg-destructive/10 text-destructive"
+                      : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                  }`}
+                >
+                  Margin {marginPercent}%
+                </span>
+              </div>
+
+              <div className="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-3 gap-4 tabular-nums">
+                <div className="p-3.5 rounded-xl bg-muted/40 border border-border/60 space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground block">
+                    Omzet Tagihan (Grand Total)
+                  </span>
+                  <span className="text-lg sm:text-xl font-bold text-foreground block">
+                    Rp {order.grandTotal.toLocaleString("id-ID")}
+                  </span>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-muted/40 border border-border/60 space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground block">
+                    Total Modal Vendor (Setor Percetakan)
+                  </span>
+                  <span className="text-lg sm:text-xl font-bold text-amber-600 dark:text-amber-400 block">
+                    Rp {order.totalProductionCost.toLocaleString("id-ID")}
+                  </span>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-muted/40 border border-border/60 space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground block">
+                    Estimasi Laba Bersih (Gross Profit)
+                  </span>
+                  <span
+                    className={`text-lg sm:text-xl font-bold block ${
+                      isLoss
+                        ? "text-destructive"
+                        : "text-emerald-600 dark:text-emerald-400"
+                    }`}
+                  >
+                    {isLoss
+                      ? `-Rp ${Math.abs(order.grossProfit).toLocaleString("id-ID")}`
+                      : `Rp ${order.grossProfit.toLocaleString("id-ID")}`}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
       {/* Payment History Section */}
       <div className="bg-card border border-border rounded-2xl shadow-xs overflow-hidden">

@@ -6,6 +6,7 @@ import {
   calculateFinishingSubtotal,
   calculateOrderItem,
   calculateOrder,
+  calculateProfitMetrics,
   isDiscountWithinCashierLimit,
   type PriceTier,
 } from "./pricing";
@@ -282,6 +283,125 @@ describe("Pricing Engine - Pure Logic (US-007)", () => {
       });
       expect(orderRes.discountAmount).toBe(100000);
       expect(orderRes.grandTotal).toBe(0);
+    });
+  });
+
+  describe("7. Harga Produksi (Modal Vendor), Markup Reseller & Laba Bersih", () => {
+    it("skenario 25: kasus acuan Banner Flexi 280gr (Modal Rp 20.000 -> Jual Rp 25.000 = Laba Rp 5.000/m²)", () => {
+      const res = calculateOrder({
+        items: [
+          {
+            pricingType: "AREA",
+            width: 3,
+            height: 1,
+            unit: "m",
+            quantity: 2,
+            productionPrice: 20000,
+            basePrice: 25000,
+            finishings: [
+              {
+                chargeType: "PER_QTY",
+                unitPrice: 1000,
+                productionUnitPrice: 500,
+                quantity: 4,
+                name: "Mata Ayam",
+              },
+            ],
+          },
+        ],
+      });
+
+      // Bahan: 3 m2 * 2 pcs = 6 m2 -> jual 150.000, modal 120.000
+      // Finishing: 4 * 2 * 1000 = 8.000 jual, 4 * 2 * 500 = 4.000 modal
+      expect(res.items[0].baseSubtotal).toBe(150000);
+      expect(res.items[0].productionBaseSubtotal).toBe(120000);
+      expect(res.items[0].finishingTotal).toBe(8000);
+      expect(res.items[0].productionFinishingTotal).toBe(4000);
+      expect(res.items[0].itemSubtotal).toBe(158000);
+      expect(res.items[0].productionSubtotal).toBe(124000);
+      expect(res.items[0].profitAmount).toBe(34000);
+      expect(res.grandTotal).toBe(158000);
+      expect(res.totalProductionCost).toBe(124000);
+      expect(res.grossProfit).toBe(34000);
+    });
+
+    it("skenario 26: diskon kasir memotong laba bersih tanpa mengurangi modal vendor", () => {
+      const res = calculateOrder({
+        items: [
+          {
+            pricingType: "UNIT",
+            quantity: 1,
+            productionPrice: 70000,
+            basePrice: 100000,
+          },
+        ],
+        discountType: "PERCENT",
+        discountValue: 10,
+      });
+
+      expect(res.grandTotal).toBe(90000);
+      expect(res.totalProductionCost).toBe(70000);
+      expect(res.grossProfit).toBe(20000);
+    });
+
+    it("skenario 27: override harga di bawah modal menghasilkan laba negatif jujur dan tetap menjaga modal vendor", () => {
+      const res = calculateOrder({
+        items: [
+          {
+            pricingType: "UNIT",
+            quantity: 2,
+            productionPrice: 20000,
+            basePrice: 25000,
+            overrideUnitPrice: 18000,
+            isPriceOverridden: true,
+          },
+        ],
+      });
+
+      expect(res.grandTotal).toBe(36000);
+      expect(res.totalProductionCost).toBe(40000);
+      expect(res.grossProfit).toBe(-4000);
+    });
+
+    it("skenario 28: tier harga UNIT menggunakan productionPrice tier bila diisi dan fallback ke modal dasar bila null", () => {
+      const tiers: PriceTier[] = [
+        { minQty: 10, maxQty: 49, productionPrice: 10000, unitPrice: 14000 },
+        { minQty: 50, maxQty: null, productionPrice: null, unitPrice: 11000 },
+      ];
+
+      const tierWithCost = calculateOrderItem({
+        pricingType: "UNIT",
+        quantity: 20,
+        productionPrice: 12000,
+        basePrice: 17000,
+        priceTiers: tiers,
+      });
+      expect(tierWithCost.productionUnitPrice).toBe(10000);
+      expect(tierWithCost.effectiveUnitPrice).toBe(14000);
+      expect(tierWithCost.profitAmount).toBe(80000);
+
+      const tierFallbackCost = calculateOrderItem({
+        pricingType: "UNIT",
+        quantity: 50,
+        productionPrice: 9000,
+        basePrice: 17000,
+        priceTiers: tiers,
+      });
+      expect(tierFallbackCost.productionUnitPrice).toBe(9000);
+      expect(tierFallbackCost.effectiveUnitPrice).toBe(11000);
+      expect(tierFallbackCost.profitAmount).toBe(100000);
+    });
+
+    it("skenario 29: calculateProfitMetrics menghitung markup %, margin %, dan skenario Jasa Desain modal 0", () => {
+      const banner = calculateProfitMetrics(20000, 25000);
+      expect(banner.profitPerUnit).toBe(5000);
+      expect(banner.markupPercent).toBe(25);
+      expect(banner.marginPercent).toBe(20);
+
+      const designFee = calculateProfitMetrics(0, 20000);
+      expect(designFee.profitPerUnit).toBe(20000);
+      expect(designFee.markupPercent).toBeNull();
+      expect(designFee.marginPercent).toBe(100);
     });
   });
 });

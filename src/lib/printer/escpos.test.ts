@@ -198,5 +198,32 @@ describe("Mesin ESC/POS Deterministik 58mm & 80mm (US-012)", () => {
       expect(str).toContain("3m x 1m");
       expect(str).toContain("Cetak Cepat, Hasil Memikat!");
     });
+
+    it("Zero-Leak Struk ESC/POS: tidak boleh mencetak modal vendor, harga produksi, atau laba", () => {
+      const orderWithExtraSensitiveFields = {
+        ...mockOrder,
+        totalProductionCost: 111777,
+        grossProfit: 48223,
+        items: mockOrder.items.map((item) => ({
+          ...item,
+          productionUnitPriceSnapshot: 19377,
+          productionSubtotal: 111777,
+          profitAmount: 38223,
+        })),
+      } as unknown as ReceiptOrderData;
+
+      const bytes = generateEscPosReceipt(orderWithExtraSensitiveFields, mockStore, "80mm");
+      const str = new TextDecoder("ascii").decode(bytes);
+
+      expect(str).not.toContain("111.777");
+      expect(str).not.toContain("48.223");
+      expect(str).not.toContain("19.377");
+      expect(str).not.toContain("38.223");
+      expect(str.toLowerCase()).not.toContain("modal");
+      expect(str.toLowerCase()).not.toContain("vendor");
+      expect(str.toLowerCase()).not.toContain("laba");
+      expect(str.toLowerCase()).not.toContain("profit");
+      expect(str.toLowerCase()).not.toContain("productioncost");
+    });
   });
 });

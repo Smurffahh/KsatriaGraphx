@@ -28,6 +28,7 @@ import {
 } from "@/lib/calculator/pricing";
 import { jsonResponse, errorResponse, handleApiError } from "@/lib/api/response";
 import { handleCorsPreflight } from "@/lib/api/cors";
+import { redactOrderForRole } from "@/lib/security/cost-redaction";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,7 @@ export async function OPTIONS(request: Request) {
 
 export async function GET(request: NextRequest) {
   try {
-    await requireAuth(request);
+    const session = await requireAuth(request);
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search")?.trim() || "";
@@ -134,6 +135,8 @@ export async function GET(request: NextRequest) {
         discountValue: orders.discountValue,
         discountAmount: orders.discountAmount,
         grandTotal: orders.grandTotal,
+        totalProductionCost: orders.totalProductionCost,
+        grossProfit: orders.grossProfit,
         paidAmount: orders.paidAmount,
         remainingAmount: orders.remainingAmount,
         paymentStatus: orders.paymentStatus,
@@ -150,8 +153,10 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .offset(offset);
 
+    const redactedOrders = orderRows.map((o) => redactOrderForRole(o, session.role));
+
     return jsonResponse({
-      data: orderRows,
+      data: redactedOrders,
       pagination: {
         page,
         limit,
@@ -252,6 +257,7 @@ export async function POST(request: NextRequest) {
         .map((t) => ({
           minQty: t.minQty,
           maxQty: t.maxQty,
+          productionPrice: t.productionPrice,
           unitPrice: t.unitPrice,
         }));
 
@@ -262,6 +268,7 @@ export async function POST(request: NextRequest) {
           name: fin.name,
           chargeType: fin.chargeType,
           unitPrice: fin.defaultPrice,
+          productionUnitPrice: fin.productionPrice,
           quantity: f.quantity,
         };
       });
@@ -270,6 +277,7 @@ export async function POST(request: NextRequest) {
         pricingType: prod.pricingType,
         quantity: item.quantity,
         basePrice: prod.basePrice,
+        productionPrice: prod.productionPrice,
         priceTiers: prodTiers,
         overrideUnitPrice: item.overrideUnitPrice ?? undefined,
         isPriceOverridden: item.overrideUnitPrice !== undefined && item.overrideUnitPrice !== null,
@@ -327,6 +335,8 @@ export async function POST(request: NextRequest) {
           discountValue: calculatedOrder.discountValue,
           discountAmount: calculatedOrder.discountAmount,
           grandTotal: calculatedOrder.grandTotal,
+          totalProductionCost: calculatedOrder.totalProductionCost,
+          grossProfit: calculatedOrder.grossProfit,
           paidAmount: calculatedOrder.paidAmount,
           remainingAmount: calculatedOrder.remainingAmount,
           paymentStatus: calculatedOrder.paymentStatus,
@@ -356,6 +366,9 @@ export async function POST(request: NextRequest) {
             isPriceOverridden: calcItem.isPriceOverridden,
             finishingTotal: calcItem.finishingTotal,
             itemSubtotal: calcItem.itemSubtotal,
+            productionUnitPriceSnapshot: calcItem.productionUnitPrice,
+            productionSubtotal: calcItem.productionSubtotal,
+            profitAmount: calcItem.profitAmount,
             itemNotes: itemInput.itemNotes || null,
           })
           .returning();
@@ -407,10 +420,13 @@ export async function POST(request: NextRequest) {
     });
 
     return jsonResponse(
-      {
-        ...createdOrder,
-        changeAmount: calculatedOrder.changeAmount,
-      },
+      redactOrderForRole(
+        {
+          ...createdOrder,
+          changeAmount: calculatedOrder.changeAmount,
+        },
+        session.role
+      ),
       201
     );
   } catch (error) {

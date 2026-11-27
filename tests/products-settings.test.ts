@@ -12,8 +12,9 @@ import {
   updateProductSchema,
 } from "../src/lib/validators/product";
 import { createCategorySchema } from "../src/lib/validators/category";
-import { createFinishingSchema } from "../src/lib/validators/finishing";
+import { createFinishingSchema, updateFinishingSchema } from "../src/lib/validators/finishing";
 import { updateStoreSettingsSchema } from "../src/lib/validators/settings";
+import { DEFAULT_PRODUCTS, DEFAULT_FINISHINGS } from "../src/db/catalog-defaults";
 import sharp from "sharp";
 
 describe("Media Storage & Image Sanitization Tests (US-004B)", () => {
@@ -294,5 +295,64 @@ describe("Zod Strict Schemas & Input Boundary Tests", () => {
       unitLabel: "m²",
     });
     expect(invalidFinishing.success).toBe(false);
+  });
+
+  it("harus menormalisasi productionPrice kosong dan menolak angka negatif di produk, tier, dan finishing", () => {
+    const validProductWithEmptyCost = createProductSchema.safeParse({
+      categoryId: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+      name: "Banner Promo",
+      pricingType: "UNIT",
+      unitLabel: "pcs",
+      productionPrice: "",
+      basePrice: 25000,
+      tiers: [{ minQty: 10, maxQty: null, productionPrice: "", unitPrice: 20000 }],
+    });
+    expect(validProductWithEmptyCost.success).toBe(true);
+    if (validProductWithEmptyCost.success) {
+      expect(validProductWithEmptyCost.data.productionPrice).toBe(0);
+      expect(validProductWithEmptyCost.data.tiers[0].productionPrice).toBeNull();
+    }
+
+    expect(
+      updateProductSchema.safeParse({ productionPrice: -1000 }).success
+    ).toBe(false);
+    expect(
+      createFinishingSchema.safeParse({
+        name: "Mata Ayam",
+        chargeType: "PER_QTY",
+        productionPrice: -500,
+        defaultPrice: 1000,
+        unitLabel: "titik",
+      }).success
+    ).toBe(false);
+    expect(
+      updateFinishingSchema.safeParse({ productionPrice: -1 }).success
+    ).toBe(false);
+  });
+
+  it("catalog-defaults harus memetakan harga modal vs jual yang valid termasuk acuan BNR-FLX-280", () => {
+    const flexi280 = DEFAULT_PRODUCTS.find((p) => p.sku === "BNR-FLX-280");
+    expect(flexi280).toBeDefined();
+    expect(flexi280?.productionPrice).toBe(20000);
+    expect(flexi280?.basePrice).toBe(25000);
+
+    for (const p of DEFAULT_PRODUCTS) {
+      expect(p.productionPrice).toBeGreaterThanOrEqual(0);
+      expect(p.basePrice).toBeGreaterThanOrEqual(p.productionPrice);
+      if (p.tiers) {
+        const tierCheck = validatePriceTiers(p.tiers);
+        expect(tierCheck.isValid).toBe(true);
+        for (const t of p.tiers) {
+          if (t.productionPrice !== undefined && t.productionPrice !== null) {
+            expect(t.unitPrice).toBeGreaterThanOrEqual(t.productionPrice);
+          }
+        }
+      }
+    }
+
+    for (const f of DEFAULT_FINISHINGS) {
+      expect(f.productionPrice).toBeGreaterThanOrEqual(0);
+      expect(f.defaultPrice).toBeGreaterThanOrEqual(f.productionPrice);
+    }
   });
 });

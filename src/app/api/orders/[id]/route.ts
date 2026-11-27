@@ -16,6 +16,7 @@ import { updateOrderStatusSchema } from "@/lib/validators/order";
 import { isValidUuid } from "@/lib/validators/uuid";
 import { jsonResponse, errorResponse, handleApiError } from "@/lib/api/response";
 import { handleCorsPreflight } from "@/lib/api/cors";
+import { redactOrderForRole } from "@/lib/security/cost-redaction";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAuth(request);
+    const session = await requireAuth(request);
     const { id } = await params;
     if (!isValidUuid(id)) {
       return errorResponse("Format ID pesanan tidak valid", 400);
@@ -50,6 +51,8 @@ export async function GET(
         discountValue: orders.discountValue,
         discountAmount: orders.discountAmount,
         grandTotal: orders.grandTotal,
+        totalProductionCost: orders.totalProductionCost,
+        grossProfit: orders.grossProfit,
         paidAmount: orders.paidAmount,
         remainingAmount: orders.remainingAmount,
         paymentStatus: orders.paymentStatus,
@@ -115,12 +118,17 @@ export async function GET(
       customerDetails = cust || null;
     }
 
-    return jsonResponse({
-      ...order,
-      customer: customerDetails,
-      items: itemsWithFinishings,
-      payments: paymentRows,
-    });
+    return jsonResponse(
+      redactOrderForRole(
+        {
+          ...order,
+          customer: customerDetails,
+          items: itemsWithFinishings,
+          payments: paymentRows,
+        },
+        session.role
+      )
+    );
   } catch (error) {
     return handleApiError(error);
   }
@@ -216,7 +224,7 @@ export async function PATCH(
       },
     });
 
-    return jsonResponse(updated);
+    return jsonResponse(redactOrderForRole(updated, session.role));
   } catch (error) {
     return handleApiError(error);
   }

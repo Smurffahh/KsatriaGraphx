@@ -4,11 +4,14 @@ import React, { useState } from "react";
 import { Plus, Edit2, Trash2, X, AlertCircle, Save, Scissors } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { toast } from "sonner";
+import { ProfitMarginBanner } from "./ProfitMarginBanner";
+import { calculateProfitMetrics } from "@/lib/calculator/pricing";
 
 export interface FinishingItem {
   id: string;
   name: string;
   chargeType: "FLAT" | "PER_QTY" | "PER_AREA";
+  productionPrice?: number;
   defaultPrice: number;
   unitLabel: string;
   isActive: boolean;
@@ -26,6 +29,7 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
   const [selectedFinishing, setSelectedFinishing] = useState<FinishingItem | null>(null);
   const [name, setName] = useState("");
   const [chargeType, setChargeType] = useState<"FLAT" | "PER_QTY" | "PER_AREA">("FLAT");
+  const [productionPrice, setProductionPrice] = useState(0);
   const [defaultPrice, setDefaultPrice] = useState(0);
   const [unitLabel, setUnitLabel] = useState("pcs");
   const [isActive, setIsActive] = useState(true);
@@ -41,6 +45,7 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
     setSelectedFinishing(null);
     setName("");
     setChargeType("FLAT");
+    setProductionPrice(0);
     setDefaultPrice(0);
     setUnitLabel("pcs");
     setIsActive(true);
@@ -52,6 +57,7 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
     setSelectedFinishing(item);
     setName(item.name);
     setChargeType(item.chargeType);
+    setProductionPrice(item.productionPrice ?? 0);
     setDefaultPrice(item.defaultPrice);
     setUnitLabel(item.unitLabel);
     setIsActive(item.isActive);
@@ -76,6 +82,7 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
           body: JSON.stringify({
             name: name.trim(),
             chargeType,
+            productionPrice,
             defaultPrice,
             unitLabel: unitLabel.trim(),
             isActive,
@@ -92,6 +99,7 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
           body: JSON.stringify({
             name: name.trim(),
             chargeType,
+            productionPrice,
             defaultPrice,
             unitLabel: unitLabel.trim(),
             isActive,
@@ -213,13 +221,38 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
                         {item.isActive ? "Aktif" : "Nonaktif"}
                       </span>
                     </div>
-                    <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                      Harga Standar:{" "}
-                      <span className="font-semibold font-mono text-foreground tabular-nums">
-                        Rp {item.defaultPrice.toLocaleString("id-ID")}
-                      </span>{" "}
-                      / {item.unitLabel}
-                    </p>
+                    <div className="text-xs sm:text-sm text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
+                      <span>
+                        Harga Jual:{" "}
+                        <span className="font-semibold font-mono text-foreground tabular-nums">
+                          Rp {item.defaultPrice.toLocaleString("id-ID")}
+                        </span>{" "}
+                        / {item.unitLabel}
+                      </span>
+                      {isOwner && typeof item.productionPrice === "number" && (() => {
+                        const metrics = calculateProfitMetrics(item.productionPrice, item.defaultPrice);
+                        const isLoss = metrics.profitPerUnit < 0;
+                        return (
+                          <>
+                            <span className="text-muted-foreground/60">•</span>
+                            <span className="tabular-nums">
+                              Modal: Rp {item.productionPrice.toLocaleString("id-ID")}
+                            </span>
+                            <span
+                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ${
+                                isLoss
+                                  ? "bg-destructive/10 text-destructive"
+                                  : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                              }`}
+                            >
+                              {isLoss
+                                ? `Rugi -Rp ${Math.abs(metrics.profitPerUnit).toLocaleString("id-ID")}`
+                                : `Laba +Rp ${metrics.profitPerUnit.toLocaleString("id-ID")}`}
+                            </span>
+                          </>
+                        );
+                      })()}
+                    </div>
                   </div>
                 </div>
 
@@ -313,34 +346,54 @@ export function FinishingTab({ finishings, onRefresh, isOwner }: FinishingTabPro
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground">
-                    Harga Default (Rp) <span className="text-destructive">*</span>
+                    Harga Produksi / Vendor (Modal Rp)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={productionPrice || ""}
+                    onChange={(e) => setProductionPrice(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                    placeholder="Contoh: 2000"
+                    className="h-11 w-full font-mono text-base sm:text-sm tabular-nums rounded-lg border border-input bg-background px-3.5 text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground">
+                    Harga Jual Standar (Rp) <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="number"
                     min="0"
                     value={defaultPrice || ""}
-                    onChange={(e) => setDefaultPrice(parseInt(e.target.value, 10) || 0)}
+                    onChange={(e) => setDefaultPrice(Math.max(0, parseInt(e.target.value, 10) || 0))}
                     required
-                    placeholder="Contoh: 5000"
-                    className="w-full font-mono text-sm tabular-nums rounded-lg border border-input bg-background px-3.5 py-2.5 text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                    placeholder="Contoh: 3500"
+                    className="h-11 w-full font-mono text-base sm:text-sm tabular-nums rounded-lg border border-input bg-background px-3.5 text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground">
-                    Label Satuan <span className="text-destructive">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={unitLabel}
-                    onChange={(e) => setUnitLabel(e.target.value)}
-                    required
-                    placeholder="pcs, m², paket"
-                    className="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-                  />
-                </div>
+              </div>
+
+              <ProfitMarginBanner
+                productionPrice={productionPrice}
+                sellingPrice={defaultPrice}
+                unitLabel={unitLabel || "satuan"}
+              />
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">
+                  Label Satuan <span className="text-destructive">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={unitLabel}
+                  onChange={(e) => setUnitLabel(e.target.value)}
+                  required
+                  placeholder="pcs, m², titik, lembar"
+                  className="h-11 w-full rounded-lg border border-input bg-background px-3.5 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                />
               </div>
 
               <div className="flex items-center gap-2 pt-2">

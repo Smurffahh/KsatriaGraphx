@@ -4,6 +4,11 @@ import { signAccessToken, verifyAccessToken, generateOpaqueRefreshToken, hashRef
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { validateCsrfOrigin } from "@/lib/security/csrf";
 import { handleGuardError } from "@/lib/auth/guard";
+import {
+  redactProductForRole,
+  redactFinishingForRole,
+  redactOrderForRole,
+} from "@/lib/security/cost-redaction";
 
 describe("Autentikasi & RBAC: Login Web vs APK Dual Transport & Token Payload", () => {
   it("harus membuat Access Token JWT dengan klaim lengkap: sub, role, platform, tokenVersion", async () => {
@@ -308,5 +313,78 @@ describe("RBAC Matrix Endpoint Permissions: Kasir vs Owner", () => {
     cashierAllowedCapabilities.forEach((cap) => {
       expect(cap).toBeTruthy();
     });
+  });
+});
+
+describe("Zero-Leak Proteksi Harga Modal Vendor & Laba (OWNER vs KASIR)", () => {
+  it("redactProductForRole harus menyembunyikan productionPrice produk & tier dari peran KASIR", () => {
+    const product = {
+      id: "prod-1",
+      name: "Banner Flexi 280gr",
+      productionPrice: 20000,
+      basePrice: 25000,
+      priceTiers: [
+        { id: "tier-1", minQty: 10, maxQty: 49, productionPrice: 18000, unitPrice: 23000 },
+      ],
+    };
+
+    const kasirView = redactProductForRole(product, "KASIR");
+    expect("productionPrice" in kasirView).toBe(false);
+    expect("productionPrice" in kasirView.priceTiers[0]).toBe(false);
+    expect(kasirView.basePrice).toBe(25000);
+
+    const ownerView = redactProductForRole(product, "OWNER");
+    expect(ownerView.productionPrice).toBe(20000);
+    expect(ownerView.priceTiers[0].productionPrice).toBe(18000);
+  });
+
+  it("redactFinishingForRole harus menyembunyikan productionPrice finishing dari peran KASIR", () => {
+    const finishing = {
+      id: "fin-1",
+      name: "Mata Ayam",
+      productionPrice: 500,
+      defaultPrice: 1000,
+    };
+
+    const kasirView = redactFinishingForRole(finishing, "KASIR");
+    expect("productionPrice" in kasirView).toBe(false);
+    expect(kasirView.defaultPrice).toBe(1000);
+
+    const ownerView = redactFinishingForRole(finishing, "OWNER");
+    expect(ownerView.productionPrice).toBe(500);
+  });
+
+  it("redactOrderForRole harus menyembunyikan seluruh field modal & laba pesanan dari peran KASIR", () => {
+    const order = {
+      id: "ord-1",
+      invoiceNumber: "KGX-20261127-0001",
+      grandTotal: 25000,
+      totalProductionCost: 20000,
+      grossProfit: 5000,
+      items: [
+        {
+          id: "item-1",
+          productNameSnapshot: "Banner Flexi 280gr",
+          unitPrice: 25000,
+          itemSubtotal: 25000,
+          productionUnitPriceSnapshot: 20000,
+          productionSubtotal: 20000,
+          profitAmount: 5000,
+        },
+      ],
+    };
+
+    const kasirView = redactOrderForRole(order, "KASIR");
+    expect("totalProductionCost" in kasirView).toBe(false);
+    expect("grossProfit" in kasirView).toBe(false);
+    expect("productionUnitPriceSnapshot" in kasirView.items[0]).toBe(false);
+    expect("productionSubtotal" in kasirView.items[0]).toBe(false);
+    expect("profitAmount" in kasirView.items[0]).toBe(false);
+    expect(kasirView.grandTotal).toBe(25000);
+
+    const ownerView = redactOrderForRole(order, "OWNER");
+    expect(ownerView.totalProductionCost).toBe(20000);
+    expect(ownerView.grossProfit).toBe(5000);
+    expect(ownerView.items[0].profitAmount).toBe(5000);
   });
 });

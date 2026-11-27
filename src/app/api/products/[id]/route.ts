@@ -14,6 +14,7 @@ import {
 } from "@/lib/validators/product";
 import { deleteProductImage } from "@/lib/storage/blob";
 import { isValidUuid } from "@/lib/validators/uuid";
+import { redactProductForRole } from "@/lib/security/cost-redaction";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,7 @@ export async function GET(
   const corsHeaders = getCorsHeaders(origin);
 
   try {
-    await requireAuth(request);
+    const session = await requireAuth(request);
     const { id } = await params;
     if (!isValidUuid(id)) {
       return NextResponse.json(
@@ -51,6 +52,7 @@ export async function GET(
         imageKey: products.imageKey,
         pricingType: products.pricingType,
         unitLabel: products.unitLabel,
+        productionPrice: products.productionPrice,
         basePrice: products.basePrice,
         minArea: products.minArea,
         areaRounding: products.areaRounding,
@@ -76,11 +78,14 @@ export async function GET(
       .where(eq(productPriceTiers.productId, id))
       .orderBy(asc(productPriceTiers.minQty));
 
-    const data = {
-      ...product,
-      minArea: product.minArea ? Number(product.minArea) : 1.0,
-      priceTiers: tiers,
-    };
+    const data = redactProductForRole(
+      {
+        ...product,
+        minArea: product.minArea ? Number(product.minArea) : 1.0,
+        priceTiers: tiers,
+      },
+      session.role
+    );
 
     return NextResponse.json({ success: true, data }, { status: 200, headers: corsHeaders });
   } catch (error) {
@@ -197,6 +202,7 @@ export async function PATCH(
     if (payload.imageKey !== undefined) updateData.imageKey = payload.imageKey || null;
     if (payload.pricingType !== undefined) updateData.pricingType = payload.pricingType;
     if (payload.unitLabel !== undefined) updateData.unitLabel = payload.unitLabel;
+    if (payload.productionPrice !== undefined) updateData.productionPrice = payload.productionPrice;
     if (payload.basePrice !== undefined) updateData.basePrice = payload.basePrice;
     if (payload.minArea !== undefined) updateData.minArea = String(payload.minArea);
     if (payload.areaRounding !== undefined) updateData.areaRounding = payload.areaRounding;
@@ -225,6 +231,7 @@ export async function PATCH(
                 productId: id,
                 minQty: t.minQty,
                 maxQty: t.maxQty !== undefined ? t.maxQty : null,
+                productionPrice: t.productionPrice ?? null,
                 unitPrice: t.unitPrice,
               }))
             )

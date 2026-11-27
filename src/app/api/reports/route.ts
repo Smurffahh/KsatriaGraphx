@@ -85,6 +85,8 @@ export async function GET(request: NextRequest) {
         designFee: orders.designFee,
         discountAmount: orders.discountAmount,
         grandTotal: orders.grandTotal,
+        totalProductionCost: orders.totalProductionCost,
+        grossProfit: orders.grossProfit,
         paidAmount: orders.paidAmount,
         remainingAmount: orders.remainingAmount,
         paymentStatus: orders.paymentStatus,
@@ -96,19 +98,26 @@ export async function GET(request: NextRequest) {
       .where(and(...conditions))
       .orderBy(desc(orders.createdAt));
 
-    // Agregasi metrik penjualan
+    // Agregasi metrik penjualan & laba
     let totalOmzet = 0;
+    let totalProductionCost = 0;
+    let totalGrossProfit = 0;
     let totalPaid = 0;
     let totalRemaining = 0;
     const orderIds = ordersList.map((o) => o.id);
 
     for (const o of ordersList) {
       totalOmzet += o.grandTotal;
+      totalProductionCost += o.totalProductionCost;
+      totalGrossProfit += o.grossProfit;
       totalPaid += o.paidAmount;
       if (o.paymentStatus === "UNPAID" || o.paymentStatus === "PARTIAL") {
         totalRemaining += o.remainingAmount;
       }
     }
+
+    const profitMarginPercent =
+      totalOmzet > 0 ? Math.round((totalGrossProfit / totalOmzet) * 1000) / 10 : 0;
 
     // Agregasi arus kas aktual berdasarkan paymentMethod
     const cashFlow = {
@@ -177,35 +186,45 @@ export async function GET(request: NextRequest) {
         "Biaya Desain",
         "Diskon",
         "Grand Total",
+        "Modal Vendor",
+        "Laba Kotor",
+        "Margin (%)",
         "Nominal Dibayar",
         "Sisa Piutang",
         "Status Pembayaran",
         "Status Produksi",
       ];
 
-      const rows = ordersList.map((o) => [
-        o.invoiceNumber,
-        new Date(o.createdAt).toLocaleDateString("id-ID", {
-          timeZone: "Asia/Jakarta",
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        o.customerNameSnapshot,
-        o.customerPhoneSnapshot || "-",
-        o.cashierName || "-",
-        o.sourcePlatform,
-        o.subtotal,
-        o.designFee,
-        o.discountAmount,
-        o.grandTotal,
-        o.paidAmount,
-        o.remainingAmount,
-        o.paymentStatus,
-        o.productionStatus,
-      ]);
+      const rows = ordersList.map((o) => {
+        const orderMarginPercent =
+          o.grandTotal > 0 ? Math.round((o.grossProfit / o.grandTotal) * 1000) / 10 : 0;
+        return [
+          o.invoiceNumber,
+          new Date(o.createdAt).toLocaleDateString("id-ID", {
+            timeZone: "Asia/Jakarta",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          o.customerNameSnapshot,
+          o.customerPhoneSnapshot || "-",
+          o.cashierName || "-",
+          o.sourcePlatform,
+          o.subtotal,
+          o.designFee,
+          o.discountAmount,
+          o.grandTotal,
+          o.totalProductionCost,
+          o.grossProfit,
+          `${orderMarginPercent}%`,
+          o.paidAmount,
+          o.remainingAmount,
+          o.paymentStatus,
+          o.productionStatus,
+        ];
+      });
 
       const csvContent = buildSafeCsv(headers, rows);
       const todayStr = new Intl.DateTimeFormat("en-CA", {
@@ -226,6 +245,9 @@ export async function GET(request: NextRequest) {
     return jsonResponse({
       summary: {
         totalOmzet,
+        totalProductionCost,
+        totalGrossProfit,
+        profitMarginPercent,
         totalPaid,
         totalRemaining,
         ordersCount: ordersList.length,

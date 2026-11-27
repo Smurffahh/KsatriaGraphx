@@ -16,6 +16,7 @@ import {
   CreditCard,
   QrCode,
   DollarSign,
+  Wallet,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { toast } from "sonner";
@@ -25,6 +26,9 @@ import { Button } from "@/components/ui/button";
 
 interface ReportSummary {
   totalOmzet: number;
+  totalProductionCost: number;
+  totalGrossProfit: number;
+  profitMarginPercent: number;
   totalPaid: number;
   totalRemaining: number;
   ordersCount: number;
@@ -50,6 +54,8 @@ interface ReportOrder {
   designFee: number;
   discountAmount: number;
   grandTotal: number;
+  totalProductionCost: number;
+  grossProfit: number;
   paidAmount: number;
   remainingAmount: number;
   paymentStatus: "UNPAID" | "PARTIAL" | "PAID";
@@ -223,8 +229,9 @@ export default function ReportsPage() {
       if (endDate) params.set("endDate", endDate);
       if (selectedCashier) params.set("cashierId", selectedCashier);
       if (paymentStatus !== "ALL") params.set("paymentStatus", paymentStatus);
+      params.set("format", "csv");
 
-      const endpoint = `/api/reports/export?${params.toString()}`;
+      const endpoint = `/api/reports?${params.toString()}`;
       const res = await fetch(endpoint, {
         headers: { Accept: "text/csv" },
       });
@@ -517,6 +524,55 @@ export default function ReportsPage() {
             </div>
           </div>
 
+          {/* Ringkasan Modal Vendor & Laba Kotor (Owner) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+            <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
+              <div className="flex items-center justify-between gap-2.5 text-muted-foreground">
+                <span className="text-xs font-semibold uppercase tracking-wider leading-snug">
+                  Total Modal Vendor (HPP Produksi)
+                </span>
+                <div className="size-10 shrink-0 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                  <Wallet className="size-5" />
+                </div>
+              </div>
+              <div className="text-2xl sm:text-3xl font-bold text-foreground tabular-nums">
+                {formatCurrency(data.summary.totalProductionCost ?? 0)}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Akumulasi modal vendor yang harus dibayar ke percetakan pada periode filter
+              </div>
+            </div>
+
+            <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
+              <div className="flex items-center justify-between gap-2.5 text-muted-foreground">
+                <span className="text-xs font-semibold uppercase tracking-wider leading-snug">
+                  Total Laba Kotor (Gross Profit)
+                </span>
+                <span
+                  className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums ${
+                    (data.summary.totalGrossProfit ?? 0) < 0
+                      ? "bg-destructive/10 text-destructive"
+                      : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                  }`}
+                >
+                  Margin {data.summary.profitMarginPercent ?? 0}%
+                </span>
+              </div>
+              <div
+                className={`text-2xl sm:text-3xl font-bold tabular-nums ${
+                  (data.summary.totalGrossProfit ?? 0) < 0
+                    ? "text-destructive"
+                    : "text-emerald-600 dark:text-emerald-400"
+                }`}
+              >
+                {formatCurrency(data.summary.totalGrossProfit ?? 0)}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Pendapatan bersih setelah dikurangi modal vendor &amp; potongan diskon
+              </div>
+            </div>
+          </div>
+
           {/* Orders Table & Mobile Cards */}
           <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-4">
             <div className="flex items-center justify-between">
@@ -574,6 +630,19 @@ export default function ReportsPage() {
                         </span>
                       </div>
 
+                      <div className="flex items-center justify-between gap-2 text-xs tabular-nums text-muted-foreground">
+                        <span>Modal: {formatCurrency(ord.totalProductionCost ?? 0)}</span>
+                        <span
+                          className={`font-semibold ${
+                            (ord.grossProfit ?? 0) < 0
+                              ? "text-destructive"
+                              : "text-emerald-600 dark:text-emerald-400"
+                          }`}
+                        >
+                          Laba: {formatCurrency(ord.grossProfit ?? 0)}
+                        </span>
+                      </div>
+
                       <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border/40">
                         <span>Kasir: {ord.cashierName || "-"}</span>
                         <span>
@@ -600,6 +669,12 @@ export default function ReportsPage() {
                         <th className="py-3.5 px-4 font-semibold">Kasir</th>
                         <th className="py-3.5 px-4 font-semibold text-right">
                           Grand Total
+                        </th>
+                        <th className="py-3.5 px-4 font-semibold text-right">
+                          Modal Vendor
+                        </th>
+                        <th className="py-3.5 px-4 font-semibold text-right">
+                          Laba
                         </th>
                         <th className="py-3.5 px-4 font-semibold text-right">
                           Dibayar
@@ -642,6 +717,18 @@ export default function ReportsPage() {
                           </td>
                           <td className="py-3.5 px-4 font-semibold text-foreground tabular-nums text-right">
                             {formatCurrency(ord.grandTotal)}
+                          </td>
+                          <td className="py-3.5 px-4 text-muted-foreground tabular-nums text-right">
+                            {formatCurrency(ord.totalProductionCost ?? 0)}
+                          </td>
+                          <td
+                            className={`py-3.5 px-4 font-semibold tabular-nums text-right ${
+                              (ord.grossProfit ?? 0) < 0
+                                ? "text-destructive"
+                                : "text-emerald-600 dark:text-emerald-400"
+                            }`}
+                          >
+                            {formatCurrency(ord.grossProfit ?? 0)}
                           </td>
                           <td className="py-3.5 px-4 text-emerald-600 font-semibold tabular-nums text-right">
                             {formatCurrency(ord.paidAmount)}

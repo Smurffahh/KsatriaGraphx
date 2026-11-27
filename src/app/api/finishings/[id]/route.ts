@@ -9,6 +9,7 @@ import { getClientIp } from "@/lib/security/client-ip";
 import { getCorsHeaders, handleCorsPreflight } from "@/lib/api/cors";
 import { updateFinishingSchema } from "@/lib/validators/finishing";
 import { isValidUuid } from "@/lib/validators/uuid";
+import { redactFinishingForRole } from "@/lib/security/cost-redaction";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export async function GET(
   const corsHeaders = getCorsHeaders(origin);
 
   try {
-    await requireAuth(request);
+    const session = await requireAuth(request);
     const { id } = await params;
     if (!isValidUuid(id)) {
       return NextResponse.json(
@@ -46,7 +47,10 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ success: true, data: finishing }, { status: 200, headers: corsHeaders });
+    return NextResponse.json(
+      { success: true, data: redactFinishingForRole(finishing, session.role) },
+      { status: 200, headers: corsHeaders }
+    );
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") {
       return NextResponse.json(
@@ -114,6 +118,7 @@ export async function PATCH(
     const updateData: Partial<typeof finishings.$inferInsert> = {};
     if (parseResult.data.name !== undefined) updateData.name = parseResult.data.name;
     if (parseResult.data.chargeType !== undefined) updateData.chargeType = parseResult.data.chargeType;
+    if (parseResult.data.productionPrice !== undefined) updateData.productionPrice = parseResult.data.productionPrice;
     if (parseResult.data.defaultPrice !== undefined) updateData.defaultPrice = parseResult.data.defaultPrice;
     if (parseResult.data.unitLabel !== undefined) updateData.unitLabel = parseResult.data.unitLabel;
     if (parseResult.data.isActive !== undefined) updateData.isActive = parseResult.data.isActive;

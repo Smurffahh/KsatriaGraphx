@@ -16,6 +16,7 @@ import {
   ArrowUpRight,
   AlertCircle,
   ShoppingBag,
+  Wallet,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -70,6 +71,9 @@ interface OwnerDashboardData {
   range: "1d" | "7d" | "30d";
   kpi: {
     totalOmzet: number;
+    totalProductionCost: number;
+    totalGrossProfit: number;
+    profitMarginPercent: number;
     totalOrders: number;
     totalCashIn: number;
     totalPiutang: number;
@@ -78,6 +82,8 @@ interface OwnerDashboardData {
   chartTrend: Array<{
     dateKey: string;
     omzet: number;
+    modal?: number;
+    laba?: number;
     transaksi: number;
   }>;
   topProducts: Array<{
@@ -471,6 +477,72 @@ export default function DashboardPage() {
       </m.div>
 
       {/* ========================================================= */}
+      {/* ROW 1.5: RINGKASAN MODAL VENDOR & LABA BERSIH (OWNER)    */}
+      {/* ========================================================= */}
+      {isOwner && ownerData && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+          <Card className="motion-safe:hover:-translate-y-0.5 hover:border-amber-500/40 hover:shadow-xs transition-[transform,border-color,box-shadow] duration-150">
+            <CardContent className="p-5 sm:p-6 space-y-3">
+              <div className="flex items-center justify-between text-muted-foreground">
+                <span className="text-xs font-semibold uppercase tracking-wider">
+                  Total Modal Vendor (HPP Percetakan)
+                </span>
+                <div className="flex size-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                  <Wallet className="size-5" />
+                </div>
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-bold text-foreground tabular-nums tracking-tight">
+                  <AnimatedNumber
+                    value={ownerData.kpi.totalProductionCost ?? 0}
+                    format="currency"
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground mt-1.5">
+                  Total biaya produksi yang perlu disetor ke percetakan vendor pada periode ini
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="motion-safe:hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-xs transition-[transform,border-color,box-shadow] duration-150">
+            <CardContent className="p-5 sm:p-6 space-y-3">
+              <div className="flex items-center justify-between gap-2 text-muted-foreground">
+                <span className="text-xs font-semibold uppercase tracking-wider">
+                  Estimasi Laba Bersih (Gross Profit)
+                </span>
+                <Badge
+                  variant={
+                    (ownerData.kpi.totalGrossProfit ?? 0) < 0 ? "destructive" : "success"
+                  }
+                  className="tabular-nums shrink-0"
+                >
+                  Margin {ownerData.kpi.profitMarginPercent ?? 0}%
+                </Badge>
+              </div>
+              <div>
+                <div
+                  className={`text-2xl sm:text-3xl font-bold tabular-nums tracking-tight ${
+                    (ownerData.kpi.totalGrossProfit ?? 0) < 0
+                      ? "text-destructive"
+                      : "text-emerald-600 dark:text-emerald-400"
+                  }`}
+                >
+                  <AnimatedNumber
+                    value={ownerData.kpi.totalGrossProfit ?? 0}
+                    format="currency"
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground mt-1.5">
+                  Keuntungan bersih agensi setelah dikurangi modal vendor dan diskon transaksi
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* ========================================================= */}
       {/* ROW 2: GRAFIK TREN OMZET & TOP PRODUK (OWNER ONLY)        */}
       {/* ========================================================= */}
       {isOwner && (
@@ -529,6 +601,8 @@ export default function DashboardPage() {
                           const item = payload[0].payload as {
                             dateKey: string;
                             omzet: number;
+                            modal?: number;
+                            laba?: number;
                             transaksi: number;
                           };
                           return (
@@ -539,6 +613,16 @@ export default function DashboardPage() {
                               <p className="font-bold text-primary tabular-nums text-base">
                                 {formatRupiah(item.omzet)}
                               </p>
+                              {typeof item.modal === "number" && typeof item.laba === "number" && (
+                                <div className="space-y-0.5 pt-0.5 border-t border-border/60 tabular-nums">
+                                  <p className="text-muted-foreground">
+                                    Modal: {formatRupiah(item.modal)}
+                                  </p>
+                                  <p className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                                    Laba: {formatRupiah(item.laba)}
+                                  </p>
+                                </div>
+                              )}
                               <p className="text-xs text-muted-foreground">
                                 {item.transaksi} transaksi tercatat
                               </p>

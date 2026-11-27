@@ -9,6 +9,7 @@ import { addPaymentSchema } from "@/lib/validators/order";
 import { isValidUuid } from "@/lib/validators/uuid";
 import { jsonResponse, errorResponse, handleApiError } from "@/lib/api/response";
 import { handleCorsPreflight } from "@/lib/api/cors";
+import { redactOrderForRole } from "@/lib/security/cost-redaction";
 
 export const dynamic = "force-dynamic";
 
@@ -145,7 +146,7 @@ export async function POST(
 
     return jsonResponse(
       {
-        order: result.updatedOrder,
+        order: redactOrderForRole(result.updatedOrder, session.role),
         payment: result.paymentRow,
         changeAmount: result.changeAmount,
       },

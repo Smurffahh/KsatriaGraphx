@@ -1,0 +1,49 @@
+# Secrets, environment files & cryptographic keys (OWASP AST06)
+.env
+.env*
+.env.*
+**/.env*
+*.pem
+*.key
+*.keystore
+*.jks
+android/local.properties
+
+# Dependencies, lockfiles & JS build artifacts
+node_modules/
+.pnpm-store/
+pnpm-lock.yaml
+.next/
+out/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Test reports, Playwright traces & auth state
+playwright-report/
+test-results/
+playwright/.auth/
+
+# Android / Capacitor build artifacts, Gradle wrapper cache & binary drawable assets
+android/app/build/
+android/app/src/main/assets/public/
+android/app/src/main/res/
+android/.gradle/
+android/gradle/
+android/build/
+*.apk
+*.aab
+*.zip
+
+# High-churn release log & Drizzle snapshot metadata (keep drizzle/*.sql & README.md/docs/**)
+CHANGELOG.md
+drizzle/meta/
+
+# Graphify output & AI assistant local folders
+graphify-out/
+.agents/skills/
+skill/
+temp_api_backup_mobile_build/
+tmp/
+scratch/

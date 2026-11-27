@@ -65,6 +65,7 @@ Thumbs.db
 .claude/
 skills/
 skills-lock.json
+graphify-out/
 
 # Android & Capacitor artifacts & packages
 android/app/build/

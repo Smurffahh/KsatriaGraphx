@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   ClipboardList,
   Search,
@@ -12,6 +13,8 @@ import {
   Plus,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { VendorStatusBadge } from "@/components/vendors/VendorStatusBadge";
+import type { VendorPaymentStatus } from "@/lib/vendors/settlement";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
 import { Button } from "@/components/ui/button";
@@ -29,6 +32,8 @@ interface OrderListItem {
   discountType: "NONE" | "FIXED" | "PERCENT";
   discountAmount: number;
   grandTotal: number;
+  vendorPaidAmount?: number;
+  vendorPaymentStatus?: VendorPaymentStatus;
   paidAmount: number;
   remainingAmount: number;
   paymentStatus: "UNPAID" | "PARTIAL" | "PAID";
@@ -103,20 +108,43 @@ function OrdersSkeleton() {
   );
 }
 
-export default function OrdersPage() {
+function OrdersContent() {
+  const searchParams = useSearchParams();
+  const initialVendorFilter = searchParams.get("vendorPaymentStatus")?.toUpperCase();
+  const validInitialVendorFilter =
+    initialVendorFilter &&
+    ["NOT_APPLICABLE", "UNPAID", "PARTIAL", "PAID"].includes(initialVendorFilter)
+      ? initialVendorFilter
+      : "ALL";
+
   const [orders, setOrders] = useState<OrderListItem[]>([]);
+  const [userRole, setUserRole] = useState<"OWNER" | "KASIR" | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [search, setSearch] = useState("");
   const [paymentStatusFilter, setPaymentStatusFilter] = useState("ALL");
   const [productionStatusFilter, setProductionStatusFilter] = useState("ALL");
+  const [vendorPaymentStatusFilter, setVendorPaymentStatusFilter] = useState(
+    validInitialVendorFilter
+  );
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
+
+  useEffect(() => {
+    apiClient
+      .get<{ user: { role: "OWNER" | "KASIR" } }>("/api/auth/me")
+      .then((res) => {
+        if (res.success && res.data?.user) {
+          setUserRole(res.data.user.role);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const fetchOrders = useCallback(async () => {
     setIsLoading(true);
@@ -133,6 +161,8 @@ export default function OrdersPage() {
         params.set("paymentStatus", paymentStatusFilter);
       if (productionStatusFilter !== "ALL")
         params.set("productionStatus", productionStatusFilter);
+      if (userRole === "OWNER" && vendorPaymentStatusFilter !== "ALL")
+        params.set("vendorPaymentStatus", vendorPaymentStatusFilter);
       if (dateFrom) params.set("dateFrom", dateFrom);
       if (dateTo) params.set("dateTo", dateTo);
 
@@ -157,6 +187,8 @@ export default function OrdersPage() {
     search,
     paymentStatusFilter,
     productionStatusFilter,
+    userRole,
+    vendorPaymentStatusFilter,
     dateFrom,
     dateTo,
   ]);
@@ -172,6 +204,7 @@ export default function OrdersPage() {
     setSearch("");
     setPaymentStatusFilter("ALL");
     setProductionStatusFilter("ALL");
+    setVendorPaymentStatusFilter("ALL");
     setDateFrom("");
     setDateTo("");
     setPage(1);
@@ -288,6 +321,26 @@ export default function OrdersPage() {
             </select>
           </div>
 
+          {userRole === "OWNER" && (
+            <div className="lg:col-span-2 xl:w-52 shrink-0">
+              <select
+                aria-label="Filter Setoran Vendor"
+                value={vendorPaymentStatusFilter}
+                onChange={(e) => {
+                  setVendorPaymentStatusFilter(e.target.value);
+                  setPage(1);
+                }}
+                className="h-11 w-full px-3.5 text-base sm:text-sm bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary"
+              >
+                <option value="ALL">Semua Setoran Vendor</option>
+                <option value="UNPAID">Belum Setor Vendor</option>
+                <option value="PARTIAL">DP Vendor (Sebagian)</option>
+                <option value="PAID">Lunas Vendor</option>
+                <option value="NOT_APPLICABLE">Tanpa Vendor</option>
+              </select>
+            </div>
+          )}
+
           {/* Date range inputs */}
           <div className="grid grid-cols-1 min-[420px]:grid-cols-2 sm:col-span-2 lg:col-span-6 xl:flex xl:items-center gap-2.5 xl:w-[350px] shrink-0">
             <input
@@ -319,6 +372,7 @@ export default function OrdersPage() {
         {(search ||
           paymentStatusFilter !== "ALL" ||
           productionStatusFilter !== "ALL" ||
+          (userRole === "OWNER" && vendorPaymentStatusFilter !== "ALL") ||
           dateFrom ||
           dateTo) && (
           <div className="flex items-center justify-between pt-2.5 border-t border-border/50 text-xs sm:text-sm">
@@ -390,6 +444,9 @@ export default function OrdersPage() {
                     >
                       {o.productionStatus}
                     </span>
+                    {userRole === "OWNER" && o.vendorPaymentStatus && (
+                      <VendorStatusBadge status={o.vendorPaymentStatus} />
+                    )}
                   </div>
                 </div>
 
@@ -441,6 +498,9 @@ export default function OrdersPage() {
                     <th className="py-3.5 px-4">Pelanggan</th>
                     <th className="py-3.5 px-4">Pembayaran</th>
                     <th className="py-3.5 px-4">Produksi</th>
+                    {userRole === "OWNER" && (
+                      <th className="py-3.5 px-4">Setoran Vendor</th>
+                    )}
                     <th className="py-3.5 px-4 text-right">Total Nota</th>
                     <th className="py-3.5 px-4 text-right">Sisa Tagihan</th>
                     <th className="py-3.5 px-4 text-right">Aksi</th>
@@ -495,6 +555,11 @@ export default function OrdersPage() {
                           {o.productionStatus}
                         </span>
                       </td>
+                      {userRole === "OWNER" && (
+                        <td className="py-3.5 px-4">
+                          <VendorStatusBadge status={o.vendorPaymentStatus} />
+                        </td>
+                      )}
                       <td className="py-3.5 px-4 text-right font-semibold text-foreground tabular-nums">
                         Rp {o.grandTotal.toLocaleString("id-ID")}
                       </td>
@@ -566,5 +631,13 @@ export default function OrdersPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function OrdersPage() {
+  return (
+    <Suspense fallback={<OrdersSkeleton />}>
+      <OrdersContent />
+    </Suspense>
   );
 }

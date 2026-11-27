@@ -11,6 +11,7 @@ import {
   finishings,
   storeSettings,
   customers,
+  vendors,
 } from "@/db/schema";
 import { requireAuth } from "@/lib/auth/guard";
 import { validateCsrfOrigin } from "@/lib/security/csrf";
@@ -29,6 +30,7 @@ import {
 import { jsonResponse, errorResponse, handleApiError } from "@/lib/api/response";
 import { handleCorsPreflight } from "@/lib/api/cors";
 import { redactOrderForRole } from "@/lib/security/cost-redaction";
+import { deriveVendorPaymentStatus } from "@/lib/vendors/settlement";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +46,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search")?.trim() || "";
     const paymentStatus = searchParams.get("paymentStatus")?.trim();
     const productionStatus = searchParams.get("productionStatus")?.trim();
+    const vendorPaymentStatus = searchParams.get("vendorPaymentStatus")?.trim();
     const dateFrom = searchParams.get("dateFrom")?.trim();
     const dateTo = searchParams.get("dateTo")?.trim();
     const customerId = searchParams.get("customerId")?.trim();
@@ -96,6 +99,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (
+      session.role === "OWNER" &&
+      vendorPaymentStatus &&
+      ["NOT_APPLICABLE", "UNPAID", "PARTIAL", "PAID"].includes(
+        vendorPaymentStatus.toUpperCase()
+      )
+    ) {
+      conditions.push(
+        eq(
+          orders.vendorPaymentStatus,
+          vendorPaymentStatus.toUpperCase() as
+            | "NOT_APPLICABLE"
+            | "UNPAID"
+            | "PARTIAL"
+            | "PAID"
+        )
+      );
+    }
+
     if (customerId) {
       conditions.push(eq(orders.customerId, customerId));
     }
@@ -137,6 +159,10 @@ export async function GET(request: NextRequest) {
         grandTotal: orders.grandTotal,
         totalProductionCost: orders.totalProductionCost,
         grossProfit: orders.grossProfit,
+        vendorPaidAmount: orders.vendorPaidAmount,
+        vendorPaymentStatus: orders.vendorPaymentStatus,
+        spkSentAt: orders.spkSentAt,
+        designFileUrl: orders.designFileUrl,
         paidAmount: orders.paidAmount,
         remainingAmount: orders.remainingAmount,
         paymentStatus: orders.paymentStatus,
@@ -208,6 +234,18 @@ export async function POST(request: NextRequest) {
 
     const productMap = new Map(dbProducts.map((p) => [p.id, p]));
     const finishingMap = new Map(dbFinishings.map((f) => [f.id, f]));
+    const defaultVendorIds = Array.from(
+      new Set(
+        dbProducts
+          .map((p) => p.defaultVendorId)
+          .filter((id): id is string => typeof id === "string" && id.length > 0)
+      )
+    );
+    const dbVendors =
+      defaultVendorIds.length > 0
+        ? await db.select().from(vendors).where(inArray(vendors.id, defaultVendorIds))
+        : [];
+    const vendorMap = new Map(dbVendors.map((v) => [v.id, v]));
 
     for (const item of validated.items) {
       const prod = productMap.get(item.productId);
@@ -337,6 +375,8 @@ export async function POST(request: NextRequest) {
           grandTotal: calculatedOrder.grandTotal,
           totalProductionCost: calculatedOrder.totalProductionCost,
           grossProfit: calculatedOrder.grossProfit,
+          vendorPaidAmount: 0,
+          vendorPaymentStatus: deriveVendorPaymentStatus(calculatedOrder.totalProductionCost, 0),
           paidAmount: calculatedOrder.paidAmount,
           remainingAmount: calculatedOrder.remainingAmount,
           paymentStatus: calculatedOrder.paymentStatus,
@@ -350,6 +390,7 @@ export async function POST(request: NextRequest) {
         const itemInput = validated.items[i];
         const calcItem = calculatedOrder.items[i];
         const prod = productMap.get(itemInput.productId)!;
+        const defaultVendor = prod.defaultVendorId ? vendorMap.get(prod.defaultVendorId) : null;
 
         const [createdItem] = await tx
           .insert(orderItems)
@@ -357,6 +398,8 @@ export async function POST(request: NextRequest) {
             orderId: newOrder.id,
             productId: prod.id,
             productNameSnapshot: prod.name,
+            vendorId: defaultVendor ? defaultVendor.id : null,
+            vendorNameSnapshot: defaultVendor ? defaultVendor.name : null,
             pricingTypeSnapshot: prod.pricingType,
             widthM: calcItem.widthM !== undefined ? calcItem.widthM.toFixed(3) : null,
             heightM: calcItem.heightM !== undefined ? calcItem.heightM.toFixed(3) : null,

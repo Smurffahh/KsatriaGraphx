@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { eq, and, ne, gte, sql, desc, count, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { orders, orderItems, payments, users } from "@/db/schema";
+import { orders, orderItems, payments, users, vendorPayments } from "@/db/schema";
 import { requireAuth } from "@/lib/auth/guard";
 import { jsonResponse, handleApiError } from "@/lib/api/response";
 import { handleCorsPreflight } from "@/lib/api/cors";
@@ -179,6 +179,38 @@ export async function GET(request: NextRequest) {
         )
       );
 
+    const [unpaidVendorSummary] = await db
+      .select({
+        unpaidVendorTotal: sql<number>`cast(coalesce(sum(greatest(0, ${orders.totalProductionCost} - ${orders.vendorPaidAmount})), 0) as integer)`,
+        unpaidVendorOrderCount: sql<number>`cast(count(*) as integer)`,
+      })
+      .from(orders)
+      .where(
+        and(
+          ne(orders.productionStatus, "CANCELLED"),
+          inArray(orders.vendorPaymentStatus, ["UNPAID", "PARTIAL"]),
+          sql`${orders.totalProductionCost} > ${orders.vendorPaidAmount}`
+        )
+      );
+
+    const [vendorPaidPeriodResult] = await db
+      .select({
+        vendorPaidInPeriod: sql<number>`cast(coalesce(sum(${vendorPayments.amount}), 0) as integer)`,
+      })
+      .from(vendorPayments)
+      .innerJoin(orders, eq(vendorPayments.orderId, orders.id))
+      .where(
+        and(
+          ne(orders.productionStatus, "CANCELLED"),
+          gte(vendorPayments.paidAt, rangeStartDate)
+        )
+      );
+
+    const unpaidVendorTotal = unpaidVendorSummary?.unpaidVendorTotal ?? 0;
+    const unpaidVendorOrderCount = unpaidVendorSummary?.unpaidVendorOrderCount ?? 0;
+    const vendorPaidInPeriod = vendorPaidPeriodResult?.vendorPaidInPeriod ?? 0;
+    const netAvailableCashEstimate = (actualPayments?.totalCashIn ?? 0) - unpaidVendorTotal;
+
     // 2. Tren Omzet & Laba Harian (WIB Asia/Jakarta)
     const dailyTrendRaw = await db
       .select({
@@ -248,6 +280,10 @@ export async function GET(request: NextRequest) {
         totalOrders: omzetRange?.totalOrders ?? 0,
         totalCashIn: actualPayments?.totalCashIn ?? 0,
         totalPiutang: piutangResult?.totalPiutang ?? 0,
+        unpaidVendorTotal,
+        unpaidVendorOrderCount,
+        vendorPaidInPeriod,
+        netAvailableCashEstimate,
         activeQueueCount,
       },
       chartTrend: dailyTrendRaw,

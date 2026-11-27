@@ -16,7 +16,11 @@ import {
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { toast } from "sonner";
-import { ProductFormModal, type ProductFormData } from "@/components/products/ProductFormModal";
+import {
+  ProductFormModal,
+  type ProductFormData,
+  type VendorOption,
+} from "@/components/products/ProductFormModal";
 import { CategoryTab, type CategoryItem } from "@/components/products/CategoryTab";
 import { FinishingTab, type FinishingItem } from "@/components/products/FinishingTab";
 import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
@@ -27,6 +31,13 @@ interface ProductItem {
   categoryId: string;
   categoryName: string | null;
   categorySlug: string | null;
+  defaultVendorId?: string | null;
+  defaultVendor?: {
+    id: string;
+    name: string;
+    whatsapp: string;
+    isActive: boolean;
+  } | null;
   sku: string | null;
   name: string;
   description: string | null;
@@ -63,6 +74,7 @@ export default function ProductsPage() {
   const [productsList, setProductsList] = useState<ProductItem[]>([]);
   const [categoriesList, setCategoriesList] = useState<CategoryItem[]>([]);
   const [finishingsList, setFinishingsList] = useState<FinishingItem[]>([]);
+  const [vendorsList, setVendorsList] = useState<VendorOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
 
@@ -95,6 +107,15 @@ export default function ProductsPage() {
 
       if (meRes.success && meRes.data?.user) {
         setUser(meRes.data.user);
+        if (meRes.data.user.role === "OWNER") {
+          apiClient<VendorOption[]>("/api/vendors?isActive=true&limit=200")
+            .then((vRes) => {
+              if (vRes.success && vRes.data) {
+                setVendorsList(vRes.data);
+              }
+            })
+            .catch(() => {});
+        }
       }
       if (catRes.success && catRes.data) {
         setCategoriesList(catRes.data);
@@ -145,6 +166,7 @@ export default function ProductsPage() {
     setEditingProduct({
       id: p.id,
       categoryId: p.categoryId,
+      defaultVendorId: p.defaultVendorId ?? null,
       name: p.name,
       sku: p.sku || "",
       description: p.description || "",
@@ -450,6 +472,11 @@ export default function ProductsPage() {
                               SKU: {p.sku}
                             </span>
                           )}
+                          {isOwner && p.defaultVendor && (
+                            <span className="mt-1 inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary ml-1.5">
+                              Vendor: {p.defaultVendor.name}
+                            </span>
+                          )}
                         </td>
 
                         {/* Kategori */}
@@ -598,6 +625,11 @@ export default function ProductsPage() {
                         <h3 className="font-semibold text-foreground text-base leading-snug mt-1 line-clamp-2">
                           {p.name}
                         </h3>
+                        {isOwner && p.defaultVendor && (
+                          <span className="mt-1 inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                            Vendor: {p.defaultVendor.name}
+                          </span>
+                        )}
 
                         <div className="mt-2 flex items-baseline gap-1 flex-wrap">
                           <span className="font-mono font-bold text-base text-foreground tabular-nums">
@@ -677,6 +709,8 @@ export default function ProductsPage() {
             onSubmit={handleProductSubmit}
             initialData={editingProduct}
             categories={categoriesList}
+            vendors={vendorsList}
+            isOwner={isOwner}
             isSubmitting={isSubmittingProduct}
           />
 

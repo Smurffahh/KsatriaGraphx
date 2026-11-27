@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { products, categories, productPriceTiers } from "@/db/schema";
+import { products, categories, productPriceTiers, vendors } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { requireAuth, requireOwner } from "@/lib/auth/guard";
 import { validateCsrfOrigin } from "@/lib/security/csrf";
@@ -45,6 +45,10 @@ export async function GET(
         categoryId: products.categoryId,
         categoryName: categories.name,
         categorySlug: categories.slug,
+        defaultVendorId: products.defaultVendorId,
+        defaultVendorName: vendors.name,
+        defaultVendorWhatsapp: vendors.whatsapp,
+        defaultVendorIsActive: vendors.isActive,
         sku: products.sku,
         name: products.name,
         description: products.description,
@@ -62,6 +66,7 @@ export async function GET(
       })
       .from(products)
       .leftJoin(categories, eq(products.categoryId, categories.id))
+      .leftJoin(vendors, eq(products.defaultVendorId, vendors.id))
       .where(eq(products.id, id))
       .limit(1);
 
@@ -78,9 +83,26 @@ export async function GET(
       .where(eq(productPriceTiers.productId, id))
       .orderBy(asc(productPriceTiers.minQty));
 
+    const {
+      defaultVendorName,
+      defaultVendorWhatsapp,
+      defaultVendorIsActive,
+      ...safeFields
+    } = product;
+    const defaultVendor =
+      product.defaultVendorId && defaultVendorName
+        ? {
+            id: product.defaultVendorId,
+            name: defaultVendorName,
+            whatsapp: defaultVendorWhatsapp || "",
+            isActive: defaultVendorIsActive ?? true,
+          }
+        : null;
+
     const data = redactProductForRole(
       {
-        ...product,
+        ...safeFields,
+        defaultVendor,
         minArea: product.minArea ? Number(product.minArea) : 1.0,
         priceTiers: tiers,
       },
@@ -190,11 +212,36 @@ export async function PATCH(
       }
     }
 
+    const targetVendorId =
+      payload.defaultVendorId !== undefined ? payload.defaultVendorId : existing.defaultVendorId;
+    let linkedVendor: { id: string; name: string; whatsapp: string; isActive: boolean } | null = null;
+    if (targetVendorId) {
+      const [vendor] = await db
+        .select({
+          id: vendors.id,
+          name: vendors.name,
+          whatsapp: vendors.whatsapp,
+          isActive: vendors.isActive,
+        })
+        .from(vendors)
+        .where(eq(vendors.id, targetVendorId))
+        .limit(1);
+
+      if (!vendor) {
+        return NextResponse.json(
+          { success: false, error: "Vendor default yang dipilih tidak ditemukan", code: "VENDOR_NOT_FOUND" },
+          { status: 404, headers: corsHeaders }
+        );
+      }
+      linkedVendor = vendor;
+    }
+
     const updateData: Partial<typeof products.$inferInsert> = {
       updatedAt: new Date(),
     };
 
     if (payload.categoryId !== undefined) updateData.categoryId = payload.categoryId;
+    if (payload.defaultVendorId !== undefined) updateData.defaultVendorId = payload.defaultVendorId;
     if (payload.name !== undefined) updateData.name = payload.name;
     if (payload.sku !== undefined) updateData.sku = payload.sku || null;
     if (payload.description !== undefined) updateData.description = payload.description || null;
@@ -247,6 +294,7 @@ export async function PATCH(
 
       return {
         ...prod,
+        defaultVendor: linkedVendor,
         minArea: Number(prod.minArea),
         priceTiers: currentTiers,
       };

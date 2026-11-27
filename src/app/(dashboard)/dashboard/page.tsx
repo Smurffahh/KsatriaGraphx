@@ -77,6 +77,10 @@ interface OwnerDashboardData {
     totalOrders: number;
     totalCashIn: number;
     totalPiutang: number;
+    unpaidVendorTotal?: number;
+    unpaidVendorOrderCount?: number;
+    vendorPaidInPeriod?: number;
+    netAvailableCashEstimate?: number;
     activeQueueCount: number;
   };
   chartTrend: Array<{
@@ -480,12 +484,12 @@ export default function DashboardPage() {
       {/* ROW 1.5: RINGKASAN MODAL VENDOR & LABA BERSIH (OWNER)    */}
       {/* ========================================================= */}
       {isOwner && ownerData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
           <Card className="motion-safe:hover:-translate-y-0.5 hover:border-amber-500/40 hover:shadow-xs transition-[transform,border-color,box-shadow] duration-150">
             <CardContent className="p-5 sm:p-6 space-y-3">
               <div className="flex items-center justify-between text-muted-foreground">
                 <span className="text-xs font-semibold uppercase tracking-wider">
-                  Total Modal Vendor (HPP Percetakan)
+                  Total Modal Vendor (HPP)
                 </span>
                 <div className="flex size-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
                   <Wallet className="size-5" />
@@ -499,7 +503,7 @@ export default function DashboardPage() {
                   />
                 </div>
                 <div className="text-xs text-muted-foreground mt-1.5">
-                  Total biaya produksi yang perlu disetor ke percetakan vendor pada periode ini
+                  Biaya produksi periode terpilih
                 </div>
               </div>
             </CardContent>
@@ -509,7 +513,7 @@ export default function DashboardPage() {
             <CardContent className="p-5 sm:p-6 space-y-3">
               <div className="flex items-center justify-between gap-2 text-muted-foreground">
                 <span className="text-xs font-semibold uppercase tracking-wider">
-                  Estimasi Laba Bersih (Gross Profit)
+                  Estimasi Laba Bersih
                 </span>
                 <Badge
                   variant={
@@ -534,7 +538,67 @@ export default function DashboardPage() {
                   />
                 </div>
                 <div className="text-xs text-muted-foreground mt-1.5">
-                  Keuntungan bersih agensi setelah dikurangi modal vendor dan diskon transaksi
+                  Laba bersih setelah modal vendor &amp; diskon
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="motion-safe:hover:-translate-y-0.5 hover:border-destructive/40 hover:shadow-xs transition-[transform,border-color,box-shadow] duration-150">
+            <CardContent className="p-5 sm:p-6 space-y-3">
+              <div className="flex items-center justify-between gap-2 text-muted-foreground">
+                <span className="text-xs font-semibold uppercase tracking-wider">
+                  Wajib Setor ke Vendor
+                </span>
+                <Badge variant="warning" className="tabular-nums shrink-0">
+                  {ownerData.kpi.unpaidVendorOrderCount ?? 0} nota pending
+                </Badge>
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-bold text-amber-600 dark:text-amber-400 tabular-nums tracking-tight">
+                  <AnimatedNumber
+                    value={ownerData.kpi.unpaidVendorTotal ?? 0}
+                    format="currency"
+                  />
+                </div>
+                <div className="text-xs text-primary font-medium mt-1.5">
+                  <Link
+                    href="/orders?vendorPaymentStatus=UNPAID"
+                    className="hover:underline inline-flex items-center gap-1 min-h-9 -my-1.5"
+                  >
+                    <span>Kelola Setoran Vendor</span>
+                    <ArrowRight className="size-3.5" />
+                  </Link>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="motion-safe:hover:-translate-y-0.5 hover:border-blue-500/40 hover:shadow-xs transition-[transform,border-color,box-shadow] duration-150">
+            <CardContent className="p-5 sm:p-6 space-y-3">
+              <div className="flex items-center justify-between gap-2 text-muted-foreground">
+                <span className="text-xs font-semibold uppercase tracking-wider">
+                  Estimasi Kas Tersedia
+                </span>
+                <div className="flex size-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-500">
+                  <Banknote className="size-5" />
+                </div>
+              </div>
+              <div>
+                <div
+                  className={`text-2xl sm:text-3xl font-bold tabular-nums tracking-tight ${
+                    (ownerData.kpi.netAvailableCashEstimate ?? 0) < 0
+                      ? "text-destructive"
+                      : "text-foreground"
+                  }`}
+                >
+                  <AnimatedNumber
+                    value={ownerData.kpi.netAvailableCashEstimate ?? 0}
+                    format="currency"
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground mt-1.5 tabular-nums">
+                  Kas masuk dikurangi wajib setor vendor (Sudah setor: {formatRupiah(ownerData.kpi.vendorPaidInPeriod ?? 0)})
                 </div>
               </div>
             </CardContent>

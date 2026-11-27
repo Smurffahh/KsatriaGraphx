@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { products, categories, productPriceTiers } from "@/db/schema";
+import { products, categories, productPriceTiers, vendors } from "@/db/schema";
 import { eq, and, ilike, or, asc, sql } from "drizzle-orm";
 import { requireAuth, requireOwner } from "@/lib/auth/guard";
 import { validateCsrfOrigin } from "@/lib/security/csrf";
@@ -60,13 +60,17 @@ export async function GET(request: Request) {
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-    // Ambil produk beserta nama kategori
+    // Ambil produk beserta nama kategori & vendor default
     const productRows = await db
       .select({
         id: products.id,
         categoryId: products.categoryId,
         categoryName: categories.name,
         categorySlug: categories.slug,
+        defaultVendorId: products.defaultVendorId,
+        defaultVendorName: vendors.name,
+        defaultVendorWhatsapp: vendors.whatsapp,
+        defaultVendorIsActive: vendors.isActive,
         sku: products.sku,
         name: products.name,
         description: products.description,
@@ -84,6 +88,7 @@ export async function GET(request: Request) {
       })
       .from(products)
       .leftJoin(categories, eq(products.categoryId, categories.id))
+      .leftJoin(vendors, eq(products.defaultVendorId, vendors.id))
       .where(whereClause)
       .orderBy(asc(products.name));
 
@@ -112,16 +117,33 @@ export async function GET(request: Request) {
       tiersByProductId.set(tier.productId, list);
     }
 
-    const data = productRows.map((p) =>
-      redactProductForRole(
+    const data = productRows.map((p) => {
+      const {
+        defaultVendorName,
+        defaultVendorWhatsapp,
+        defaultVendorIsActive,
+        ...rest
+      } = p;
+      const defaultVendor =
+        p.defaultVendorId && defaultVendorName
+          ? {
+              id: p.defaultVendorId,
+              name: defaultVendorName,
+              whatsapp: defaultVendorWhatsapp || "",
+              isActive: defaultVendorIsActive ?? true,
+            }
+          : null;
+
+      return redactProductForRole(
         {
-          ...p,
+          ...rest,
+          defaultVendor,
           minArea: p.minArea ? Number(p.minArea) : 1.0,
           priceTiers: tiersByProductId.get(p.id) || [],
         },
         session.role
-      )
-    );
+      );
+    });
 
     return NextResponse.json({ success: true, data }, { status: 200, headers: corsHeaders });
   } catch (error) {
@@ -202,12 +224,35 @@ export async function POST(request: Request) {
       );
     }
 
+    let linkedVendor: { id: string; name: string; whatsapp: string; isActive: boolean } | null = null;
+    if (payload.defaultVendorId) {
+      const [vendor] = await db
+        .select({
+          id: vendors.id,
+          name: vendors.name,
+          whatsapp: vendors.whatsapp,
+          isActive: vendors.isActive,
+        })
+        .from(vendors)
+        .where(eq(vendors.id, payload.defaultVendorId))
+        .limit(1);
+
+      if (!vendor) {
+        return NextResponse.json(
+          { success: false, error: "Vendor default yang dipilih tidak ditemukan", code: "VENDOR_NOT_FOUND" },
+          { status: 404, headers: corsHeaders }
+        );
+      }
+      linkedVendor = vendor;
+    }
+
     // Transaksi atomik insert produk + price tiers
     const created = await db.transaction(async (tx) => {
       const [newProduct] = await tx
         .insert(products)
         .values({
           categoryId: payload.categoryId,
+          defaultVendorId: payload.defaultVendorId ?? null,
           sku: payload.sku || null,
           name: payload.name,
           description: payload.description || null,
@@ -242,6 +287,7 @@ export async function POST(request: Request) {
 
       return {
         ...newProduct,
+        defaultVendor: linkedVendor,
         minArea: Number(newProduct.minArea),
         priceTiers: insertedTiers,
       };

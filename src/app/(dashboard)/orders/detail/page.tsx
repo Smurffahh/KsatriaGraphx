@@ -17,26 +17,25 @@ import {
 import { apiClient } from "@/lib/api/client";
 import { OrderPaymentModal } from "@/components/orders/OrderPaymentModal";
 import { OrderStatusModal } from "@/components/orders/OrderStatusModal";
+import {
+  OrderVendorPanel,
+  type OrderVendorItemData,
+  type VendorPaymentRecord,
+} from "@/components/orders/OrderVendorPanel";
 import { ReceiptModal } from "@/components/receipt/ReceiptModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import type { VendorPaymentStatus } from "@/lib/vendors/settlement";
 
-interface OrderDetailItem {
-  id: string;
+interface OrderDetailItem extends OrderVendorItemData {
   productId: string;
-  productNameSnapshot: string;
-  pricingTypeSnapshot: "UNIT" | "AREA";
-  widthM: number | null;
-  heightM: number | null;
-  billedAreaM2: number | null;
-  quantity: number;
+  pricingTypeSnapshot: "UNIT" | "AREA" | "CUSTOM";
   unitPrice: number;
   isPriceOverridden: boolean;
   itemSubtotal: number;
   productionUnitPriceSnapshot?: number;
   productionSubtotal?: number;
   profitAmount?: number;
-  itemNotes: string | null;
   finishings: {
     id: string;
     finishingId: string;
@@ -80,6 +79,10 @@ interface OrderDetailData {
   grandTotal: number;
   totalProductionCost?: number;
   grossProfit?: number;
+  vendorPaidAmount?: number;
+  vendorPaymentStatus?: VendorPaymentStatus;
+  spkSentAt?: string | null;
+  designFileUrl?: string | null;
   paidAmount: number;
   remainingAmount: number;
   paymentStatus: "UNPAID" | "PARTIAL" | "PAID";
@@ -96,6 +99,7 @@ interface OrderDetailData {
   updatedAt: string;
   items: OrderDetailItem[];
   payments: PaymentRecord[];
+  vendorPayments?: VendorPaymentRecord[];
 }
 
 interface CurrentUser {
@@ -643,6 +647,11 @@ function OrderDetailContent() {
             </div>
           );
         })()}
+
+      {/* Owner-Only Vendor Assignment, SPK WA & Settlement Panel */}
+      {currentUser?.role === "OWNER" && (
+        <OrderVendorPanel order={order} onRefresh={fetchOrderDetail} />
+      )}
 
       {/* Payment History Section */}
       <div className="bg-card border border-border rounded-2xl shadow-xs overflow-hidden">

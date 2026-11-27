@@ -19,6 +19,7 @@ import {
   Printer,
   ChevronRight,
   ArrowUpCircle,
+  Building2,
 } from "lucide-react";
 import { isNativeApp } from "@/lib/platform";
 import { apiClient } from "@/lib/api/client";
@@ -78,6 +79,7 @@ const mainNavItems: NavItem[] = [
 
 const managementNavItems: NavItem[] = [
   { label: "Laporan Omzet", href: "/reports", icon: BarChart3, ownerOnly: true },
+  { label: "Vendor Mitra", href: "/vendors", icon: Building2, ownerOnly: true },
   { label: "Pengaturan Toko", href: "/settings", icon: Settings },
   { label: "Kelola Pengguna", href: "/users", icon: UserCheck, ownerOnly: true, webOnly: true },
   { label: "Audit Log", href: "/audit-logs", icon: ShieldCheck, ownerOnly: true },
@@ -646,18 +648,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <ChevronRight className="size-4 text-muted-foreground" />
             </Link>
 
-            {/* Laporan Omzet */}
-            <Link
-              href="/reports"
-              onClick={() => setIsMenuSheetOpen(false)}
-              className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-sm font-medium text-foreground transition-colors min-h-[44px]"
-            >
-              <div className="flex items-center gap-3">
-                <BarChart3 className="size-4.5 text-primary" />
-                <span>Laporan Omzet Penjualan</span>
-              </div>
-              <ChevronRight className="size-4 text-muted-foreground" />
-            </Link>
+            {isOwner && (
+              <Link
+                href="/vendors"
+                onClick={() => setIsMenuSheetOpen(false)}
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-sm font-medium text-foreground transition-colors min-h-[44px]"
+              >
+                <div className="flex items-center gap-3">
+                  <Building2 className="size-4.5 text-primary" />
+                  <span>Vendor Mitra</span>
+                </div>
+                <ChevronRight className="size-4 text-muted-foreground" />
+              </Link>
+            )}
+
+            {isOwner && (
+              <Link
+                href="/reports"
+                onClick={() => setIsMenuSheetOpen(false)}
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted text-sm font-medium text-foreground transition-colors min-h-[44px]"
+              >
+                <div className="flex items-center gap-3">
+                  <BarChart3 className="size-4.5 text-primary" />
+                  <span>Laporan Omzet Penjualan</span>
+                </div>
+                <ChevronRight className="size-4 text-muted-foreground" />
+              </Link>
+            )}
 
             {/* Pengaturan / Printer Bluetooth */}
             {(isOwner || isNative) && (

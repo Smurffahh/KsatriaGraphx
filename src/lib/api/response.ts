@@ -61,6 +61,12 @@ export function errorResponse(
 }
 
 export function handleApiError(err: unknown) {
+  if (err instanceof SyntaxError) {
+    return errorResponse("Format JSON request tidak valid", 400, {
+      code: "INVALID_JSON",
+    });
+  }
+
   if (err instanceof ZodError) {
     const flat = err.flatten();
     let firstMsg: string | undefined = flat.formErrors?.[0];

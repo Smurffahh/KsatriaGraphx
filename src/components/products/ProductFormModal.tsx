@@ -12,9 +12,16 @@ export interface CategoryOption {
   slug: string;
 }
 
+export interface VendorOption {
+  id: string;
+  name: string;
+  isActive: boolean;
+}
+
 export interface ProductFormData {
   id?: string;
   categoryId: string;
+  defaultVendorId?: string | null;
   name: string;
   sku: string;
   description: string;
@@ -36,6 +43,8 @@ interface ProductFormModalProps {
   onSubmit: (data: ProductFormData) => Promise<void>;
   initialData?: ProductFormData | null;
   categories: CategoryOption[];
+  vendors?: VendorOption[];
+  isOwner?: boolean;
   isSubmitting?: boolean;
 }
 
@@ -45,10 +54,13 @@ export function ProductFormModal({
   onSubmit,
   initialData,
   categories,
+  vendors = [],
+  isOwner = false,
   isSubmitting = false,
 }: ProductFormModalProps) {
   const [formData, setFormData] = useState<ProductFormData>({
     categoryId: "",
+    defaultVendorId: null,
     name: "",
     sku: "",
     description: "",
@@ -68,10 +80,14 @@ export function ProductFormModal({
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({
+        ...initialData,
+        defaultVendorId: initialData.defaultVendorId ?? null,
+      });
     } else {
       setFormData({
         categoryId: "",
+        defaultVendorId: null,
         name: "",
         sku: "",
         description: "",
@@ -161,6 +177,7 @@ export function ProductFormModal({
       const cleanPayload: ProductFormData = {
         ...(formData.id ? { id: formData.id } : {}),
         categoryId: formData.categoryId,
+        ...(isOwner ? { defaultVendorId: formData.defaultVendorId || null } : {}),
         name: formData.name.trim(),
         sku: formData.sku?.trim() || "",
         description: formData.description?.trim() || "",
@@ -325,6 +342,34 @@ export function ProductFormModal({
                 className="h-11 w-full rounded-xl border border-input bg-background px-3.5 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
               />
             </div>
+
+            {isOwner && (
+              <div className="sm:col-span-2 space-y-1.5">
+                <label className="text-xs sm:text-sm font-semibold text-foreground">
+                  Vendor Mitra Default (Opsional)
+                </label>
+                <select
+                  value={formData.defaultVendorId || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      defaultVendorId: e.target.value ? e.target.value : null,
+                    })
+                  }
+                  className="h-11 w-full rounded-xl border border-input bg-background px-3.5 text-base sm:text-sm text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                >
+                  <option value="">Tidak ada vendor default</option>
+                  {vendors.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Otomatis terpilih saat item ini dipesan di kasir (khusus Owner).
+                </p>
+              </div>
+            )}
 
             {/* Harga Produksi (Modal) vs Harga Jual (Ke Pelanggan) */}
             <div className="sm:col-span-2 grid grid-cols-1 gap-4 sm:grid-cols-2">

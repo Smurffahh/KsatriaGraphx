@@ -7,6 +7,12 @@ export const areaRoundingEnum = pgEnum("area_rounding", ["EXACT", "ROUND_UP_0_5"
 export const chargeTypeEnum = pgEnum("charge_type", ["FLAT", "PER_QTY", "PER_AREA"]);
 export const discountTypeEnum = pgEnum("discount_type", ["NONE", "FIXED", "PERCENT"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["UNPAID", "PARTIAL", "PAID"]);
+export const vendorPaymentStatusEnum = pgEnum("vendor_payment_status", [
+  "NOT_APPLICABLE",
+  "UNPAID",
+  "PARTIAL",
+  "PAID",
+]);
 export const productionStatusEnum = pgEnum("production_status", [
   "QUEUED",
   "IN_PROGRESS",

@@ -62,6 +62,8 @@ describe("HTTP Route RBAC Zero-Leak Audit: Harga Modal Vendor & Laba (Cookie Web
         unitLabel: "m²",
         productionPrice: 20000,
         basePrice: 25000,
+        defaultVendorId: "99999999-9999-4999-8999-999999999999",
+        defaultVendor: { id: "99999999-9999-4999-8999-999999999999", name: "Vendor A", isActive: true },
         minArea: "1.00",
         areaRounding: "EXACT",
         isActive: true,
@@ -99,6 +101,8 @@ describe("HTTP Route RBAC Zero-Leak Audit: Harga Modal Vendor & Laba (Cookie Web
       const body = await res.json();
       expect(body.data[0].basePrice).toBe(25000);
       expect("productionPrice" in body.data[0]).toBe(false);
+      expect("defaultVendorId" in body.data[0]).toBe(false);
+      expect("defaultVendor" in body.data[0]).toBe(false);
       expect("productionPrice" in body.data[0].priceTiers[0]).toBe(false);
     }
 
@@ -115,6 +119,7 @@ describe("HTTP Route RBAC Zero-Leak Audit: Harga Modal Vendor & Laba (Cookie Web
     const ownerRes = await GET(new NextRequest("http://localhost:3000/api/products"));
     const ownerBody = await ownerRes.json();
     expect(ownerBody.data[0].productionPrice).toBe(20000);
+    expect(ownerBody.data[0].defaultVendorId).toBe("99999999-9999-4999-8999-999999999999");
     expect(ownerBody.data[0].priceTiers[0].productionPrice).toBe(18000);
   });
 
@@ -156,6 +161,10 @@ describe("HTTP Route RBAC Zero-Leak Audit: Harga Modal Vendor & Laba (Cookie Web
       grandTotal: 25000,
       totalProductionCost: 20000,
       grossProfit: 5000,
+      vendorPaidAmount: 10000,
+      vendorPaymentStatus: "PARTIAL",
+      spkSentAt: new Date().toISOString(),
+      designFileUrl: "https://drive.google.com/file/d/secret",
     };
     const itemRow = {
       id: "66666666-6666-4666-8666-666666666666",
@@ -166,6 +175,8 @@ describe("HTTP Route RBAC Zero-Leak Audit: Harga Modal Vendor & Laba (Cookie Web
       productionUnitPriceSnapshot: 20000,
       productionSubtotal: 20000,
       profitAmount: 5000,
+      vendorId: null,
+      vendorNameSnapshot: "Vendor Rahasia",
     };
 
     const { GET: getOrdersList } = await import("@/app/api/orders/route");
@@ -185,6 +196,10 @@ describe("HTTP Route RBAC Zero-Leak Audit: Harga Modal Vendor & Laba (Cookie Web
     expect(listBody.success).toBe(true);
     expect("totalProductionCost" in listBody.data.data[0]).toBe(false);
     expect("grossProfit" in listBody.data.data[0]).toBe(false);
+    expect("vendorPaidAmount" in listBody.data.data[0]).toBe(false);
+    expect("vendorPaymentStatus" in listBody.data.data[0]).toBe(false);
+    expect("spkSentAt" in listBody.data.data[0]).toBe(false);
+    expect("designFileUrl" in listBody.data.data[0]).toBe(false);
 
     const { GET: getOrderDetail } = await import("@/app/api/orders/[id]/route");
     mockRequireAuth.mockResolvedValueOnce({
@@ -207,11 +222,18 @@ describe("HTTP Route RBAC Zero-Leak Audit: Harga Modal Vendor & Laba (Cookie Web
     expect(detailBody.success).toBe(true);
     expect("totalProductionCost" in detailBody.data).toBe(false);
     expect("grossProfit" in detailBody.data).toBe(false);
+    expect("vendorPaidAmount" in detailBody.data).toBe(false);
+    expect("vendorPaymentStatus" in detailBody.data).toBe(false);
+    expect("vendorPayments" in detailBody.data).toBe(false);
+    expect("spkSentAt" in detailBody.data).toBe(false);
+    expect("designFileUrl" in detailBody.data).toBe(false);
     expect("productionUnitPriceSnapshot" in detailBody.data.items[0]).toBe(false);
     expect("productionSubtotal" in detailBody.data.items[0]).toBe(false);
     expect("profitAmount" in detailBody.data.items[0]).toBe(false);
+    expect("vendorId" in detailBody.data.items[0]).toBe(false);
+    expect("vendorNameSnapshot" in detailBody.data.items[0]).toBe(false);
 
-    // Owner harus menerima totalProductionCost & grossProfit pada detail nota
+    // Owner harus menerima totalProductionCost, grossProfit & detail vendor pada detail nota
     mockRequireAuth.mockResolvedValueOnce({
       userId: "owner-1",
       role: "OWNER",
@@ -222,6 +244,7 @@ describe("HTTP Route RBAC Zero-Leak Audit: Harga Modal Vendor & Laba (Cookie Web
       .mockImplementationOnce(() => buildSelectChain([{ ...listRow, customerId: null }]))
       .mockImplementationOnce(() => buildSelectChain([itemRow]))
       .mockImplementationOnce(() => buildSelectChain([]))
+      .mockImplementationOnce(() => buildSelectChain([]))
       .mockImplementationOnce(() => buildSelectChain([]));
 
     const ownerDetailRes = await getOrderDetail(new NextRequest(`http://localhost:3000/api/orders/${orderId}`), {
@@ -231,7 +254,10 @@ describe("HTTP Route RBAC Zero-Leak Audit: Harga Modal Vendor & Laba (Cookie Web
     expect(ownerDetailRes.status).toBe(200);
     expect(ownerDetailBody.data.totalProductionCost).toBe(20000);
     expect(ownerDetailBody.data.grossProfit).toBe(5000);
+    expect(ownerDetailBody.data.vendorPaidAmount).toBe(10000);
+    expect(ownerDetailBody.data.vendorPaymentStatus).toBe("PARTIAL");
     expect(ownerDetailBody.data.items[0].profitAmount).toBe(5000);
+    expect(ownerDetailBody.data.items[0].vendorNameSnapshot).toBe("Vendor Rahasia");
   });
 
   it("GET /api/dashboard tidak mengembalikan totalProductionCost/totalGrossProfit ke KASIR & GET /api/reports memblokir KASIR", async () => {
@@ -256,8 +282,12 @@ describe("HTTP Route RBAC Zero-Leak Audit: Harga Modal Vendor & Laba (Cookie Web
     expect("totalProductionCost" in dashBody.data.kpi).toBe(false);
     expect("totalGrossProfit" in dashBody.data.kpi).toBe(false);
     expect("profitMarginPercent" in dashBody.data.kpi).toBe(false);
+    expect("unpaidVendorTotal" in dashBody.data.kpi).toBe(false);
+    expect("unpaidVendorOrderCount" in dashBody.data.kpi).toBe(false);
+    expect("vendorPaidInPeriod" in dashBody.data.kpi).toBe(false);
+    expect("netAvailableCashEstimate" in dashBody.data.kpi).toBe(false);
 
-    // Owner dashboard mengembalikan metrik modal & laba bersih
+    // Owner dashboard mengembalikan metrik modal, laba bersih & kewajiban setor vendor
     mockRequireAuth.mockResolvedValueOnce({
       userId: "owner-1",
       role: "OWNER",
@@ -271,6 +301,10 @@ describe("HTTP Route RBAC Zero-Leak Audit: Harga Modal Vendor & Laba (Cookie Web
       )
       .mockImplementationOnce(() => buildSelectChain([{ totalCashIn: 25000 }]))
       .mockImplementationOnce(() => buildSelectChain([{ totalPiutang: 0 }]))
+      .mockImplementationOnce(() =>
+        buildSelectChain([{ unpaidVendorTotal: 15000, unpaidVendorOrderCount: 1 }])
+      )
+      .mockImplementationOnce(() => buildSelectChain([{ vendorPaidInPeriod: 5000 }]))
       .mockImplementationOnce(() => buildSelectChain([]))
       .mockImplementationOnce(() => buildSelectChain([]))
       .mockImplementationOnce(() => buildSelectChain([]));
@@ -282,6 +316,10 @@ describe("HTTP Route RBAC Zero-Leak Audit: Harga Modal Vendor & Laba (Cookie Web
     expect(ownerDashBody.data.kpi.totalProductionCost).toBe(20000);
     expect(ownerDashBody.data.kpi.totalGrossProfit).toBe(5000);
     expect(ownerDashBody.data.kpi.profitMarginPercent).toBe(20);
+    expect(ownerDashBody.data.kpi.unpaidVendorTotal).toBe(15000);
+    expect(ownerDashBody.data.kpi.unpaidVendorOrderCount).toBe(1);
+    expect(ownerDashBody.data.kpi.vendorPaidInPeriod).toBe(5000);
+    expect(ownerDashBody.data.kpi.netAvailableCashEstimate).toBe(10000);
 
     const { GET: getReports } = await import("@/app/api/reports/route");
     mockRequireOwner.mockRejectedValueOnce(new Error("FORBIDDEN_NOT_OWNER"));
@@ -289,7 +327,7 @@ describe("HTTP Route RBAC Zero-Leak Audit: Harga Modal Vendor & Laba (Cookie Web
     expect(reportsRes.status).toBe(403);
   });
 
-  it("ReceiptView.tsx & src/lib/printer/ tidak pernah mereferensikan field modal vendor atau laba", () => {
+  it("ReceiptView.tsx & src/lib/printer/ tidak pernah mereferensikan field modal vendor, setoran, SPK, atau laba", () => {
     const filesToCheck = [
       "src/components/receipt/ReceiptView.tsx",
       "src/lib/printer/escpos.ts",
@@ -302,6 +340,13 @@ describe("HTTP Route RBAC Zero-Leak Audit: Harga Modal Vendor & Laba (Cookie Web
       "totalProductionCost",
       "grossProfit",
       "profitAmount",
+      "vendorPaidAmount",
+      "vendorPaymentStatus",
+      "vendorPayments",
+      "spkSentAt",
+      "designFileUrl",
+      "defaultVendor",
+      "vendorNameSnapshot",
     ];
 
     for (const file of filesToCheck) {

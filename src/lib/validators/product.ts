@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { optionalUuidSchema } from "./vendor";
 
 /**
  * Memvalidasi apakah URL mengarah ke domain resmi Vercel Blob (public/private) atau endpoint proxy lokal.
@@ -165,6 +166,7 @@ export const createProductSchema = z
   .object({
     id: z.string().uuid("ID produk harus berupa UUID valid").optional().nullable(),
     categoryId: z.string().uuid("ID Kategori harus berupa UUID yang valid"),
+    defaultVendorId: optionalUuidSchema.optional(),
     name: z.string().trim().min(1, "Nama produk wajib diisi").max(150, "Maksimal 150 karakter"),
     sku: z
       .string()
@@ -203,6 +205,7 @@ export const updateProductSchema = z
   .object({
     id: z.string().uuid("ID produk harus berupa UUID valid").optional().nullable(),
     categoryId: z.string().uuid("ID Kategori harus berupa UUID yang valid").optional(),
+    defaultVendorId: optionalUuidSchema.optional(),
     name: z.string().trim().min(1, "Nama produk wajib diisi").max(150, "Maksimal 150 karakter").optional(),
     sku: z
       .string()

@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { toast } from "sonner";
+import { VendorStatusBadge } from "@/components/vendors/VendorStatusBadge";
+import type { VendorPaymentStatus } from "@/lib/vendors/settlement";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLoadingBanner } from "@/components/ui/page-loading-banner";
 import { Button } from "@/components/ui/button";
@@ -29,6 +31,8 @@ interface ReportSummary {
   totalProductionCost: number;
   totalGrossProfit: number;
   profitMarginPercent: number;
+  totalVendorPaid?: number;
+  totalVendorPayable?: number;
   totalPaid: number;
   totalRemaining: number;
   ordersCount: number;
@@ -56,6 +60,8 @@ interface ReportOrder {
   grandTotal: number;
   totalProductionCost: number;
   grossProfit: number;
+  vendorPaidAmount?: number;
+  vendorPaymentStatus?: VendorPaymentStatus;
   paidAmount: number;
   remainingAmount: number;
   paymentStatus: "UNPAID" | "PARTIAL" | "PAID";
@@ -124,6 +130,9 @@ export default function ReportsPage() {
   const [selectedCashier, setSelectedCashier] = useState("");
   const [paymentStatus, setPaymentStatus] = useState<
     "ALL" | "PAID" | "PARTIAL" | "UNPAID"
+  >("ALL");
+  const [vendorPaymentStatus, setVendorPaymentStatus] = useState<
+    "ALL" | VendorPaymentStatus
   >("ALL");
   const [isExporting, setIsExporting] = useState(false);
 
@@ -194,6 +203,7 @@ export default function ReportsPage() {
         endDate,
         selectedCashier,
         paymentStatus,
+        vendorPaymentStatus,
       ],
       queryFn: async () => {
         const params = new URLSearchParams();
@@ -202,6 +212,8 @@ export default function ReportsPage() {
         if (selectedCashier) params.set("cashierId", selectedCashier);
         if (paymentStatus !== "ALL")
           params.set("paymentStatus", paymentStatus);
+        if (vendorPaymentStatus !== "ALL")
+          params.set("vendorPaymentStatus", vendorPaymentStatus);
 
         const res = await apiClient.get<ReportResponse>(
           `/api/reports?${params.toString()}`
@@ -229,6 +241,8 @@ export default function ReportsPage() {
       if (endDate) params.set("endDate", endDate);
       if (selectedCashier) params.set("cashierId", selectedCashier);
       if (paymentStatus !== "ALL") params.set("paymentStatus", paymentStatus);
+      if (vendorPaymentStatus !== "ALL")
+        params.set("vendorPaymentStatus", vendorPaymentStatus);
       params.set("format", "csv");
 
       const endpoint = `/api/reports?${params.toString()}`;
@@ -341,7 +355,7 @@ export default function ReportsPage() {
         </div>
 
         {/* Inputs Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 pt-1">
           {/* Tanggal Mulai */}
           <div>
             <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-1.5">
@@ -408,6 +422,28 @@ export default function ReportsPage() {
                     {c.name} ({c.role})
                   </option>
                 ))}
+              </select>
+            </div>
+          )}
+
+          {isOwner && (
+            <div>
+              <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-1.5">
+                Setoran Vendor
+              </label>
+              <select
+                aria-label="Status Setoran Vendor"
+                value={vendorPaymentStatus}
+                onChange={(e) =>
+                  setVendorPaymentStatus(e.target.value as "ALL" | VendorPaymentStatus)
+                }
+                className="h-11 w-full px-3.5 text-base sm:text-sm bg-muted/50 border border-border rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
+              >
+                <option value="ALL">Semua Setoran</option>
+                <option value="UNPAID">Belum Setor</option>
+                <option value="PARTIAL">DP Vendor</option>
+                <option value="PAID">Lunas Vendor</option>
+                <option value="NOT_APPLICABLE">Tanpa Vendor</option>
               </select>
             </div>
           )}
@@ -524,8 +560,8 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          {/* Ringkasan Modal Vendor & Laba Kotor (Owner) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+          {/* Ringkasan Modal Vendor, Setoran & Laba Kotor (Owner) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
             <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
               <div className="flex items-center justify-between gap-2.5 text-muted-foreground">
                 <span className="text-xs font-semibold uppercase tracking-wider leading-snug">
@@ -569,6 +605,40 @@ export default function ReportsPage() {
               </div>
               <div className="text-xs text-muted-foreground">
                 Pendapatan bersih setelah dikurangi modal vendor &amp; potongan diskon
+              </div>
+            </div>
+
+            <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
+              <div className="flex items-center justify-between gap-2.5 text-muted-foreground">
+                <span className="text-xs font-semibold uppercase tracking-wider leading-snug">
+                  Sudah Disetor ke Vendor
+                </span>
+                <div className="size-10 shrink-0 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                  <Banknote className="size-5" />
+                </div>
+              </div>
+              <div className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                {formatCurrency(data.summary.totalVendorPaid ?? 0)}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Realisasi setoran modal ke percetakan pada periode filter
+              </div>
+            </div>
+
+            <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
+              <div className="flex items-center justify-between gap-2.5 text-muted-foreground">
+                <span className="text-xs font-semibold uppercase tracking-wider leading-snug">
+                  Sisa Kewajiban Vendor
+                </span>
+                <div className="size-10 shrink-0 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+                  <AlertCircle className="size-5" />
+                </div>
+              </div>
+              <div className="text-2xl sm:text-3xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">
+                {formatCurrency(data.summary.totalVendorPayable ?? 0)}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Total sisa modal wajib setor ke vendor dari nota terpilih
               </div>
             </div>
           </div>
@@ -643,6 +713,19 @@ export default function ReportsPage() {
                         </span>
                       </div>
 
+                      <div className="flex items-center justify-between gap-2 text-xs tabular-nums">
+                        <VendorStatusBadge status={ord.vendorPaymentStatus} />
+                        <span className="text-amber-600 dark:text-amber-400 font-medium">
+                          Sisa Setor:{" "}
+                          {formatCurrency(
+                            Math.max(
+                              0,
+                              (ord.totalProductionCost ?? 0) - (ord.vendorPaidAmount ?? 0)
+                            )
+                          )}
+                        </span>
+                      </div>
+
                       <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border/40">
                         <span>Kasir: {ord.cashierName || "-"}</span>
                         <span>
@@ -680,7 +763,10 @@ export default function ReportsPage() {
                           Dibayar
                         </th>
                         <th className="py-3.5 px-4 font-semibold text-right">
-                          Piutang
+                          Sisa Piutang
+                        </th>
+                        <th className="py-3.5 px-4 font-semibold text-center">
+                          Setoran Vendor
                         </th>
                         <th className="py-3.5 px-4 font-semibold text-center">
                           Status
@@ -737,6 +823,21 @@ export default function ReportsPage() {
                             {ord.remainingAmount > 0
                               ? formatCurrency(ord.remainingAmount)
                               : "-"}
+                          </td>
+                          <td className="py-3.5 px-4 text-center">
+                            <div className="flex flex-col items-center gap-1">
+                              <VendorStatusBadge status={ord.vendorPaymentStatus} />
+                              <span className="text-[11px] text-muted-foreground tabular-nums">
+                                Sisa:{" "}
+                                {formatCurrency(
+                                  Math.max(
+                                    0,
+                                    (ord.totalProductionCost ?? 0) -
+                                      (ord.vendorPaidAmount ?? 0)
+                                  )
+                                )}
+                              </span>
+                            </div>
                           </td>
                           <td className="py-3.5 px-4 text-center">
                             <span

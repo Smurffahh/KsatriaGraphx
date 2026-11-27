@@ -21,6 +21,9 @@ const reportsQuerySchema = z
     endDate: z.string().optional(),
     cashierId: z.string().uuid().optional(),
     paymentStatus: z.enum(["ALL", "PAID", "PARTIAL", "UNPAID"]).default("ALL"),
+    vendorPaymentStatus: z
+      .enum(["ALL", "NOT_APPLICABLE", "UNPAID", "PARTIAL", "PAID"])
+      .default("ALL"),
     paymentMethod: z.enum(["ALL", "CASH", "TRANSFER", "QRIS"]).default("ALL"),
     format: z.enum(["json", "csv"]).default("json"),
   })
@@ -36,6 +39,7 @@ export async function GET(request: NextRequest) {
       endDate: searchParams.get("endDate") || undefined,
       cashierId: searchParams.get("cashierId") || undefined,
       paymentStatus: searchParams.get("paymentStatus") || "ALL",
+      vendorPaymentStatus: searchParams.get("vendorPaymentStatus") || "ALL",
       paymentMethod: searchParams.get("paymentMethod") || "ALL",
       format: searchParams.get("format") || "json",
     });
@@ -64,6 +68,9 @@ export async function GET(request: NextRequest) {
     if (parsedQuery.paymentStatus !== "ALL") {
       conditions.push(eq(orders.paymentStatus, parsedQuery.paymentStatus));
     }
+    if (parsedQuery.vendorPaymentStatus !== "ALL") {
+      conditions.push(eq(orders.vendorPaymentStatus, parsedQuery.vendorPaymentStatus));
+    }
     if (startFilterDate) {
       conditions.push(gte(orders.createdAt, startFilterDate));
     }
@@ -87,6 +94,8 @@ export async function GET(request: NextRequest) {
         grandTotal: orders.grandTotal,
         totalProductionCost: orders.totalProductionCost,
         grossProfit: orders.grossProfit,
+        vendorPaidAmount: orders.vendorPaidAmount,
+        vendorPaymentStatus: orders.vendorPaymentStatus,
         paidAmount: orders.paidAmount,
         remainingAmount: orders.remainingAmount,
         paymentStatus: orders.paymentStatus,
@@ -102,6 +111,8 @@ export async function GET(request: NextRequest) {
     let totalOmzet = 0;
     let totalProductionCost = 0;
     let totalGrossProfit = 0;
+    let totalVendorPaid = 0;
+    let totalVendorPayable = 0;
     let totalPaid = 0;
     let totalRemaining = 0;
     const orderIds = ordersList.map((o) => o.id);
@@ -110,6 +121,8 @@ export async function GET(request: NextRequest) {
       totalOmzet += o.grandTotal;
       totalProductionCost += o.totalProductionCost;
       totalGrossProfit += o.grossProfit;
+      totalVendorPaid += o.vendorPaidAmount;
+      totalVendorPayable += Math.max(0, o.totalProductionCost - o.vendorPaidAmount);
       totalPaid += o.paidAmount;
       if (o.paymentStatus === "UNPAID" || o.paymentStatus === "PARTIAL") {
         totalRemaining += o.remainingAmount;
@@ -189,6 +202,9 @@ export async function GET(request: NextRequest) {
         "Modal Vendor",
         "Laba Kotor",
         "Margin (%)",
+        "Status Setoran Vendor",
+        "Sudah Setor Vendor",
+        "Sisa Setor Vendor",
         "Nominal Dibayar",
         "Sisa Piutang",
         "Status Pembayaran",
@@ -198,6 +214,7 @@ export async function GET(request: NextRequest) {
       const rows = ordersList.map((o) => {
         const orderMarginPercent =
           o.grandTotal > 0 ? Math.round((o.grossProfit / o.grandTotal) * 1000) / 10 : 0;
+        const remainingVendorPayable = Math.max(0, o.totalProductionCost - o.vendorPaidAmount);
         return [
           o.invoiceNumber,
           new Date(o.createdAt).toLocaleDateString("id-ID", {
@@ -219,6 +236,9 @@ export async function GET(request: NextRequest) {
           o.totalProductionCost,
           o.grossProfit,
           `${orderMarginPercent}%`,
+          o.vendorPaymentStatus,
+          o.vendorPaidAmount,
+          remainingVendorPayable,
           o.paidAmount,
           o.remainingAmount,
           o.paymentStatus,
@@ -248,6 +268,8 @@ export async function GET(request: NextRequest) {
         totalProductionCost,
         totalGrossProfit,
         profitMarginPercent,
+        totalVendorPaid,
+        totalVendorPayable,
         totalPaid,
         totalRemaining,
         ordersCount: ordersList.length,

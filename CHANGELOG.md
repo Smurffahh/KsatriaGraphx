@@ -4,6 +4,24 @@ Semua pembaruan terstruktur untuk proyek **Ksatria Graphx** didokumentasikan dal
 
 ---
 
+## [v1.6.0] - 2026-11-27
+
+Pembaruan v1.6.0 melengkapi alur operasional makelar percetakan dan konveksi pada **Ksatria Graphx** dengan direktori vendor mitra, pengiriman SPK produksi zero-leak ke WhatsApp, dan pencatatan setoran modal ke vendor khusus Owner:
+
+### Direktori Master Vendor Mitra & Katalog
+- **Tabel `vendors` & Relasi Produk (`drizzle/0004_quiet_terror.sql`)**: Menambahkan tabel `vendors` serta kolom opsional `default_vendor_id` pada `products` dan snapshot `vendor_id` / `vendor_name_snapshot` pada `order_items` sehingga satu pesanan mendukung banyak vendor berbeda.
+- **Halaman `/vendors` & Pilihan di Katalog**: Menambahkan halaman khusus Owner untuk mengelola vendor mitra lengkap dengan total produk terhubung, nominal kewajiban setor, dan sisa tagihan modal, serta pilihan vendor default saat tambah/edit produk.
+
+### Kirim SPK Produksi 1-Klik Zero-Leak ke WhatsApp
+- **Panel Produksi & SPK Vendor di Detail Pesanan**: Memungkinkan Owner memasang vendor per item, menyimpan tautan file desain HTTPS tervalidasi, meninjau pratinjau pesan SPK sebelum mengirim, menyalin SPK, dan membuka WhatsApp vendor dengan penanda waktu `spk_sent_at`.
+- **Jaminan Nol Kebocoran Data (`spk-text.ts`)**: Pesan SPK produksi hanya memuat nomor invoice, daftar spesifikasi item (nama produk, SKU, ukuran, jumlah, finishing, catatan), tautan file desain HTTPS, dan tenggat pengerjaan tanpa nama/kontak pelanggan, harga jual, total nota, maupun laba.
+
+### Ledger Setoran Modal ke Vendor & Pemisahan Kas Dashboard
+- **Ledger Append-Only `vendor_payments` & Transaksi Atomik**: Menambahkan riwayat setoran modal (`CASH`, `TRANSFER`, `QRIS`), penguncian baris `FOR UPDATE`, validasi anti-kelebihan setor (`UNPAID -> PARTIAL -> PAID`), serta penyesuaian modal aktual pasca-checkout (`PATCH /api/orders/[id]/vendor-cost`).
+- **Dashboard, Laporan & Isolasi Kasir**: Menambahkan kartu **Wajib Setor ke Vendor** dan **Estimasi Kas Tersedia** pada Dashboard Owner, filter & kolom CSV status setoran vendor pada Laporan, serta pembersihan field vendor/SPK/setoran untuk peran `KASIR` (`403 Forbidden` dan `cost-redaction.ts`).
+
+---
+
 ## [v1.5.0] - 2026-11-27
 
 Pembaruan v1.5.0 menghadirkan sistem **Harga Produksi (Modal Vendor) vs Harga Jual (Markup Reseller)** serta kalkulasi laba bersih otomatis dengan isolasi keamanan RBAC khusus Pemilik Usaha (Owner):

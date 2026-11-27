@@ -7,6 +7,8 @@ type RoleName = "OWNER" | "KASIR" | string;
 export function redactProductForRole<
   T extends {
     productionPrice?: unknown;
+    defaultVendorId?: unknown;
+    defaultVendor?: unknown;
     priceTiers?: Array<{ productionPrice?: unknown } & Record<string, unknown>>;
   } & Record<string, unknown>,
 >(product: T, role: RoleName): T {
@@ -14,8 +16,16 @@ export function redactProductForRole<
     return product;
   }
 
-  const { productionPrice: _productCost, priceTiers, ...safeProduct } = product;
+  const {
+    productionPrice: _productCost,
+    defaultVendorId: _defaultVendorId,
+    defaultVendor: _defaultVendor,
+    priceTiers,
+    ...safeProduct
+  } = product;
   void _productCost;
+  void _defaultVendorId;
+  void _defaultVendor;
 
   if (Array.isArray(priceTiers)) {
     return {
@@ -54,11 +64,19 @@ export function redactOrderForRole<
   T extends {
     totalProductionCost?: unknown;
     grossProfit?: unknown;
+    vendorPaidAmount?: unknown;
+    vendorPaymentStatus?: unknown;
+    vendorPayments?: unknown;
+    spkSentAt?: unknown;
+    designFileUrl?: unknown;
     items?: Array<
       {
         productionUnitPriceSnapshot?: unknown;
         productionSubtotal?: unknown;
         profitAmount?: unknown;
+        vendorId?: unknown;
+        vendorNameSnapshot?: unknown;
+        vendor?: unknown;
       } & Record<string, unknown>
     >;
   } & Record<string, unknown>,
@@ -70,11 +88,21 @@ export function redactOrderForRole<
   const {
     totalProductionCost: _orderCost,
     grossProfit: _orderProfit,
+    vendorPaidAmount: _vendorPaidAmount,
+    vendorPaymentStatus: _vendorPaymentStatus,
+    vendorPayments: _vendorPayments,
+    spkSentAt: _spkSentAt,
+    designFileUrl: _designFileUrl,
     items,
     ...safeOrder
   } = order;
   void _orderCost;
   void _orderProfit;
+  void _vendorPaidAmount;
+  void _vendorPaymentStatus;
+  void _vendorPayments;
+  void _spkSentAt;
+  void _designFileUrl;
 
   if (Array.isArray(items)) {
     return {
@@ -84,11 +112,17 @@ export function redactOrderForRole<
           productionUnitPriceSnapshot: _unitCost,
           productionSubtotal: _itemCost,
           profitAmount: _itemProfit,
+          vendorId: _vendorId,
+          vendorNameSnapshot: _vendorNameSnapshot,
+          vendor: _itemVendor,
           ...safeItem
         } = item;
         void _unitCost;
         void _itemCost;
         void _itemProfit;
+        void _vendorId;
+        void _vendorNameSnapshot;
+        void _itemVendor;
         return safeItem;
       }),
     } as unknown as T;

@@ -8,6 +8,8 @@ import {
   payments,
   users,
   customers,
+  vendors,
+  vendorPayments,
 } from "@/db/schema";
 import { requireAuth } from "@/lib/auth/guard";
 import { validateCsrfOrigin } from "@/lib/security/csrf";
@@ -53,6 +55,10 @@ export async function GET(
         grandTotal: orders.grandTotal,
         totalProductionCost: orders.totalProductionCost,
         grossProfit: orders.grossProfit,
+        vendorPaidAmount: orders.vendorPaidAmount,
+        vendorPaymentStatus: orders.vendorPaymentStatus,
+        spkSentAt: orders.spkSentAt,
+        designFileUrl: orders.designFileUrl,
         paidAmount: orders.paidAmount,
         remainingAmount: orders.remainingAmount,
         paymentStatus: orders.paymentStatus,
@@ -86,8 +92,75 @@ export async function GET(
             .where(inArray(orderItemFinishings.orderItemId, itemIds))
         : [];
 
+    const isOwner = session.role === "OWNER";
+    let vendorMap = new Map<
+      string,
+      { id: string; name: string; whatsapp: string; contactName: string | null; leadTimeDays: number; isActive: boolean }
+    >();
+    let vendorPaymentRows: Array<{
+      id: string;
+      orderId: string;
+      vendorId: string | null;
+      vendorNameSnapshot: string;
+      amount: number;
+      paymentMethod: string;
+      referenceNote: string | null;
+      paidAt: Date;
+      recordedByUserId: string;
+      recordedByUserName: string | null;
+    }> = [];
+
+    if (isOwner) {
+      const vendorIds = Array.from(
+        new Set(
+          items
+            .map((i) => i.vendorId)
+            .filter((vid): vid is string => typeof vid === "string" && vid.length > 0)
+        )
+      );
+
+      const [vendorList, vPayRows] = await Promise.all([
+        vendorIds.length > 0
+          ? db
+              .select({
+                id: vendors.id,
+                name: vendors.name,
+                whatsapp: vendors.whatsapp,
+                contactName: vendors.contactName,
+                leadTimeDays: vendors.leadTimeDays,
+                isActive: vendors.isActive,
+              })
+              .from(vendors)
+              .where(inArray(vendors.id, vendorIds))
+          : Promise.resolve([]),
+        db
+          .select({
+            id: vendorPayments.id,
+            orderId: vendorPayments.orderId,
+            vendorId: vendorPayments.vendorId,
+            vendorNameSnapshot: vendorPayments.vendorNameSnapshot,
+            amount: vendorPayments.amount,
+            paymentMethod: vendorPayments.paymentMethod,
+            referenceNote: vendorPayments.referenceNote,
+            paidAt: vendorPayments.paidAt,
+            recordedByUserId: vendorPayments.recordedByUserId,
+            recordedByUserName: users.name,
+          })
+          .from(vendorPayments)
+          .leftJoin(users, eq(vendorPayments.recordedByUserId, users.id))
+          .where(eq(vendorPayments.orderId, id))
+          .orderBy(desc(vendorPayments.paidAt)),
+      ]);
+
+      vendorMap = new Map(vendorList.map((v) => [v.id, v]));
+      vendorPaymentRows = vPayRows;
+    }
+
     const itemsWithFinishings = items.map((item) => ({
       ...item,
+      ...(isOwner && item.vendorId
+        ? { vendor: vendorMap.get(item.vendorId) || null }
+        : {}),
       finishings: finishingsList.filter((f) => f.orderItemId === item.id),
     }));
 
@@ -125,6 +198,7 @@ export async function GET(
           customer: customerDetails,
           items: itemsWithFinishings,
           payments: paymentRows,
+          ...(isOwner ? { vendorPayments: vendorPaymentRows } : {}),
         },
         session.role
       )

@@ -149,14 +149,11 @@ Seluruh dependensi yang digunakan pada repositori ini dicantumkan secara faktual
    pnpm install --frozen-lockfile
    ```
 
-3. **Siapkan berkas environment:**
-   ```bash
-   cp .env.example .env.local
-   ```
-   Buka berkas `.env.local` dan sesuaikan nilainya dengan kredensial database Neon serta kunci rahasia lokal Anda.
+3. **Siapkan berkas environment lokal (`.env.local`):**
+   Buat berkas `.env.local` secara manual di root proyek (seluruh berkas `.env*` diblokir oleh `.gitignore` dan tidak disimpan di repositori). Isi nilai seluruh variabel wajib di bawah ini menggunakan kredensial dari catatan lokal yang aman, integrasi database Neon & Vercel Blob, atau halaman **Settings -> Environment Variables** di dashboard Vercel Anda.
 
 <details>
-<summary><strong>Lihat daftar variabel environment (.env.example)</strong></summary>
+<summary><strong>Lihat daftar variabel environment yang dibutuhkan</strong></summary>
 
 | Variabel | Deskripsi | Kebutuhan |
 | :--- | :--- | :--- |
@@ -301,7 +298,6 @@ KsatriaGraphx/
 │   ├── middleware.ts                  # Next.js Edge Middleware pelindung rute & CORS
 │   └── types/                         # Definisi tipe global TypeScript
 ├── tests/                             # Pengujian unit, penetrasi, & E2E Playwright
-├── .env.example                       # Contoh template konfigurasi environment
 ├── .gitignore                         # Pengamanan berkas lokal & artifak sementara
 ├── CHANGELOG.md                       # Log perubahan terstruktur antar versi rilis
 ├── capacitor.config.ts                # Konfigurasi Capacitor Android
